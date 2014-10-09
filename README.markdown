@@ -14,11 +14,15 @@ Using standard frames over extended frames guarantees that the bootloader protoc
 CAN is pretty robust so packet drops will be really infrequent and will be detected when doing the CRC of the whole flash.
 We will never send packet out of order so no sequence number is needed.
 
+The first bit is the unicast / multicast bit.
+If this bit is zero, then the message is unicast to the Node ID.
+If the bit is one, then the message is multicast to the Group ID
+
 The format of the CAN message ID is really simple :
 
-* Uses CAN standard frames
-* 7 MSBs are for the Node ID (same number as UAVCAN)
-* The 4 LSBs are reserved
+* 1 bit for unicast / multicast.
+* 7 bits for the Node/Group ID (same number as UAVCAN)
+* 3 reserved
 
 ## UART Transport layer
 Just send the bytes at 115200 bauds, 8 bit, no parity.
