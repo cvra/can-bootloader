@@ -55,6 +55,14 @@ Command and parameters are encoded using MessagePack [1] because it is efficient
 Some commands will require an answer for example when writing the application CRC back to the programmer.
 They should simply send the MessagePack encoded response on the bus.
 
+## Standard commands
+
+* Jump to application (0x01). No parameters. Simply starts the application code.
+* CRC flash region (0x02). 2 parameters : start and end adress of the region we want to check. Returns the CRC32 of this region.
+* Write flash (0x03). Parameters : Start adress and sequence of bytes to write. Returns CRC32 of the written data.
+* Read flash (0x04). Parameters : Start adress and length. Returns sequence of read bytes
+
+
 
 # Various bootloader design ideas
 * Boards always boot into bootloader mode and then a command from the master is needed to jump to application code. We cannot jump to bootloader from application code because we want to be absolutely sure that we can always access it.
