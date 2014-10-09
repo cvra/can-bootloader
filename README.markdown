@@ -67,8 +67,16 @@ They should simply send the MessagePack encoded response on the bus.
 
 * Jump to application (0x01). No parameters. Simply starts the application code.
 * CRC flash region (0x02). 2 parameters : start and end adress of the region we want to check. Returns the CRC32 of this region.
-* Write flash (0x03). Parameters : Start adress and sequence of bytes to write. Returns CRC32 of the written data.
+* Write flash (0x03). Parameters : Start adress and sequence of bytes to write. Returns nothing.
 * Read flash (0x04). Parameters : Start adress and length. Returns sequence of read bytes
+* Check write status (0x05). Parameters: None. Returns: True if a write is currently in progress, False otherwise.
+
+# Multicast write
+When using multicast write the reccomended way is the following :
+1. Write to all board using multicast write command (0x04).
+2. Wait for one board to reply with 'True'
+3. Poll every board write status, wait until every board has finished.
+4. Ask each board to compute the CRC of the page you just wrote. If a board is wrong, reflash just this one.
 
 # Flash layout
 The bootloader resides in the N flash pages.
