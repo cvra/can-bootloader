@@ -52,6 +52,7 @@ The command format is simple :
     +-------+------+---+-------+
 
 Command and parameters are encoded using MessagePack [1] because it is efficient and extendable.
+The command and its parameters are written in a MessagePack array so we can know the command count.
 Some commands will require an answer for example when writing the application CRC back to the programmer.
 They should simply send the MessagePack encoded response on the bus.
 
