@@ -2,8 +2,11 @@
 
 ## Design goals
 
-* The bootloader protocol must be able to run over UART (point to point) or CAN (using adressing).
-* When running on top of CAN, it must work with UAVCAN, that means it can not use extended CAN frames and must gracefully handle lost packets.
+The bootloader protocol must be able to run over UART (point to point) or CAN (using adressing).
+Running the bootloader on UART allows for easier testing since the bootloader can be tested when connected directly to a PC.
+It also allows the usage of the bootloader in other projects which can be useful and increases testing of the bootloader.
+
+When running on top of CAN, it must work with UAVCAN, that means it can not use extended CAN frames and must gracefully handle lost packets.
 
 ## CAN Transport layer
 Apparently it will not be really needed to have a complicated transport layer here.
