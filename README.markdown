@@ -88,6 +88,19 @@ Additional informations are stored in the bootloader binary :
 After the bootloader and its config page comes the application.
 Application flash layout is out of the scope of this document.
 
+# Performance estimation
+Assuming :
+* CAN speed is 1 Mb/s
+* CAN overhead is about 50%
+* Protocol overhead + data drop is about 10%. Keep in mind that size of a write chunk might affect this since CRC checksum is done after each chunk.
+* Binary size : 1 MB
+* The bottleneck is in the CAN network, not in the CRC computation or in the flash write speed.
+* The time to check the CRC of each board can be neglected.
+* We use multicast write commands to lower bandwith usage.
+
+We can flash a whole board (1MB) in about 20 seconds.
+If all board in the robot run the same firmware, the whole robot can be updated in about the same time, which is pretty good.
+
 # References
 [1] MessagePack specifications : https://github.com/msgpack/msgpack/blob/master/spec.md
 
