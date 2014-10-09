@@ -66,11 +66,22 @@ They should simply send the MessagePack encoded response on the bus.
 * Write flash (0x03). Parameters : Start adress and sequence of bytes to write. Returns CRC32 of the written data.
 * Read flash (0x04). Parameters : Start adress and length. Returns sequence of read bytes
 
+# Flash layout
+The bootloader resides in the N flash pages.
+It is followed by one page of bootloader config page.
+This page contains the following informations, stored as a messagepack map.
+* nodeID: Unique node identifier, ranging from 1 to 127.
+* name: Human readable name describing the board (ex: "arms.left.shoulder").
+* model: Board model (ex: "CVRA.MotorController.v1")
+* crcApp: Application CRC. If the CRC matches the bootloader will automatically boot into it after a timeout.
+* updateCnt: Firmware update counter. Used for diagnostics and lifespan estimation.
 
+Additional informations are stored in the bootloader binary :
+* Git commit SHA
+* Build date
 
-# Various bootloader design ideas
-* Boards always boot into bootloader mode and then a command from the master is needed to jump to application code. We cannot jump to bootloader from application code because we want to be absolutely sure that we can always access it.
-* A global checksum of the flash (minus bootloader and configuration pages) is needed to ensure integrity.
+After the bootloader and its config page comes the application.
+Application flash layout is out of the scope of this document.
 
 # References
 [1] MessagePack specifications : https://github.com/msgpack/msgpack/blob/master/spec.md
