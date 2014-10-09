@@ -72,7 +72,8 @@ They should simply send the MessagePack encoded response on the bus.
 * Check write status (0x05). Parameters: None. Returns: True if a write is currently in progress, False otherwise.
 
 # Multicast write
-When using multicast write the reccomended way is the following :
+When using multicast write the recommended way is the following :
+
 1. Write to all board using multicast write command (0x04).
 2. Wait for one board to reply with 'True'
 3. Poll every board write status, wait until every board has finished.
