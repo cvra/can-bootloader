@@ -79,6 +79,7 @@ This page contains the following informations, stored as a messagepack map.
 * model: Board model (ex: "CVRA.MotorController.v1")
 * crcApp: Application CRC. If the CRC matches the bootloader will automatically boot into it after a timeout.
 * updateCnt: Firmware update counter. Used for diagnostics and lifespan estimation.
+* groups: Array containing the various multicast groups this board must listen to.
 
 Additional informations are stored in the bootloader binary :
 * Git commit SHA
