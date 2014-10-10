@@ -1,6 +1,6 @@
 # Bootloader protocol
 
-## Design goals
+# Design goals
 
 The bootloader protocol must be able to run over UART (point to point) or CAN (using adressing).
 Running the bootloader on UART allows for easier testing since the bootloader can be tested when connected directly to a PC.
@@ -8,7 +8,7 @@ It also allows the usage of the bootloader in other projects which can be useful
 
 When running on top of CAN, it must work with UAVCAN, that means it can not use extended CAN frames and must gracefully handle lost packets.
 
-## CAN Transport layer
+# CAN Transport layer
 Apparently it will not be really needed to have a complicated transport layer here.
 Using standard frames over extended frames guarantees that the bootloader protocol always win the arbitration.
 CAN is pretty robust so packet drops will be really infrequent and will be detected when doing the CRC of the whole flash.
@@ -24,10 +24,10 @@ The format of the CAN message ID is really simple :
 * 7 bits for the Node/Group ID (same number as UAVCAN)
 * 3 reserved
 
-## UART Transport layer
+# UART Transport layer
 Just send the bytes at 115200 bauds, 8 bit, no parity.
 
-## Datagram format
+# Datagram format
 Since we want to transmit over CAN (message oriented) and over UART (stream oriented), we will encapsulate datas into datagrams.
 
 The datagram layer has the following responsibilities :
@@ -50,7 +50,7 @@ The data field is escaped so a START byte is replaced by ESC ESC_START and an ES
 | 0xDC      | ESC_START    | Transposed Frame start
 | 0xDD      | ESC_ESC      | Transposed Frame Escape
 
-## Command format
+# Command format
 
 The command format is simple :
 
@@ -71,7 +71,7 @@ They should simply send the MessagePack encoded response on the bus.
 * Read flash (0x04). Parameters : Start adress and length. Returns sequence of read bytes
 * Check write status (0x05). Parameters: None. Returns: True if a write is currently in progress, False otherwise.
 
-# Multicast write
+## Multicast write
 When using multicast write the recommended way is the following :
 
 1. Write to all board using multicast write command (0x04).
@@ -97,7 +97,7 @@ Additional informations are stored in the bootloader binary :
 After the bootloader and its config page comes the application.
 Application flash layout is out of the scope of this document.
 
-# Performance estimation
+# Performance considerations
 Assuming :
 * CAN speed is 1 Mb/s
 * CAN overhead is about 50%
