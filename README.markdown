@@ -67,7 +67,7 @@ They should simply send the MessagePack encoded response on the bus.
 
 * Jump to application (0x01). No parameters. Simply starts the application code.
 * CRC flash region (0x02). 2 parameters : start and end adress of the region we want to check. Returns the CRC32 of this region.
-* Write flash (0x03). Parameters : Start adress and sequence of bytes to write. Returns nothing.
+* Write flash (0x03). Parameters : Start adress, expected device class (string) and sequence of bytes to write. Returns nothing.
 * Read flash (0x04). Parameters : Start adress and length. Returns sequence of read bytes
 * Check write status (0x05). Parameters: None. Returns: True if a write is currently in progress, False otherwise.
 
