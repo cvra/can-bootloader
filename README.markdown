@@ -110,6 +110,15 @@ Assuming :
 We can flash a whole board (1MB) in about 20 seconds.
 If all board in the robot run the same firmware, the whole robot can be updated in about the same time, which is pretty good.
 
+# Safety features
+The bootloader is expected to be one of the safest part of the robot firmware.
+Correcting a bug in the bootloader could be very complicated, requiring disassembly of the robot in the worst cases.
+Therefore, when implementing the bootloader or the associated protocol, the following safety points must be taken into account:
+* The bootloader must *never* erase itself or its configuration page.
+* It should never write to flash if the device class does not match. Doing so might result in the wrong firmware being written to the board, which is dangerous.
+* If the application CRC does not match, the bootloader should not boot it.
+* On power up the bootloader should wait enough time for the user to input commands before jumping to the application code.
+
 # References
 [1] MessagePack specifications : https://github.com/msgpack/msgpack/blob/master/spec.md
 
