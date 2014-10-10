@@ -14,22 +14,34 @@ Using standard frames over extended frames guarantees that the bootloader protoc
 CAN is pretty robust so packet drops will be really infrequent and will be detected when doing the CRC of the whole flash.
 We will never send packet out of order so no sequence number is needed.
 
-The first bit is the unicast / multicast bit.
-If this bit is zero, then the message is unicast to the Node ID.
-If the bit is one, then the message is multicast to the Group ID
+Multicast is done by having a list of ID who are adressed at the beginning of a datagram.
+Unicast is just a special case of multicast with only one node in the list.
 
-The format of the CAN message ID is really simple :
+There is one bit to indicate if this message is the first of a datagram (1) or if it is following a start marker (0).
 
-* 1 bit for unicast / multicast.
-* 7 bits for the Node/Group ID (same number as UAVCAN)
-* 3 reserved
+The format of the CAN message ID is :
+
+* 7 bits for the source ID
+* 1 bit for start of datagram bit
+* 3 reserved bits
+
+## CAN Datagram format
+The CAN datagram layer has the following resposibilities :
+* Adressing
+* Ensure data integrity (CRC)
+
+The datagram format is the following :
+
+1. CRC32 of the whole datagram : 4 bytes
+2. Destination ID list length (m) : 1 byte
+3. Destination IDs : m bytes
+4. Data length : 2 bytes
+5. Data: n bytes
 
 # UART Transport layer
 Just send the bytes at 115200 bauds, 8 bit, no parity.
 
-# Datagram format
-Since we want to transmit over CAN (message oriented) and over UART (stream oriented), we will encapsulate datas into datagrams.
-
+## UART Datagram format
 The datagram layer has the following responsibilities :
 * Find start and end of a datagram
 * Ensure data integrity (CRC)
