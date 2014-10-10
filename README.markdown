@@ -70,6 +70,7 @@ They should simply send the MessagePack encoded response on the bus.
 * Write flash (0x03). Parameters : Start adress, expected device class (string) and sequence of bytes to write. Returns nothing.
 * Read flash (0x04). Parameters : Start adress and length. Returns sequence of read bytes
 * Check write status (0x05). Parameters: None. Returns: True if a write is currently in progress, False otherwise.
+* Update config (0x06). The only parameters is a MessagePack map containing the configuration values to update. If a config value is not in its parameters, it will not be changed.
 
 ## Multicast write
 When using multicast write the recommended way is the following :
@@ -81,8 +82,12 @@ When using multicast write the recommended way is the following :
 
 # Flash layout
 The bootloader resides in the N flash pages.
-It is followed by one page of bootloader config page.
-This page contains the following informations, stored as a messagepack map.
+It is followed by two pages of bootloader config.
+The two configuration pages are here for redundancy and are checked by a CRC32 placed at the beginning (see `cvra/serializer` for details).
+If one page CRC does not match, then the bootloader will copy the other into it at boot.
+When updating the config, it should be CRC checked before writing to the redundancy page.
+
+The config contains the following informations, stored as a messagepack map.
 * nodeID: Unique node identifier, ranging from 1 to 127.
 * name: Human readable name describing the board (ex: "arms.left.shoulder").
 * model: Board model (ex: "CVRA.MotorController.v1")
