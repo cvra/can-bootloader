@@ -150,3 +150,82 @@ TEST(CANDatagramInputTestGroup, CanReadData)
 
     STRCMP_EQUAL(data, (char *)datagram.data);
 }
+
+TEST(CANDatagramInputTestGroup, EmptyDatagramIsNotComplete)
+{
+    CHECK_FALSE(can_datagram_is_complete(&datagram));
+}
+
+TEST(CANDatagramInputTestGroup, IsCompleteWhenAllDataAreRead)
+{
+    // CRC
+    can_datagram_input_byte(&datagram, 0x00);
+    can_datagram_input_byte(&datagram, 0x00);
+    can_datagram_input_byte(&datagram, 0x00);
+    can_datagram_input_byte(&datagram, 0x00);
+
+    // destination list length
+    can_datagram_input_byte(&datagram, 1);
+
+    // Destination node
+    can_datagram_input_byte(&datagram, 14);
+
+    int len = 1;
+    can_datagram_input_byte(&datagram, len >> 8);
+    can_datagram_input_byte(&datagram, len & 0xff);
+
+    can_datagram_input_byte(&datagram, 0x42);
+
+    CHECK_TRUE(can_datagram_is_complete(&datagram));
+}
+
+TEST(CANDatagramInputTestGroup, IncompleteDatagramIsInvalid)
+{
+    CHECK_FALSE(can_datagram_is_valid(&datagram));
+}
+
+TEST(CANDatagramInputTestGroup, IsInvalidOnCRCMismatch)
+{
+    // CRC
+    can_datagram_input_byte(&datagram, 0x00);
+    can_datagram_input_byte(&datagram, 0x00);
+    can_datagram_input_byte(&datagram, 0x00);
+    can_datagram_input_byte(&datagram, 0x00);
+
+    // destination list length
+    can_datagram_input_byte(&datagram, 1);
+
+    // Destination node
+    can_datagram_input_byte(&datagram, 14);
+
+    int len = 1;
+    can_datagram_input_byte(&datagram, len >> 8);
+    can_datagram_input_byte(&datagram, len & 0xff);
+
+    can_datagram_input_byte(&datagram, 0x42);
+
+    CHECK_FALSE(can_datagram_is_valid(&datagram));
+}
+
+TEST(CANDatagramInputTestGroup, IsValidWhenAllDataAreReadAndCRCMatches)
+{
+    // CRC
+    can_datagram_input_byte(&datagram, 0x9a);
+    can_datagram_input_byte(&datagram, 0x54);
+    can_datagram_input_byte(&datagram, 0xb8);
+    can_datagram_input_byte(&datagram, 0x63);
+
+    // destination list length
+    can_datagram_input_byte(&datagram, 1);
+
+    // Destination node
+    can_datagram_input_byte(&datagram, 14);
+
+    int len = 1;
+    can_datagram_input_byte(&datagram, len >> 8);
+    can_datagram_input_byte(&datagram, len & 0xff);
+
+    can_datagram_input_byte(&datagram, 0x42);
+
+    CHECK_TRUE(can_datagram_is_valid(&datagram));
+}

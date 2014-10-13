@@ -1,6 +1,6 @@
 depends:
     - test-runner
-    - state-machine
+    - serializer
 
 tests:
     - tests/can_datagram_tests.cpp
