@@ -1,0 +1,10 @@
+depends:
+    - test-runner
+    - state-machine
+
+tests:
+    - tests/can_datagram_tests.cpp
+
+source:
+    - can_datagram.c
+
