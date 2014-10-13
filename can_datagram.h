@@ -8,8 +8,6 @@
 extern "C" {
 #endif
 
-#include <state-machine/state_machine.h>
-
 typedef struct {
     uint32_t crc;
 

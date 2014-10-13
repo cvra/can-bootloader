@@ -3,8 +3,6 @@
 #include "can_datagram.h"
 #include <serializer/crc.h>
 
-void can_datagram_read_crc_state(state_machine_t *machine);
-
 void can_datagram_init(can_datagram_t *dt)
 {
     memset(dt, 0, sizeof *dt);
