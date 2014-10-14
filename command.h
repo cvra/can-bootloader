@@ -7,6 +7,15 @@
 extern "C" {
 #endif
 
+/** Invalid command format.
+ *
+ * Means that the command format is invalid, for example if the command index
+ * is not an integer. */
+#define ERR_INVALID_COMMAND 1
+
+/** Command index could not be found in command table. */
+#define ERR_COMMAND_NOT_FOUND 2
+
 typedef struct {
     /** Command ID */
     uint8_t index;
@@ -20,7 +29,7 @@ typedef struct {
  * @param [in] commands A list of all possible commands.
  * @param [in] command_len Length of the commands array.
  */
-void protocol_execute_command(char *data, command_t *commands, int command_len);
+int protocol_execute_command(char *data, command_t *commands, int command_len);
 
 #ifdef __cplusplus
 }

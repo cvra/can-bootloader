@@ -123,3 +123,73 @@ TEST(ProtocolCommandTestGroup, CanReadArgs)
     mock().checkExpectations();
 }
 
+void dummy_command(int argc, cmp_ctx_t *args)
+{
+}
+
+TEST(ProtocolCommandTestGroup, ExecuteReturnsZeroWhenValidCommand)
+{
+    int result;
+    command_t commands[] = {
+        {.index = 0x00, .f = dummy_command},
+    };
+
+    // Command index
+    cmp_write_uint(&command_builder, 0x0);
+
+    // Argument array length
+    cmp_write_array(&command_builder, 0);
+
+    result = protocol_execute_command(command_data, commands, LEN(commands));
+    CHECK_EQUAL(0, result);
+}
+
+TEST(ProtocolCommandTestGroup, ExecuteInvalidCommand)
+{
+    int result;
+    command_t commands[] = {
+        {.index = 0x00, .f = dummy_command},
+    };
+
+    // Invalid command index, here a float
+    cmp_write_float(&command_builder, 3.14);
+
+    // Argument array length
+    cmp_write_array(&command_builder, 0);
+
+    result = protocol_execute_command(command_data, commands, LEN(commands));
+    CHECK_EQUAL(-ERR_INVALID_COMMAND, result);
+}
+
+TEST(ProtocolCommandTestGroup, ExecuteWithoutArgumentsMeansArgcZero)
+{
+    int result;
+    command_t commands[] = {
+        {.index = 0x01, .f = argc_log_command},
+    };
+
+    cmp_write_uint(&command_builder, 1);
+
+    mock().expectOneCall("command").withIntParameter("argc", 0);
+
+    result = protocol_execute_command(command_data, commands, LEN(commands));
+
+    CHECK_EQUAL(0, result);
+
+    mock().checkExpectations();
+}
+
+TEST(ProtocolCommandTestGroup, CallingNonExistingFunctionReturnsCorrectErrorCode)
+{
+    int result;
+    command_t commands[] = {
+        {.index = 0x00, .f = argc_log_command},
+    };
+
+    // Non existing command
+    cmp_write_uint(&command_builder, 1);
+
+    result = protocol_execute_command(command_data, commands, LEN(commands));
+
+    CHECK_EQUAL(-ERR_COMMAND_NOT_FOUND, result);
+}
