@@ -290,3 +290,41 @@ TEST(CANDatagramInputTestGroup, DoesNotOverflowDataBuffer)
     /* Check that we respected the limit. */
     STRCMP_EQUAL("hello", (char *)datagram.data);
 }
+
+TEST(CANDatagramInputTestGroup, CanResetToStart)
+{
+    // Writes some part of a datagram, like after a hotplug
+    for (int i = 0; i < 20; ++i) {
+        can_datagram_input_byte(&datagram, 3);
+    }
+
+
+    // We see the start of a datagram and start inputing the beginning of a
+    // valid packet.
+    can_datagram_start(&datagram);
+
+    // CRC
+    can_datagram_input_byte(&datagram, 0xde);
+    can_datagram_input_byte(&datagram, 0xad);
+    can_datagram_input_byte(&datagram, 0xbe);
+    can_datagram_input_byte(&datagram, 0xef);
+
+    // destination list length
+    can_datagram_input_byte(&datagram, 1);
+
+    // Destination node
+    can_datagram_input_byte(&datagram, 14);
+
+    int len = 1;
+    can_datagram_input_byte(&datagram, len >> 8);
+    can_datagram_input_byte(&datagram, len & 0xff);
+
+    // data
+    can_datagram_input_byte(&datagram, 42);
+
+    CHECK_EQUAL(0xdeadbeef, datagram.crc);
+    CHECK_EQUAL(1, datagram.destination_nodes_len);
+    CHECK_EQUAL(14, datagram.destination_nodes[0]);
+    CHECK_EQUAL(1, datagram.data_len);
+    CHECK_EQUAL(42, datagram.data[0]);
+}

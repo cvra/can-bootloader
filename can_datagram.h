@@ -42,6 +42,12 @@ bool can_datagram_is_complete(can_datagram_t *dt);
 /** Returns true if the datagram is valid (complete and CRC match). */
 bool can_datagram_is_valid(can_datagram_t *dt);
 
+/** Signals to the parser that we are at the start of a datagram.
+ *
+ * The start of datagram comes from the Message ID (physical layer).
+ */
+void can_datagram_start(can_datagram_t *dt);
+
 #ifdef __cplusplus
 }
 #endif

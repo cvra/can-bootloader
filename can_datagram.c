@@ -97,3 +97,11 @@ bool can_datagram_is_valid(can_datagram_t *dt)
 
     return crc == dt->crc;
 }
+
+void can_datagram_start(can_datagram_t *dt)
+{
+    dt->_reader_state = 0;
+    dt->_crc_bytes_read = 0;
+    dt->_destination_nodes_read = 0;
+    dt->_data_bytes_read = 0;
+}
