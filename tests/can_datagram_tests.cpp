@@ -229,3 +229,32 @@ TEST(CANDatagramInputTestGroup, IsValidWhenAllDataAreReadAndCRCMatches)
 
     CHECK_TRUE(can_datagram_is_valid(&datagram));
 }
+
+TEST(CANDatagramInputTestGroup, DoesNotAppendMoreBytesThanDataLen)
+{
+    /** This test checks that if bytes arrive after the specified data length, they
+     * are simply discarded. */
+
+    // CRC
+    can_datagram_input_byte(&datagram, 0x00);
+    can_datagram_input_byte(&datagram, 0x00);
+    can_datagram_input_byte(&datagram, 0x00);
+    can_datagram_input_byte(&datagram, 0x00);
+
+    // destination list length
+    can_datagram_input_byte(&datagram, 1);
+
+    // Destination node
+    can_datagram_input_byte(&datagram, 14);
+
+    int len = 1;
+    can_datagram_input_byte(&datagram, len >> 8);
+    can_datagram_input_byte(&datagram, len & 0xff);
+
+    can_datagram_input_byte(&datagram, 42);
+    can_datagram_input_byte(&datagram, 43);
+
+    CHECK_EQUAL(42, datagram.data[0]);
+    CHECK_EQUAL(0, datagram.data[1]);
+
+}

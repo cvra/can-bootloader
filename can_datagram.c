@@ -58,6 +58,13 @@ void can_datagram_input_byte(can_datagram_t *dt, uint8_t val)
             dt->data[dt->_data_bytes_read] = val;
             dt->_data_bytes_read ++;
 
+            if (dt->_data_bytes_read == dt->data_len) {
+                dt->_reader_state ++;
+            }
+            break;
+
+        case 6:
+
             /* Don't change state, stay here forever. */
             break;
     }
