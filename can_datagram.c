@@ -13,9 +13,10 @@ void can_datagram_set_adress_buffer(can_datagram_t *dt, uint8_t *buf)
     dt->destination_nodes = buf;
 }
 
-void can_datagram_set_data_buffer(can_datagram_t *dt, uint8_t *buf)
+void can_datagram_set_data_buffer(can_datagram_t *dt, uint8_t *buf, size_t buf_size)
 {
     dt->data = buf;
+    dt->_data_buffer_size = buf_size;
 }
 
 void can_datagram_input_byte(can_datagram_t *dt, uint8_t val)
@@ -61,9 +62,14 @@ void can_datagram_input_byte(can_datagram_t *dt, uint8_t val)
             if (dt->_data_bytes_read == dt->data_len) {
                 dt->_reader_state ++;
             }
+
+            if (dt->_data_buffer_size == dt->_data_bytes_read) {
+                dt->_reader_state ++;
+            }
+
             break;
 
-        case 6:
+        default:
 
             /* Don't change state, stay here forever. */
             break;

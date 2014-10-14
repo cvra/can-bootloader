@@ -20,6 +20,7 @@ typedef struct {
     int _crc_bytes_read;
     uint8_t _destination_nodes_read;
     uint16_t _data_bytes_read;
+    uint16_t _data_buffer_size;
     int _reader_state;
 } can_datagram_t;
 
@@ -30,7 +31,7 @@ void can_datagram_init(can_datagram_t *dt);
 void can_datagram_set_adress_buffer(can_datagram_t *dt, uint8_t *buf);
 
 /** Sets the buffer to use for data storage. */
-void can_datagram_set_data_buffer(can_datagram_t *dt, uint8_t *buf);
+void can_datagram_set_data_buffer(can_datagram_t *dt, uint8_t *buf, size_t buf_size);
 
 /** Inputs a byte into the datagram. */
 void can_datagram_input_byte(can_datagram_t *dt, uint8_t val);

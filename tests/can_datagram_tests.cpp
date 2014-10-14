@@ -39,7 +39,7 @@ TEST(CanDataGramTestGroup, CanSetDestinationAdressesBuffer)
 TEST(CanDataGramTestGroup, CanSetDataBuffer)
 {
     uint8_t buf[10];
-    can_datagram_set_data_buffer(&dt, buf);
+    can_datagram_set_data_buffer(&dt, buf, sizeof buf);
     POINTERS_EQUAL(buf, dt.data);
 }
 
@@ -53,7 +53,7 @@ TEST_GROUP(CANDatagramInputTestGroup)
     {
         can_datagram_init(&datagram);
         can_datagram_set_adress_buffer(&datagram, adress_buffer);
-        can_datagram_set_data_buffer(&datagram, data_buffer);
+        can_datagram_set_data_buffer(&datagram, data_buffer, sizeof data_buffer);
     }
 };
 
@@ -256,5 +256,37 @@ TEST(CANDatagramInputTestGroup, DoesNotAppendMoreBytesThanDataLen)
 
     CHECK_EQUAL(42, datagram.data[0]);
     CHECK_EQUAL(0, datagram.data[1]);
+}
 
+TEST(CANDatagramInputTestGroup, DoesNotOverflowDataBuffer)
+{
+    // Pass a smaller size (5) to check overflow detection
+    can_datagram_set_data_buffer(&datagram, data_buffer, 5);
+
+    // CRC
+    can_datagram_input_byte(&datagram, 0x00);
+    can_datagram_input_byte(&datagram, 0x00);
+    can_datagram_input_byte(&datagram, 0x00);
+    can_datagram_input_byte(&datagram, 0x00);
+
+    // destination list length
+    can_datagram_input_byte(&datagram, 1);
+
+    // Destination node
+    can_datagram_input_byte(&datagram, 14);
+
+    char data[] = "hello, world"; // too long to fit in buffer !
+    int len = strlen(data);
+
+    can_datagram_input_byte(&datagram, len >> 8);
+    can_datagram_input_byte(&datagram, len & 0xff);
+
+    for (int i = 0; i < len; ++i) {
+        can_datagram_input_byte(&datagram, data[i]);
+    }
+
+    CHECK_EQUAL(5, datagram._data_buffer_size);
+
+    /* Check that we respected the limit. */
+    STRCMP_EQUAL("hello", (char *)datagram.data);
 }
