@@ -55,27 +55,28 @@ TEST_GROUP(CANDatagramInputTestGroup)
         can_datagram_set_adress_buffer(&datagram, adress_buffer);
         can_datagram_set_data_buffer(&datagram, data_buffer, sizeof data_buffer);
     }
+
+    void input_data(uint8_t *data, size_t len)
+    {
+        for (int i = 0; i < len; ++i) {
+            can_datagram_input_byte(&datagram, data[i]);
+        }
+    }
 };
 
 TEST(CANDatagramInputTestGroup, CANReadCRC)
 {
-    can_datagram_input_byte(&datagram, 0xde);
-    can_datagram_input_byte(&datagram, 0xad);
-    can_datagram_input_byte(&datagram, 0xbe);
-    can_datagram_input_byte(&datagram, 0xef);
+    uint8_t buf[] = {0xde, 0xad, 0xbe, 0xef};
+    input_data(buf, sizeof buf);
 
     CHECK_EQUAL(0xdeadbeef, datagram.crc);
 }
 
 TEST(CANDatagramInputTestGroup, CanReadDestinationLength)
 {
-    // Input dummy CRC
-    for (int i = 0; i < 4; ++i) {
-        can_datagram_input_byte(&datagram, 0x00);
-    }
+    uint8_t buf[] = {0x00, 0x00, 0x00, 0x00, 42};
 
-    // Input destination list length
-    can_datagram_input_byte(&datagram, 42);
+    input_data(buf, sizeof buf);
 
     CHECK_EQUAL(42, datagram.destination_nodes_len);
 }
@@ -83,66 +84,52 @@ TEST(CANDatagramInputTestGroup, CanReadDestinationLength)
 TEST(CANDatagramInputTestGroup, CanReadDestinations)
 {
     int i;
-    // Input dummy CRC
-    for (i = 0; i < 4; ++i) {
-        can_datagram_input_byte(&datagram, 0x00);
-    }
 
-    // Input destination list length
-    can_datagram_input_byte(&datagram, 5);
+    uint8_t buf[] = {
+        0x00, 0x00, 0x00, 0x00, // CRC
+        5, // destination node list length
+        2, 3 // destination nodes
+    };
 
-    // Input destinations
-    for (i = 0; i < 5; ++i) {
-        can_datagram_input_byte(&datagram, 10 + i);
-    }
+    input_data(buf, sizeof buf);
 
-    for (i = 0; i < 5; ++i) {
-        CHECK_EQUAL(10 + i, datagram.destination_nodes[i]);
-    }
+    CHECK_EQUAL(2, datagram.destination_nodes[0]);
+    CHECK_EQUAL(3, datagram.destination_nodes[1]);
 }
 
 TEST(CANDatagramInputTestGroup, CanReadDataLength)
 {
-    // CRC
-    can_datagram_input_byte(&datagram, 0x00);
-    can_datagram_input_byte(&datagram, 0x00);
-    can_datagram_input_byte(&datagram, 0x00);
-    can_datagram_input_byte(&datagram, 0x00);
-
-    // destination list length
-    can_datagram_input_byte(&datagram, 1);
-
-    // Destination node
-    can_datagram_input_byte(&datagram, 14);
-
     // Data length
     const int len = 12;
-    can_datagram_input_byte(&datagram, len >> 8);
-    can_datagram_input_byte(&datagram, len & 0xff);
 
-    CHECK_EQUAL(12, datagram.data_len);
+    uint8_t buf[] = {
+        0x00, 0x00, 0x00, 0x00, // CRC
+        1, // destination node list length
+        3, // destination nodes
+        len >> 8,  // data length (MSB)
+        len & 0xff // data length (LSB)
+    };
+
+    input_data(buf, sizeof buf);
+
+    CHECK_EQUAL(len, datagram.data_len);
 }
 
 TEST(CANDatagramInputTestGroup, CanReadData)
 {
-    // CRC
-    can_datagram_input_byte(&datagram, 0x00);
-    can_datagram_input_byte(&datagram, 0x00);
-    can_datagram_input_byte(&datagram, 0x00);
-    can_datagram_input_byte(&datagram, 0x00);
-
-    // destination list length
-    can_datagram_input_byte(&datagram, 1);
-
-    // Destination node
-    can_datagram_input_byte(&datagram, 14);
-
     // Data
     char *data = (char *)"Hello";
     int len = strlen(data);
 
-    can_datagram_input_byte(&datagram, len >> 8);
-    can_datagram_input_byte(&datagram, len & 0xff);
+    uint8_t buf[] = {
+        0x00, 0x00, 0x00, 0x00, // CRC
+        1, // destination node list length
+        3, // destination nodes
+        len >> 8,  // data length (MSB)
+        len & 0xff // data length (LSB)
+    };
+
+    input_data(buf, sizeof buf);
 
     for (int i = 0; i < len; ++i) {
         can_datagram_input_byte(&datagram, data[i]);
@@ -158,74 +145,51 @@ TEST(CANDatagramInputTestGroup, EmptyDatagramIsNotComplete)
 
 TEST(CANDatagramInputTestGroup, IsCompleteWhenAllDataAreRead)
 {
-    // CRC
-    can_datagram_input_byte(&datagram, 0x00);
-    can_datagram_input_byte(&datagram, 0x00);
-    can_datagram_input_byte(&datagram, 0x00);
-    can_datagram_input_byte(&datagram, 0x00);
-
-    // destination list length
-    can_datagram_input_byte(&datagram, 1);
-
-    // Destination node
-    can_datagram_input_byte(&datagram, 14);
-
     int len = 1;
-    can_datagram_input_byte(&datagram, len >> 8);
-    can_datagram_input_byte(&datagram, len & 0xff);
+    uint8_t buf[] = {
+        0x00, 0x00, 0x00, 0x00, // CRC
+        1, // destination node list length
+        3, // destination nodes
+        len >> 8,  // data length (MSB)
+        len & 0xff,// data length (LSB)
+        0x42 // data
+    };
 
-    can_datagram_input_byte(&datagram, 0x42);
+    input_data(buf, sizeof buf);
 
     CHECK_TRUE(can_datagram_is_complete(&datagram));
 }
 
-TEST(CANDatagramInputTestGroup, IncompleteDatagramIsInvalid)
-{
-    CHECK_FALSE(can_datagram_is_valid(&datagram));
-}
-
 TEST(CANDatagramInputTestGroup, IsInvalidOnCRCMismatch)
 {
-    // CRC
-    can_datagram_input_byte(&datagram, 0x00);
-    can_datagram_input_byte(&datagram, 0x00);
-    can_datagram_input_byte(&datagram, 0x00);
-    can_datagram_input_byte(&datagram, 0x00);
-
-    // destination list length
-    can_datagram_input_byte(&datagram, 1);
-
-    // Destination node
-    can_datagram_input_byte(&datagram, 14);
-
     int len = 1;
-    can_datagram_input_byte(&datagram, len >> 8);
-    can_datagram_input_byte(&datagram, len & 0xff);
+    uint8_t buf[] = {
+        0x00, 0x00, 0x00, 0x00, // CRC
+        1, // destination node list length
+        3, // destination nodes
+        len >> 8,  // data length (MSB)
+        len & 0xff,// data length (LSB)
+        0x42 // data
+    };
 
-    can_datagram_input_byte(&datagram, 0x42);
+    input_data(buf, sizeof buf);
 
     CHECK_FALSE(can_datagram_is_valid(&datagram));
 }
 
 TEST(CANDatagramInputTestGroup, IsValidWhenAllDataAreReadAndCRCMatches)
 {
-    // CRC
-    can_datagram_input_byte(&datagram, 0x9a);
-    can_datagram_input_byte(&datagram, 0x54);
-    can_datagram_input_byte(&datagram, 0xb8);
-    can_datagram_input_byte(&datagram, 0x63);
-
-    // destination list length
-    can_datagram_input_byte(&datagram, 1);
-
-    // Destination node
-    can_datagram_input_byte(&datagram, 14);
-
     int len = 1;
-    can_datagram_input_byte(&datagram, len >> 8);
-    can_datagram_input_byte(&datagram, len & 0xff);
+    uint8_t buf[] = {
+        0x9a, 0x54, 0xb8, 0x63, // CRC
+        1, // destination node list length
+        14, // destination nodes
+        len >> 8,  // data length (MSB)
+        len & 0xff,// data length (LSB)
+        0x42 // data
+    };
 
-    can_datagram_input_byte(&datagram, 0x42);
+    input_data(buf, sizeof buf);
 
     CHECK_TRUE(can_datagram_is_valid(&datagram));
 }
@@ -234,58 +198,47 @@ TEST(CANDatagramInputTestGroup, DoesNotAppendMoreBytesThanDataLen)
 {
     /** This test checks that if bytes arrive after the specified data length, they
      * are simply discarded. */
-
-    // CRC
-    can_datagram_input_byte(&datagram, 0x00);
-    can_datagram_input_byte(&datagram, 0x00);
-    can_datagram_input_byte(&datagram, 0x00);
-    can_datagram_input_byte(&datagram, 0x00);
-
-    // destination list length
-    can_datagram_input_byte(&datagram, 1);
-
-    // Destination node
-    can_datagram_input_byte(&datagram, 14);
-
     int len = 1;
-    can_datagram_input_byte(&datagram, len >> 8);
-    can_datagram_input_byte(&datagram, len & 0xff);
+    uint8_t buf[] = {
+        0x9a, 0x54, 0xb8, 0x63, // CRC
+        1, // destination node list length
+        14, // destination nodes
+        len >> 8,  // data length (MSB)
+        len & 0xff,// data length (LSB)
+        0x42, // data
+        0x43, 0x44 // garbage value
+    };
 
-    can_datagram_input_byte(&datagram, 42);
-    can_datagram_input_byte(&datagram, 43);
+    input_data(buf, sizeof buf);
 
-    CHECK_EQUAL(42, datagram.data[0]);
+    CHECK_EQUAL(0x42, datagram.data[0]);
     CHECK_EQUAL(0, datagram.data[1]);
 }
 
 TEST(CANDatagramInputTestGroup, DoesNotOverflowDataBuffer)
 {
+    /** This test checks that if bytes arrive after the specified data length, they
+     * are simply discarded. */
+
     // Pass a smaller size (5) to check overflow detection
     can_datagram_set_data_buffer(&datagram, data_buffer, 5);
-
-    // CRC
-    can_datagram_input_byte(&datagram, 0x00);
-    can_datagram_input_byte(&datagram, 0x00);
-    can_datagram_input_byte(&datagram, 0x00);
-    can_datagram_input_byte(&datagram, 0x00);
-
-    // destination list length
-    can_datagram_input_byte(&datagram, 1);
-
-    // Destination node
-    can_datagram_input_byte(&datagram, 14);
 
     char data[] = "hello, world"; // too long to fit in buffer !
     int len = strlen(data);
 
-    can_datagram_input_byte(&datagram, len >> 8);
-    can_datagram_input_byte(&datagram, len & 0xff);
+    uint8_t buf[] = {
+        0x9a, 0x54, 0xb8, 0x63, // CRC
+        1, // destination node list length
+        14, // destination nodes
+        len >> 8,  // data length (MSB)
+        len & 0xff,// data length (LSB)
+    };
+
+    input_data(buf, sizeof buf);
 
     for (int i = 0; i < len; ++i) {
         can_datagram_input_byte(&datagram, data[i]);
     }
-
-    CHECK_EQUAL(5, datagram._data_buffer_size);
 
     /* Check that we respected the limit. */
     STRCMP_EQUAL("hello", (char *)datagram.data);
@@ -303,24 +256,17 @@ TEST(CANDatagramInputTestGroup, CanResetToStart)
     // valid packet.
     can_datagram_start(&datagram);
 
-    // CRC
-    can_datagram_input_byte(&datagram, 0xde);
-    can_datagram_input_byte(&datagram, 0xad);
-    can_datagram_input_byte(&datagram, 0xbe);
-    can_datagram_input_byte(&datagram, 0xef);
-
-    // destination list length
-    can_datagram_input_byte(&datagram, 1);
-
-    // Destination node
-    can_datagram_input_byte(&datagram, 14);
-
     int len = 1;
-    can_datagram_input_byte(&datagram, len >> 8);
-    can_datagram_input_byte(&datagram, len & 0xff);
+    uint8_t buf[] = {
+        0xde, 0xad, 0xbe, 0xef,  // CRC
+        1, // destination node list length
+        14, // destination nodes
+        len >> 8,  // data length (MSB)
+        len & 0xff,// data length (LSB)
+        42 // data
+    };
 
-    // data
-    can_datagram_input_byte(&datagram, 42);
+    input_data(buf, sizeof buf);
 
     CHECK_EQUAL(0xdeadbeef, datagram.crc);
     CHECK_EQUAL(1, datagram.destination_nodes_len);
