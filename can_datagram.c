@@ -105,3 +105,59 @@ void can_datagram_start(can_datagram_t *dt)
     dt->_destination_nodes_read = 0;
     dt->_data_bytes_read = 0;
 }
+
+int can_datagram_output_bytes(can_datagram_t *dt, char *buffer, size_t buffer_len)
+{
+    size_t i;
+    for (i = 0; i < buffer_len; i++ ) {
+        switch (dt->_writer_state) {
+            case 0: /* CRC */
+                buffer[i] = dt->crc >> (24 - 8 * dt->_crc_bytes_written);
+                dt->_crc_bytes_written ++;
+
+                if (dt->_crc_bytes_written == 4) {
+                    dt->_writer_state ++;
+                }
+                break;
+
+            case 1: /* Destination node length */
+                buffer[i] = dt->destination_nodes_len;
+                dt->_writer_state ++;
+                break;
+
+            case 2: /* Destination nodes */
+                buffer[i] = dt->destination_nodes[dt->_destination_nodes_written];
+                dt->_destination_nodes_written ++;
+
+                if (dt->_destination_nodes_written == dt->destination_nodes_len) {
+                    dt->_writer_state ++;
+                }
+                break;
+
+            case 3: /* Data length MSB */
+                buffer[i] = dt->data_len >> 8;
+                dt->_writer_state ++;
+                break;
+
+            case 4: /* Data length LSB */
+                buffer[i] = dt->data_len & 0xff;
+                dt->_writer_state ++;
+                break;
+
+            case 5: /* Data */
+                buffer[i] = dt->data[dt->_data_bytes_written];
+                dt->_data_bytes_written ++;
+
+                printf("%d %d\n", dt->_data_bytes_written, dt->data_len);
+
+                /* If we don't have anymore data to send, return written byte
+                 * count. */
+                if (dt->_data_bytes_written == dt->data_len) {
+                    return i + 1;
+                }
+                break;
+        }
+    }
+
+    return buffer_len;
+}

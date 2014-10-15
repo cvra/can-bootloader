@@ -11,17 +11,21 @@ extern "C" {
 typedef struct {
     uint32_t crc;
 
-    uint8_t *destination_nodes;
     uint8_t destination_nodes_len;
+    uint8_t *destination_nodes;
 
-    uint8_t *data;
     uint16_t data_len;
+    uint8_t *data;
 
     int _crc_bytes_read;
+    int _crc_bytes_written;
     uint8_t _destination_nodes_read;
+    uint8_t _destination_nodes_written;
     uint16_t _data_bytes_read;
+    uint16_t _data_bytes_written;
     uint16_t _data_buffer_size;
     int _reader_state;
+    int _writer_state;
 } can_datagram_t;
 
 /** Sets the structure field to default values. */
@@ -47,6 +51,9 @@ bool can_datagram_is_valid(can_datagram_t *dt);
  * The start of datagram comes from the Message ID (physical layer).
  */
 void can_datagram_start(can_datagram_t *dt);
+
+/** Encodes the datagram in the buffer. */
+int can_datagram_output_bytes(can_datagram_t *dt, char *buffer, size_t buffer_len);
 
 #ifdef __cplusplus
 }

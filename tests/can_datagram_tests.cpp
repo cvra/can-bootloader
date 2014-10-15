@@ -274,3 +274,124 @@ TEST(CANDatagramInputTestGroup, CanResetToStart)
     CHECK_EQUAL(1, datagram.data_len);
     CHECK_EQUAL(42, datagram.data[0]);
 }
+
+TEST_GROUP(CANDatagramOutputTestGroup)
+{
+    can_datagram_t datagram;
+    uint8_t adress_buffer[128];
+    uint8_t data_buffer[128];
+
+    char output[64];
+    int ret;
+
+    void setup(void)
+    {
+        can_datagram_init(&datagram);
+        can_datagram_set_adress_buffer(&datagram, adress_buffer);
+        can_datagram_set_data_buffer(&datagram, data_buffer, sizeof data_buffer);
+        memset(output, 0, sizeof output);
+    }
+};
+
+TEST(CANDatagramOutputTestGroup, CanOutputFirstByteofCRC)
+{
+    datagram.crc = 0xdeadbeef;
+
+    ret = can_datagram_output_bytes(&datagram, output, 4);
+
+    BYTES_EQUAL(0xde, output[0]);
+    BYTES_EQUAL(0xad, output[1]);
+    BYTES_EQUAL(0xbe, output[2]);
+    BYTES_EQUAL(0xef, output[3]);
+    CHECK_EQUAL(4, ret);
+}
+
+TEST(CANDatagramOutputTestGroup, CanStopMidCRC)
+{
+    datagram.crc = 0xdeadbeef;
+
+    // Only output 2 bytes
+    ret = can_datagram_output_bytes(&datagram, output, 2);
+
+    CHECK_EQUAL(2, ret);
+    BYTES_EQUAL(0xde, output[0]);
+    BYTES_EQUAL(0xad, output[1]);
+    BYTES_EQUAL(0x00, output[2]);
+}
+
+TEST(CANDatagramOutputTestGroup, CanStopMidCRCAndRestart)
+{
+    datagram.crc = 0xdeadbeef;
+
+    // Only output 2 bytes
+    can_datagram_output_bytes(&datagram, output, 2);
+
+    // Writes the next two bytes
+    ret = can_datagram_output_bytes(&datagram, output, 2);
+
+    CHECK_EQUAL(2, ret);
+    BYTES_EQUAL(0xbe, output[0]);
+    BYTES_EQUAL(0xef, output[1]);
+    BYTES_EQUAL(0x00, output[2]);
+}
+
+TEST(CANDatagramOutputTestGroup, CanOutputDestinationNodeList)
+{
+    datagram.destination_nodes_len = 2;
+    datagram.destination_nodes[0] = 42;
+    datagram.destination_nodes[1] = 43;
+
+    can_datagram_output_bytes(&datagram, output, 7);
+
+    BYTES_EQUAL(2, output[4]);
+    BYTES_EQUAL(42, output[5]);
+    BYTES_EQUAL(43, output[6]);
+}
+
+
+TEST(CANDatagramOutputTestGroup, CanOutputDataLength)
+{
+    datagram.destination_nodes_len = 1;
+    datagram.destination_nodes[0] = 12;
+
+    datagram.data_len = 0xcafe;
+
+    can_datagram_output_bytes(&datagram, output, 8);
+
+    BYTES_EQUAL(0xca, output[6]);
+    BYTES_EQUAL(0xfe, output[7]);
+}
+
+TEST(CANDatagramOutputTestGroup, CanOutputData)
+{
+    datagram.destination_nodes_len = 1;
+    datagram.destination_nodes[0] = 12;
+
+    datagram.data_len = 2;
+    datagram.data[0] = 42;
+    datagram.data[1] = 43;
+
+    can_datagram_output_bytes(&datagram, output, 10);
+
+    BYTES_EQUAL(42, output[8]);
+    BYTES_EQUAL(43, output[9]);
+}
+
+TEST(CANDatagramOutputTestGroup, IfWeStopEarlierBytesWrittenIsReturned)
+{
+    int ret;
+    datagram.destination_nodes_len = 1;
+    datagram.destination_nodes[0] = 12;
+
+    datagram.data_len = 2;
+    datagram.data[0] = 42;
+    datagram.data[1] = 43;
+
+    // Output the first 8 bytes
+    can_datagram_output_bytes(&datagram, output, 8);
+
+    // So now we only have two bytes to send, but we ask for more
+    ret = can_datagram_output_bytes(&datagram, output, 10);
+
+    CHECK_EQUAL(2, ret);
+}
