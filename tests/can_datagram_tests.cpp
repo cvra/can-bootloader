@@ -185,6 +185,21 @@ TEST(CANDatagramInputTestGroup, IsValidWhenAllDataAreReadAndCRCMatches)
     CHECK_TRUE(can_datagram_is_valid(&datagram));
 }
 
+TEST(CANDatagramInputTestGroup, CRCIsComputedInMoreThanOneDestinationNodeAndData)
+{
+    uint8_t buf[] = {
+        0x05, 0x23, 0xb7, 0x30,
+        2, // destination node list length
+        14, 15, // destination nodes
+        0x00, 0x00, 0x00, 0x02, // data length
+        0x42,0x43 // data
+    };
+
+    input_data(buf, sizeof buf);
+
+    CHECK_TRUE(can_datagram_is_valid(&datagram));
+}
+
 TEST(CANDatagramInputTestGroup, DoesNotAppendMoreBytesThanDataLen)
 {
     /** This test checks that if bytes arrive after the specified data length, they

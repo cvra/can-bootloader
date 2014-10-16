@@ -87,7 +87,7 @@ bool can_datagram_is_valid(can_datagram_t *dt)
     uint32_t crc;
     uint8_t tmp[4];
     crc = crc32(0, &dt->destination_nodes_len, 1);
-    crc = crc32(crc, &dt->destination_nodes[0], 1);
+    crc = crc32(crc, &dt->destination_nodes[0], dt->destination_nodes_len);
 
     /* data_len is not in network endianess, correct that before CRC update. */
     tmp[0] = (dt->data_len >> 24) & 0xff;
