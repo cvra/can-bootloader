@@ -281,7 +281,7 @@ TEST_GROUP(CANDatagramOutputTestGroup)
     }
 };
 
-TEST(CANDatagramOutputTestGroup, CanOutputFirstByteofCRC)
+TEST(CANDatagramOutputTestGroup, CanOutputCRC)
 {
     datagram.crc = 0xdeadbeef;
 
