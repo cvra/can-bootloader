@@ -5,7 +5,7 @@
 
 #include "../can_datagram.h"
 
-TEST_GROUP(CanDataGramTestGroup)
+TEST_GROUP(CANDatagramTestGroup)
 {
     can_datagram_t dt;
 
@@ -15,7 +15,7 @@ TEST_GROUP(CanDataGramTestGroup)
     }
 };
 
-TEST(CanDataGramTestGroup, CanInitDatagram)
+TEST(CANDatagramTestGroup, CanInitDatagram)
 {
     /* fill the struct with garbage. */
     memset(&dt, 0xaa, sizeof dt);
@@ -28,7 +28,7 @@ TEST(CanDataGramTestGroup, CanInitDatagram)
     CHECK_EQUAL(0, dt.data_len);
 }
 
-TEST(CanDataGramTestGroup, CanSetDestinationAdressesBuffer)
+TEST(CANDatagramTestGroup, CanSetDestinationAdressesBuffer)
 {
     uint8_t buf[10];
     can_datagram_set_adress_buffer(&dt, buf);
@@ -36,7 +36,7 @@ TEST(CanDataGramTestGroup, CanSetDestinationAdressesBuffer)
     POINTERS_EQUAL(buf, dt.destination_nodes);
 }
 
-TEST(CanDataGramTestGroup, CanSetDataBuffer)
+TEST(CANDatagramTestGroup, CanSetDataBuffer)
 {
     uint8_t buf[10];
     can_datagram_set_data_buffer(&dt, buf, sizeof buf);
