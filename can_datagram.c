@@ -150,8 +150,6 @@ int can_datagram_output_bytes(can_datagram_t *dt, char *buffer, size_t buffer_le
                 buffer[i] = dt->data[dt->_data_bytes_written];
                 dt->_data_bytes_written ++;
 
-                printf("%d %d\n", dt->_data_bytes_written, dt->data_len);
-
                 /* If we don't have anymore data to send, return written byte
                  * count. */
                 if (dt->_data_bytes_written == dt->data_len) {
