@@ -173,7 +173,7 @@ TEST(CANDatagramInputTestGroup, IsInvalidOnCRCMismatch)
 TEST(CANDatagramInputTestGroup, IsValidWhenAllDataAreReadAndCRCMatches)
 {
     uint8_t buf[] = {
-        0x9a, 0x54, 0xb8, 0x63, // CRC
+        0x80, 0xd8, 0xa4, 0x47, // CRC
         1, // destination node list length
         14, // destination nodes
         0x00, 0x00, 0x00, 0x01, // data length
