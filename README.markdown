@@ -35,7 +35,7 @@ The datagram format is the following :
 1. CRC32 of the whole datagram : 4 bytes
 2. Destination ID list length (m) : 1 byte
 3. Destination IDs : m bytes
-4. Data length : 2 bytes
+4. Data length : 4 bytes, MSB first
 5. Data: n bytes
 
 # UART Transport layer
