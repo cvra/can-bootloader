@@ -84,21 +84,7 @@ bool can_datagram_is_complete(can_datagram_t *dt)
 
 bool can_datagram_is_valid(can_datagram_t *dt)
 {
-    uint32_t crc;
-    uint8_t tmp[4];
-    crc = crc32(0, &dt->destination_nodes_len, 1);
-    crc = crc32(crc, &dt->destination_nodes[0], dt->destination_nodes_len);
-
-    /* data_len is not in network endianess, correct that before CRC update. */
-    tmp[0] = (dt->data_len >> 24) & 0xff;
-    tmp[1] = (dt->data_len >> 16) & 0xff;
-    tmp[2] = (dt->data_len >> 8) & 0xff;
-    tmp[3] = (dt->data_len >> 0) & 0xff;
-
-    crc = crc32(crc, tmp, 4);
-    crc = crc32(crc, &dt->data[0], dt->data_len);
-
-    return crc == dt->crc;
+    return can_datagram_compute_crc(dt) == dt->crc;
 }
 
 void can_datagram_start(can_datagram_t *dt)
@@ -161,4 +147,22 @@ int can_datagram_output_bytes(can_datagram_t *dt, char *buffer, size_t buffer_le
     }
 
     return buffer_len;
+}
+
+uint32_t can_datagram_compute_crc(can_datagram_t *dt)
+{
+    uint32_t crc;
+    uint8_t tmp[4];
+    crc = crc32(0, &dt->destination_nodes_len, 1);
+    crc = crc32(crc, &dt->destination_nodes[0], dt->destination_nodes_len);
+
+    /* data_len is not in network endianess, correct that before CRC update. */
+    tmp[0] = (dt->data_len >> 24) & 0xff;
+    tmp[1] = (dt->data_len >> 16) & 0xff;
+    tmp[2] = (dt->data_len >> 8) & 0xff;
+    tmp[3] = (dt->data_len >> 0) & 0xff;
+
+    crc = crc32(crc, tmp, 4);
+    crc = crc32(crc, &dt->data[0], dt->data_len);
+    return crc;
 }

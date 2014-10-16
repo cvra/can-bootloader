@@ -57,6 +57,9 @@ void can_datagram_start(can_datagram_t *dt);
 /** Encodes the datagram in the buffer. */
 int can_datagram_output_bytes(can_datagram_t *dt, char *buffer, size_t buffer_len);
 
+/** Computes the CRC32 of the datagram. */
+uint32_t can_datagram_compute_crc(can_datagram_t *dt);
+
 #ifdef __cplusplus
 }
 #endif
