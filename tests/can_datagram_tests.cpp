@@ -99,20 +99,16 @@ TEST(CANDatagramInputTestGroup, CanReadDestinations)
 
 TEST(CANDatagramInputTestGroup, CanReadDataLength)
 {
-    // Data length
-    const int len = 12;
-
     uint8_t buf[] = {
         0x00, 0x00, 0x00, 0x00, // CRC
         1, // destination node list length
         3, // destination nodes
-        len >> 8,  // data length (MSB)
-        len & 0xff // data length (LSB)
+        0xca, 0xfe, 0xba, 0xbe // data length
     };
 
     input_data(buf, sizeof buf);
 
-    CHECK_EQUAL(len, datagram.data_len);
+    CHECK_EQUAL(0xcafebabe, datagram.data_len);
 }
 
 TEST(CANDatagramInputTestGroup, CanReadData)
@@ -125,8 +121,7 @@ TEST(CANDatagramInputTestGroup, CanReadData)
         0x00, 0x00, 0x00, 0x00, // CRC
         1, // destination node list length
         3, // destination nodes
-        len >> 8,  // data length (MSB)
-        len & 0xff // data length (LSB)
+        0x00, 0x00, 0x00, len & 0xff // data length
     };
 
     input_data(buf, sizeof buf);
@@ -145,13 +140,11 @@ TEST(CANDatagramInputTestGroup, EmptyDatagramIsNotComplete)
 
 TEST(CANDatagramInputTestGroup, IsCompleteWhenAllDataAreRead)
 {
-    int len = 1;
     uint8_t buf[] = {
         0x00, 0x00, 0x00, 0x00, // CRC
         1, // destination node list length
         3, // destination nodes
-        len >> 8,  // data length (MSB)
-        len & 0xff,// data length (LSB)
+        0x00, 0x00, 0x00, 0x01, // data length
         0x42 // data
     };
 
@@ -179,13 +172,11 @@ TEST(CANDatagramInputTestGroup, IsInvalidOnCRCMismatch)
 
 TEST(CANDatagramInputTestGroup, IsValidWhenAllDataAreReadAndCRCMatches)
 {
-    int len = 1;
     uint8_t buf[] = {
         0x9a, 0x54, 0xb8, 0x63, // CRC
         1, // destination node list length
         14, // destination nodes
-        len >> 8,  // data length (MSB)
-        len & 0xff,// data length (LSB)
+        0x00, 0x00, 0x00, 0x01, // data length
         0x42 // data
     };
 
@@ -203,8 +194,7 @@ TEST(CANDatagramInputTestGroup, DoesNotAppendMoreBytesThanDataLen)
         0x9a, 0x54, 0xb8, 0x63, // CRC
         1, // destination node list length
         14, // destination nodes
-        len >> 8,  // data length (MSB)
-        len & 0xff,// data length (LSB)
+        0x00, 0x00, 0x00, 0x01, // data length
         0x42, // data
         0x43, 0x44 // garbage value
     };
@@ -230,8 +220,7 @@ TEST(CANDatagramInputTestGroup, DoesNotOverflowDataBuffer)
         0x9a, 0x54, 0xb8, 0x63, // CRC
         1, // destination node list length
         14, // destination nodes
-        len >> 8,  // data length (MSB)
-        len & 0xff,// data length (LSB)
+        0x00, 0x00, 0x00, len // data length
     };
 
     input_data(buf, sizeof buf);
@@ -261,8 +250,7 @@ TEST(CANDatagramInputTestGroup, CanResetToStart)
         0xde, 0xad, 0xbe, 0xef,  // CRC
         1, // destination node list length
         14, // destination nodes
-        len >> 8,  // data length (MSB)
-        len & 0xff,// data length (LSB)
+        0x00, 0x00, 0x00, 0x01, // data length
         42 // data
     };
 

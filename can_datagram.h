@@ -14,11 +14,12 @@ typedef struct {
     uint8_t destination_nodes_len;
     uint8_t *destination_nodes;
 
-    uint16_t data_len;
+    uint32_t data_len;
     uint8_t *data;
 
     int _crc_bytes_read;
     int _crc_bytes_written;
+    int _data_length_bytes_read;
     uint8_t _destination_nodes_read;
     uint8_t _destination_nodes_written;
     uint16_t _data_bytes_read;

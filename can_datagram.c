@@ -46,16 +46,17 @@ void can_datagram_input_byte(can_datagram_t *dt, uint8_t val)
             break;
 
         case 3: /* Data length, MSB */
-            dt->data_len = val << 8;
-            dt->_reader_state ++;
+            dt->data_len = (dt->data_len << 8) | val;
+            dt->_data_length_bytes_read ++;
+
+            if (dt->_data_length_bytes_read == 4) {
+                dt->_reader_state++;
+            }
+
             break;
 
-        case 4: /* Data length, LSB */
-            dt->data_len |= val;
-            dt->_reader_state ++;
-            break;
 
-        case 5: /* Data */
+        case 4: /* Data */
             dt->data[dt->_data_bytes_read] = val;
             dt->_data_bytes_read ++;
 
@@ -104,6 +105,7 @@ void can_datagram_start(can_datagram_t *dt)
     dt->_crc_bytes_read = 0;
     dt->_destination_nodes_read = 0;
     dt->_data_bytes_read = 0;
+    dt->_data_length_bytes_read = 0;
 }
 
 int can_datagram_output_bytes(can_datagram_t *dt, char *buffer, size_t buffer_len)
