@@ -342,12 +342,14 @@ TEST(CANDatagramOutputTestGroup, CanOutputDataLength)
     datagram.destination_nodes_len = 1;
     datagram.destination_nodes[0] = 12;
 
-    datagram.data_len = 0xcafe;
+    datagram.data_len = 0xcafebabe;
 
-    can_datagram_output_bytes(&datagram, output, 8);
+    can_datagram_output_bytes(&datagram, output, 10);
 
     BYTES_EQUAL(0xca, output[6]);
     BYTES_EQUAL(0xfe, output[7]);
+    BYTES_EQUAL(0xba, output[8]);
+    BYTES_EQUAL(0xbe, output[9]);
 }
 
 TEST(CANDatagramOutputTestGroup, CanOutputData)
@@ -359,10 +361,10 @@ TEST(CANDatagramOutputTestGroup, CanOutputData)
     datagram.data[0] = 42;
     datagram.data[1] = 43;
 
-    can_datagram_output_bytes(&datagram, output, 10);
+    can_datagram_output_bytes(&datagram, output, 12);
 
-    BYTES_EQUAL(42, output[8]);
-    BYTES_EQUAL(43, output[9]);
+    BYTES_EQUAL(42, output[10]);
+    BYTES_EQUAL(43, output[11]);
 }
 
 TEST(CANDatagramOutputTestGroup, IfWeStopEarlierBytesWrittenIsReturned)
@@ -375,8 +377,8 @@ TEST(CANDatagramOutputTestGroup, IfWeStopEarlierBytesWrittenIsReturned)
     datagram.data[0] = 42;
     datagram.data[1] = 43;
 
-    // Output the first 8 bytes
-    can_datagram_output_bytes(&datagram, output, 8);
+    // Output the first 10 bytes
+    can_datagram_output_bytes(&datagram, output, 10);
 
     // So now we only have two bytes to send, but we ask for more
     ret = can_datagram_output_bytes(&datagram, output, 10);

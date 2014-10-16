@@ -136,17 +136,16 @@ int can_datagram_output_bytes(can_datagram_t *dt, char *buffer, size_t buffer_le
                 }
                 break;
 
-            case 3: /* Data length MSB */
-                buffer[i] = dt->data_len >> 8;
-                dt->_writer_state ++;
+            case 3: /* Data length MSB first */
+                buffer[i] = dt->data_len >> (24 - 8 * dt->_data_length_bytes_written);
+                dt->_data_length_bytes_written ++;
+
+                if (dt->_data_length_bytes_written == 4) {
+                    dt->_writer_state ++;
+                }
                 break;
 
-            case 4: /* Data length LSB */
-                buffer[i] = dt->data_len & 0xff;
-                dt->_writer_state ++;
-                break;
-
-            case 5: /* Data */
+            case 4: /* Data */
                 buffer[i] = dt->data[dt->_data_bytes_written];
                 dt->_data_bytes_written ++;
 

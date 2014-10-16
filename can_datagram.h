@@ -20,6 +20,7 @@ typedef struct {
     int _crc_bytes_read;
     int _crc_bytes_written;
     int _data_length_bytes_read;
+    int _data_length_bytes_written;
     uint8_t _destination_nodes_read;
     uint8_t _destination_nodes_written;
     uint16_t _data_bytes_read;
