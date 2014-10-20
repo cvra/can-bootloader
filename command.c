@@ -28,7 +28,7 @@ int protocol_execute_command(char *data, command_t *commands, int command_len)
 
     for (i = 0; i < command_len; ++i) {
         if (commands[i].index == commmand_index) {
-            commands[i].f(argc, &command_reader);
+            commands[i].callback(argc, &command_reader);
             return 0;
         }
     }

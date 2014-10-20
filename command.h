@@ -21,7 +21,7 @@ typedef struct {
     uint8_t index;
     /** The function to execute when the index match. It takes argument count
      * and a MessagePack context as argument. */
-    void (*f)(int, cmp_ctx_t *);
+    void (*callback)(int, cmp_ctx_t *);
 } command_t;
 
 /** Parses a datagram data field and executes the correct function.

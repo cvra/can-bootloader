@@ -34,7 +34,7 @@ TEST_GROUP(ProtocolCommandTestGroup)
 TEST(ProtocolCommandTestGroup, CommandIsCalled)
 {
     command_t commands[] = {
-        {.index = 0x00, .f = mock_command},
+        {.index = 0x00, .callback = mock_command},
     };
 
     cmp_write_uint(&command_builder, 0x0);
@@ -49,8 +49,8 @@ TEST(ProtocolCommandTestGroup, CommandIsCalled)
 TEST(ProtocolCommandTestGroup, CorrectCommandIsCalled)
 {
     command_t commands[] = {
-        {.index = 0x00, .f = NULL},
-        {.index = 0x02, .f = mock_command},
+        {.index = 0x00, .callback = NULL},
+        {.index = 0x02, .callback = mock_command},
     };
 
     // Write command index
@@ -71,7 +71,7 @@ void argc_log_command(int argc, cmp_ctx_t *dummy)
 TEST(ProtocolCommandTestGroup, CorrectArgcIsSent)
 {
     command_t commands[] = {
-        {.index = 0x02, .f = argc_log_command},
+        {.index = 0x02, .callback = argc_log_command},
     };
 
     // Write command index
@@ -101,7 +101,7 @@ void args_log_command(int argc, cmp_ctx_t *args)
 TEST(ProtocolCommandTestGroup, CanReadArgs)
 {
     command_t commands[] = {
-        {.index = 0x02, .f = args_log_command},
+        {.index = 0x02, .callback = args_log_command},
     };
 
     // Command index
@@ -131,7 +131,7 @@ TEST(ProtocolCommandTestGroup, ExecuteReturnsZeroWhenValidCommand)
 {
     int result;
     command_t commands[] = {
-        {.index = 0x00, .f = dummy_command},
+        {.index = 0x00, .callback = dummy_command},
     };
 
     // Command index
@@ -148,7 +148,7 @@ TEST(ProtocolCommandTestGroup, ExecuteInvalidCommand)
 {
     int result;
     command_t commands[] = {
-        {.index = 0x00, .f = dummy_command},
+        {.index = 0x00, .callback = dummy_command},
     };
 
     // Invalid command index, here a float
@@ -165,7 +165,7 @@ TEST(ProtocolCommandTestGroup, ExecuteWithoutArgumentsMeansArgcZero)
 {
     int result;
     command_t commands[] = {
-        {.index = 0x01, .f = argc_log_command},
+        {.index = 0x01, .callback = argc_log_command},
     };
 
     cmp_write_uint(&command_builder, 1);
@@ -183,7 +183,7 @@ TEST(ProtocolCommandTestGroup, CallingNonExistingFunctionReturnsCorrectErrorCode
 {
     int result;
     command_t commands[] = {
-        {.index = 0x00, .f = argc_log_command},
+        {.index = 0x00, .callback = argc_log_command},
     };
 
     // Non existing command
