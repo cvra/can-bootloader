@@ -1,6 +1,6 @@
 #include "command.h"
 
-int protocol_execute_command(char *data, command_t *commands, int command_len)
+int protocol_execute_command(char *data, command_t *commands, int command_len, char *output_data)
 {
     serializer_t serializer;
     cmp_ctx_t command_reader;

@@ -28,8 +28,9 @@ typedef struct {
  * @param [in] data The raw data to parse.
  * @param [in] commands A list of all possible commands.
  * @param [in] command_len Length of the commands array.
+ * @param [out] output_buffer A buffer where the command can place its results, which will be sent back to the client.
  */
-int protocol_execute_command(char *data, command_t *commands, int command_len);
+int protocol_execute_command(char *data, command_t *commands, int command_len, char *output_buffer);
 
 #ifdef __cplusplus
 }
