@@ -7,7 +7,7 @@
 
 #define LEN(a) (sizeof(a) / sizeof(a[0]))
 
-void mock_command(int argc, cmp_ctx_t *arg_context)
+void mock_command(int argc, cmp_ctx_t *arg_context, cmp_ctx_t *out_context)
 {
     mock().actualCall("command");
 }
@@ -63,7 +63,7 @@ TEST(ProtocolCommandTestGroup, CorrectCommandIsCalled)
     mock().checkExpectations();
 }
 
-void argc_log_command(int argc, cmp_ctx_t *dummy)
+void argc_log_command(int argc, cmp_ctx_t *dummy, cmp_ctx_t *out)
 {
     mock().actualCall("command").withIntParameter("argc", argc);
 }
@@ -88,7 +88,7 @@ TEST(ProtocolCommandTestGroup, CorrectArgcIsSent)
 }
 
 
-void args_log_command(int argc, cmp_ctx_t *args)
+void args_log_command(int argc, cmp_ctx_t *args, cmp_ctx_t *out)
 {
     int a, b;
     cmp_read_int(args, &a);
@@ -123,7 +123,7 @@ TEST(ProtocolCommandTestGroup, CanReadArgs)
     mock().checkExpectations();
 }
 
-void dummy_command(int argc, cmp_ctx_t *args)
+void dummy_command(int argc, cmp_ctx_t *args, cmp_ctx_t *out)
 {
 }
 
@@ -192,4 +192,49 @@ TEST(ProtocolCommandTestGroup, CallingNonExistingFunctionReturnsCorrectErrorCode
     result = protocol_execute_command(command_data, commands, LEN(commands), NULL);
 
     CHECK_EQUAL(-ERR_COMMAND_NOT_FOUND, result);
+}
+
+TEST_GROUP(ProtocolOutputCommand)
+{
+    serializer_t serializer;
+    serializer_t out_serializer;
+    cmp_ctx_t command_builder;
+    cmp_ctx_t output_ctx;
+    char command_data[30];
+    char output_data[30];
+
+    void setup()
+    {
+        serializer_init(&serializer, command_data, sizeof command_data);
+        serializer_init(&out_serializer, output_data, sizeof output_data);
+        serializer_cmp_ctx_factory(&command_builder, &serializer);
+        serializer_cmp_ctx_factory(&output_ctx, &out_serializer);
+        memset(command_data, 0, sizeof command_data);
+        memset(output_data, 0, sizeof output_data);
+    }
+
+    void teardown()
+    {
+        mock().clear();
+    }
+};
+
+void output_mock_command(int argc, cmp_ctx_t *args, cmp_ctx_t *out)
+{
+    cmp_write_str(out, "Hello", 5);
+}
+
+TEST(ProtocolOutputCommand, CanPassOutputBuffer)
+{
+    int result;
+    command_t commands[] = {
+        {.index = 0x01, .callback = output_mock_command},
+    };
+
+    cmp_write_uint(&command_builder, 1);
+
+    result = protocol_execute_command(command_data, commands, LEN(commands), output_data);
+
+    BYTES_EQUAL(0xa5, output_data[0]); // string of length 5
+    STRCMP_EQUAL("Hello", &output_data[1]);
 }

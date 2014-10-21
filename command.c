@@ -8,9 +8,15 @@ int protocol_execute_command(char *data, command_t *commands, int command_len, c
     int argc;
     bool read_success;
 
+    serializer_t out_serializer;
+    cmp_ctx_t out_writer;
+
     // XXX size 0 should be replaced with correct size
     serializer_init(&serializer, data, 0);
     serializer_cmp_ctx_factory(&command_reader, &serializer);
+
+    serializer_init(&out_serializer, output_data, 0);
+    serializer_cmp_ctx_factory(&out_writer, &out_serializer);
 
     read_success = cmp_read_int(&command_reader, &commmand_index);
 
@@ -28,7 +34,7 @@ int protocol_execute_command(char *data, command_t *commands, int command_len, c
 
     for (i = 0; i < command_len; ++i) {
         if (commands[i].index == commmand_index) {
-            commands[i].callback(argc, &command_reader);
+            commands[i].callback(argc, &command_reader, &out_writer);
             return 0;
         }
     }
