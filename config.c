@@ -31,7 +31,7 @@ void config_write(void *buffer,  bootloader_config_t config, size_t buffer_size)
     serializer_init(&serializer, block_payload_get(buffer), buffer_size - 4);
     serializer_cmp_ctx_factory(&context, &serializer);
 
-    cmp_write_map(&context, 3);
+    cmp_write_map(&context, 4);
 
     cmp_write_str(&context, "ID", 2);
     cmp_write_u8(&context, config.ID);
@@ -41,6 +41,9 @@ void config_write(void *buffer,  bootloader_config_t config, size_t buffer_size)
 
     cmp_write_str(&context, "device_class", 12);
     cmp_write_str(&context, config.device_class, strlen(config.device_class));
+
+    cmp_write_str(&context, "application_crc", 15);
+    cmp_write_u32(&context, config.application_crc);
 }
 
 bootloader_config_t config_read(void *buffer, size_t buffer_size)
@@ -77,6 +80,10 @@ bootloader_config_t config_read(void *buffer, size_t buffer_size)
         if (!strcmp("device_class", key)) {
             int name_len = 65;
             cmp_read_str(&context, result.device_class, &name_len);
+        }
+
+        if (!strcmp("application_crc", key)) {
+            cmp_read_u32(&context,  &result.application_crc);
         }
     }
 

@@ -117,3 +117,12 @@ TEST(ConfigSerializationTest, CanSerializeNodeDeviceClass)
 
     STRCMP_EQUAL(config.device_class, result.device_class);
 }
+
+TEST(ConfigSerializationTest, CanSerializeApplicationCRC)
+{
+    config.application_crc = 0xdeadbeef;
+
+    config_read_and_write();
+
+    CHECK_EQUAL(0xdeadbeef, result.application_crc);
+}
