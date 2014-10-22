@@ -1,6 +1,8 @@
 #include "CppUTest/TestHarness.h"
 #include "CppUTestExt/MockSupport.h"
 
+#include <cstring>
+
 #include "../config.h"
 #include <serializer/checksum_block.h>
 
@@ -68,4 +70,44 @@ TEST(ConfigPage, ConfigIsValid)
 {
     block_crc_update(page1, page_size);
     CHECK_TRUE(config_is_valid(page1, page_size));
+}
+
+TEST_GROUP(ConfigSerializationTest)
+{
+    char config_buffer[30];
+    bootloader_config_t config, result;
+
+    void setup(void)
+    {
+        memset(config_buffer, 0, sizeof(config_buffer));
+        memset(&config, 0,  sizeof (bootloader_config_t));
+        memset(&result, 0,  sizeof (bootloader_config_t));
+    }
+};
+
+TEST(ConfigSerializationTest, CanSerializeNodeID)
+{
+    config.ID = 0x12;
+
+    config_write(config_buffer, config, sizeof config_buffer);
+    result = config_read(config_buffer, sizeof config_buffer);
+
+    CHECK_EQUAL(config.ID, result.ID);
+
+    config.ID = 0x42;
+
+    config_write(config_buffer, config, sizeof config_buffer);
+    result = config_read(config_buffer, sizeof config_buffer);
+
+    CHECK_EQUAL(config.ID, result.ID);
+}
+
+TEST(ConfigSerializationTest, CanSerializeNodeName)
+{
+    strncpy(config.board_name, "test.dummy", 64);
+
+    config_write(config_buffer, config, sizeof config_buffer);
+    result = config_read(config_buffer, sizeof config_buffer);
+
+    STRCMP_EQUAL(config.board_name, result.board_name);
 }
