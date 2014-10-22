@@ -83,21 +83,19 @@ TEST_GROUP(ConfigSerializationTest)
         memset(&config, 0,  sizeof (bootloader_config_t));
         memset(&result, 0,  sizeof (bootloader_config_t));
     }
+
+    void config_read_and_write()
+    {
+        config_write(config_buffer, config, sizeof config_buffer);
+        result = config_read(config_buffer, sizeof config_buffer);
+    }
 };
 
 TEST(ConfigSerializationTest, CanSerializeNodeID)
 {
     config.ID = 0x12;
 
-    config_write(config_buffer, config, sizeof config_buffer);
-    result = config_read(config_buffer, sizeof config_buffer);
-
-    CHECK_EQUAL(config.ID, result.ID);
-
-    config.ID = 0x42;
-
-    config_write(config_buffer, config, sizeof config_buffer);
-    result = config_read(config_buffer, sizeof config_buffer);
+    config_read_and_write();
 
     CHECK_EQUAL(config.ID, result.ID);
 }
@@ -106,8 +104,7 @@ TEST(ConfigSerializationTest, CanSerializeNodeName)
 {
     strncpy(config.board_name, "test.dummy", 64);
 
-    config_write(config_buffer, config, sizeof config_buffer);
-    result = config_read(config_buffer, sizeof config_buffer);
+    config_read_and_write();
 
     STRCMP_EQUAL(config.board_name, result.board_name);
 }
