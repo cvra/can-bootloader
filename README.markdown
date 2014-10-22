@@ -105,7 +105,6 @@ The config contains the following informations, stored as a messagepack map.
 * device_class: Board model (ex: "CVRA.MotorController.v1"). Max length: 64
 * application_crc: Application CRC. If the CRC matches the bootloader will automatically boot into it after a timeout.
 * updateCnt: Firmware update counter. Used for diagnostics and lifespan estimation.
-* groups: Array containing the various multicast groups this board must listen to.
 
 Additional informations are stored in the bootloader binary :
 * Git commit SHA
