@@ -100,10 +100,10 @@ If one page CRC does not match, then the bootloader will copy the other into it 
 When updating the config, it should be CRC checked before writing to the redundancy page.
 
 The config contains the following informations, stored as a messagepack map.
-* nodeID: Unique node identifier, ranging from 1 to 127.
+* ID: Unique node identifier, ranging from 1 to 127.
 * name: Human readable name describing the board (ex: "arms.left.shoulder"). Max length: 64
-* model: Board model (ex: "CVRA.MotorController.v1"). Max length: 64
-* crcApp: Application CRC. If the CRC matches the bootloader will automatically boot into it after a timeout.
+* device_class: Board model (ex: "CVRA.MotorController.v1"). Max length: 64
+* application_crc: Application CRC. If the CRC matches the bootloader will automatically boot into it after a timeout.
 * updateCnt: Firmware update counter. Used for diagnostics and lifespan estimation.
 * groups: Array containing the various multicast groups this board must listen to.
 
