@@ -9,7 +9,8 @@ extern "C" {
 
 typedef struct {
     uint8_t ID; /**< Node ID */
-    char board_name[64 + 1]; /**< Node human readable name, eg: 'arms.left.shoulder'. */
+    char board_name[64 + 1];   /**< Node human readable name, eg: 'arms.left.shoulder'. */
+    char device_class[64 + 1]; /**< Node device class example : 'CVRA.motorboard.v1'*/
 } bootloader_config_t;
 
 /** This function syncs the two given pages, copying the page with the wrong

@@ -74,7 +74,7 @@ TEST(ConfigPage, ConfigIsValid)
 
 TEST_GROUP(ConfigSerializationTest)
 {
-    char config_buffer[30];
+    char config_buffer[1024];
     bootloader_config_t config, result;
 
     void setup(void)
@@ -107,4 +107,13 @@ TEST(ConfigSerializationTest, CanSerializeNodeName)
     config_read_and_write();
 
     STRCMP_EQUAL(config.board_name, result.board_name);
+}
+
+TEST(ConfigSerializationTest, CanSerializeNodeDeviceClass)
+{
+    strncpy(config.device_class, "CVRA.dummy.v1", 64);
+
+    config_read_and_write();
+
+    STRCMP_EQUAL(config.device_class, result.device_class);
 }

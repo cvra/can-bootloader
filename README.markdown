@@ -102,7 +102,7 @@ When updating the config, it should be CRC checked before writing to the redunda
 The config contains the following informations, stored as a messagepack map.
 * nodeID: Unique node identifier, ranging from 1 to 127.
 * name: Human readable name describing the board (ex: "arms.left.shoulder"). Max length: 64
-* model: Board model (ex: "CVRA.MotorController.v1")
+* model: Board model (ex: "CVRA.MotorController.v1"). Max length: 64
 * crcApp: Application CRC. If the CRC matches the bootloader will automatically boot into it after a timeout.
 * updateCnt: Firmware update counter. Used for diagnostics and lifespan estimation.
 * groups: Array containing the various multicast groups this board must listen to.

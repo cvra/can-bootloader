@@ -31,13 +31,16 @@ void config_write(void *buffer,  bootloader_config_t config, size_t buffer_size)
     serializer_init(&serializer, block_payload_get(buffer), buffer_size - 4);
     serializer_cmp_ctx_factory(&context, &serializer);
 
-    cmp_write_map(&context, 2);
+    cmp_write_map(&context, 3);
 
     cmp_write_str(&context, "ID", 2);
     cmp_write_u8(&context, config.ID);
 
     cmp_write_str(&context, "name", 4);
     cmp_write_str(&context, config.board_name, strlen(config.board_name));
+
+    cmp_write_str(&context, "device_class", 12);
+    cmp_write_str(&context, config.device_class, strlen(config.device_class));
 }
 
 bootloader_config_t config_read(void *buffer, size_t buffer_size)
@@ -67,9 +70,13 @@ bootloader_config_t config_read(void *buffer, size_t buffer_size)
         }
 
         if (!strcmp("name", key)) {
-            int name_len;
+            int name_len = 65;
             cmp_read_str(&context, result.board_name, &name_len);
-            result.board_name[name_len] = 0;
+        }
+
+        if (!strcmp("device_class", key)) {
+            int name_len = 65;
+            cmp_read_str(&context, result.device_class, &name_len);
         }
     }
 
