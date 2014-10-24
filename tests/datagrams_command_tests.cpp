@@ -233,7 +233,7 @@ TEST(ProtocolOutputCommand, CanPassOutputBuffer)
 
     cmp_write_uint(&command_builder, 1);
 
-    result = protocol_execute_command(command_data, commands, LEN(commands), output_data, NULL);
+    protocol_execute_command(command_data, commands, LEN(commands), output_data, NULL);
 
     BYTES_EQUAL(0xa5, output_data[0]); // string of length 5
     STRCMP_EQUAL("Hello", &output_data[1]);
