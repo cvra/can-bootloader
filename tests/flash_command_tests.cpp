@@ -12,12 +12,16 @@ TEST_GROUP(FlashCommandTestGroup)
     cmp_ctx_t command_builder;
     char command_data[1024];
     char page[1024];
+    bootloader_config_t config;
 
     void setup()
     {
         serializer_init(&serializer, command_data, sizeof command_data);
         serializer_cmp_ctx_factory(&command_builder, &serializer);
         memset(command_data, 0, sizeof command_data);
+
+        // Creates a dummy device class for testing
+        strcpy(config.device_class, "test.dummy");
     }
 
     void teardown()
@@ -33,6 +37,10 @@ TEST(FlashCommandTestGroup, CanFlashSinglePage)
 
     // Writes the adress of the page
     cmp_write_uint(&command_builder, (size_t)page);
+
+    // Writes the correct device class
+    cmp_write_str(&command_builder, config.device_class, strlen(config.device_class));
+
     cmp_write_ext(&command_builder, 0x00, strlen(data), data);
 
     mock("flash").expectOneCall("unlock");
@@ -43,15 +51,33 @@ TEST(FlashCommandTestGroup, CanFlashSinglePage)
                  .withPointerParameter("page_adress", page)
                  .withIntParameter("size", strlen(data));
 
-    command_write_flash(1, &command_builder, NULL, NULL);
+    command_write_flash(1, &command_builder, NULL, &config);
 
+    mock().checkExpectations();
     STRCMP_EQUAL(data, page);
 }
 
 TEST(FlashCommandTestGroup, CheckErrorHandlingWithIllFormatedArguments)
 {
     // We simply check that no mock flash operation occurs
-    command_write_flash(1, &command_builder, NULL, NULL);
+    command_write_flash(1, &command_builder, NULL, &config);
+}
+
+TEST(FlashCommandTestGroup, CheckThatDeviceClassIsRespected)
+{
+    const char *data = "xkcd";
+
+    // Writes the adress of the page
+    cmp_write_uint(&command_builder, (size_t)page);
+
+    // Writes a "wrong" device class
+    cmp_write_str(&command_builder, "fail", 4);
+
+    cmp_write_ext(&command_builder, 0x00, strlen(data), data);
+
+    // Executes the command. Since the device class mismatch it should not make
+    // any write
+    command_write_flash(1, &command_builder, NULL, &config);
 }
 
 TEST_GROUP(JumpToApplicationCodetestGroup)

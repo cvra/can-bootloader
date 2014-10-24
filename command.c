@@ -1,5 +1,6 @@
 #include "command.h"
 #include "flash_writer.h"
+#include <string.h>
 
 // XXX Change page size
 static char page_buffer[1024];
@@ -12,10 +13,18 @@ void command_write_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_c
 
     int8_t type;
     int size;
+    char device_class[64];
 
     bool success;
 
     cmp_read_uint(args, (void *)&adress);
+
+    size = 64;
+    cmp_read_str(args, device_class, &size);
+
+    if (strcmp(device_class, config->device_class) != 0) {
+        return;
+    }
 
     success = cmp_read_ext(args, &type, &size, page_buffer);
 
