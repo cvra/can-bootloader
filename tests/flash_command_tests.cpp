@@ -53,3 +53,25 @@ TEST(FlashCommandTestGroup, CheckErrorHandlingWithIllFormatedArguments)
     // We simply check that no mock flash operation occurs
     command_write_flash(1, &command_builder, NULL);
 }
+
+TEST_GROUP(JumpToApplicationCodetestGroup)
+{
+};
+
+static void main_mock(void)
+{
+    mock().actualCall("application");
+}
+
+TEST(JumpToApplicationCodetestGroup, CanJumpToApplication)
+{
+    extern void (*application_main)(void);
+    UT_PTR_SET(application_main, main_mock);
+    mock().expectOneCall("application");
+
+    // We don't have any arguments and we won't write any datagram so we can safely pass NULL
+    command_jump_to_application(0, NULL, NULL);
+
+    mock().checkExpectations();
+    mock().clear();
+}

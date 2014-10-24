@@ -4,6 +4,8 @@
 // XXX Change page size
 static char page_buffer[1024];
 
+void (*application_main)(void);
+
 void command_write_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out)
 {
     void *adress;
@@ -28,6 +30,11 @@ void command_write_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out)
     flash_writer_page_write(adress, page_buffer, size);
 
     flash_writer_lock();
+}
+
+void command_jump_to_application(int argc, cmp_ctx_t *args, cmp_ctx_t *out)
+{
+    application_main();
 }
 
 int protocol_execute_command(char *data, command_t *commands, int command_len, char *output_data)

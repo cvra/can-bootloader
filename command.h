@@ -42,6 +42,12 @@ int protocol_execute_command(char *data, command_t *commands, int command_len, c
  */
 void command_write_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out);
 
+/** Command used to jump to the application code.
+ *
+ * @note Should not be called directly but be a part of the commands given to protocol_execute_command.
+ */
+void command_jump_to_application(int argc, cmp_ctx_t *args, cmp_ctx_t *out);
+
 #ifdef __cplusplus
 }
 #endif
