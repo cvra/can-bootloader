@@ -43,7 +43,7 @@ TEST(FlashCommandTestGroup, CanFlashSinglePage)
                  .withPointerParameter("page_adress", page)
                  .withIntParameter("size", strlen(data));
 
-    command_write_flash(1, &command_builder, NULL);
+    command_write_flash(1, &command_builder, NULL, NULL);
 
     STRCMP_EQUAL(data, page);
 }
@@ -51,7 +51,7 @@ TEST(FlashCommandTestGroup, CanFlashSinglePage)
 TEST(FlashCommandTestGroup, CheckErrorHandlingWithIllFormatedArguments)
 {
     // We simply check that no mock flash operation occurs
-    command_write_flash(1, &command_builder, NULL);
+    command_write_flash(1, &command_builder, NULL, NULL);
 }
 
 TEST_GROUP(JumpToApplicationCodetestGroup)
@@ -70,7 +70,7 @@ TEST(JumpToApplicationCodetestGroup, CanJumpToApplication)
     mock().expectOneCall("application");
 
     // We don't have any arguments and we won't write any datagram so we can safely pass NULL
-    command_jump_to_application(0, NULL, NULL);
+    command_jump_to_application(0, NULL, NULL, NULL);
 
     mock().checkExpectations();
     mock().clear();

@@ -6,7 +6,7 @@ static char page_buffer[1024];
 
 void (*application_main)(void);
 
-void command_write_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out)
+void command_write_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config)
 {
     void *adress;
 
@@ -32,7 +32,7 @@ void command_write_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out)
     flash_writer_lock();
 }
 
-void command_jump_to_application(int argc, cmp_ctx_t *args, cmp_ctx_t *out)
+void command_jump_to_application(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config)
 {
     application_main();
 }
@@ -71,7 +71,7 @@ int protocol_execute_command(char *data, command_t *commands, int command_len, c
 
     for (i = 0; i < command_len; ++i) {
         if (commands[i].index == commmand_index) {
-            commands[i].callback(argc, &command_reader, &out_writer);
+            commands[i].callback(argc, &command_reader, &out_writer, NULL);
             return 0;
         }
     }

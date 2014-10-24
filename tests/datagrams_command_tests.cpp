@@ -7,7 +7,7 @@
 
 #define LEN(a) (sizeof(a) / sizeof(a[0]))
 
-void mock_command(int argc, cmp_ctx_t *arg_context, cmp_ctx_t *out_context)
+void mock_command(int argc, cmp_ctx_t *arg_context, cmp_ctx_t *out_context, bootloader_config_t *config)
 {
     mock().actualCall("command");
 }
@@ -63,7 +63,7 @@ TEST(ProtocolCommandTestGroup, CorrectCommandIsCalled)
     mock().checkExpectations();
 }
 
-void argc_log_command(int argc, cmp_ctx_t *dummy, cmp_ctx_t *out)
+void argc_log_command(int argc, cmp_ctx_t *dummy, cmp_ctx_t *out, bootloader_config_t *config)
 {
     mock().actualCall("command").withIntParameter("argc", argc);
 }
@@ -88,7 +88,7 @@ TEST(ProtocolCommandTestGroup, CorrectArgcIsSent)
 }
 
 
-void args_log_command(int argc, cmp_ctx_t *args, cmp_ctx_t *out)
+void args_log_command(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config)
 {
     int a, b;
     cmp_read_int(args, &a);
@@ -123,7 +123,7 @@ TEST(ProtocolCommandTestGroup, CanReadArgs)
     mock().checkExpectations();
 }
 
-void dummy_command(int argc, cmp_ctx_t *args, cmp_ctx_t *out)
+void dummy_command(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config)
 {
 }
 
@@ -219,7 +219,7 @@ TEST_GROUP(ProtocolOutputCommand)
     }
 };
 
-void output_mock_command(int argc, cmp_ctx_t *args, cmp_ctx_t *out)
+void output_mock_command(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config)
 {
     cmp_write_str(out, "Hello", 5);
 }

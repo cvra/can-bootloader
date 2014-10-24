@@ -25,8 +25,9 @@ typedef struct {
      * @param [in] argc Argument count
      * @param [in] arg_context MessagePack context containing the parameters.
      * @param [in] out_context MessagePack context in which the output data should be written.
+     * @param [in] config A bootloader config instance.
      */
-    void (*callback)(int, cmp_ctx_t *, cmp_ctx_t *);
+    void (*callback)(int, cmp_ctx_t *, cmp_ctx_t *, bootloader_config_t *config);
 } command_t;
 
 /** Parses a datagram data field and executes the correct function.
@@ -42,13 +43,13 @@ int protocol_execute_command(char *data, command_t *commands, int command_len, c
  *
  * @note Should not be called directly but be a part of the commands given to protocol_execute_command.
  */
-void command_write_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out);
+void command_write_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config);
 
 /** Command used to jump to the application code.
  *
  * @note Should not be called directly but be a part of the commands given to protocol_execute_command.
  */
-void command_jump_to_application(int argc, cmp_ctx_t *args, cmp_ctx_t *out);
+void command_jump_to_application(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config);
 
 #ifdef __cplusplus
 }
