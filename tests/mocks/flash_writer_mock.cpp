@@ -1,3 +1,4 @@
+#include <cstring>
 #include "../../flash_writer.h"
 #include "CppUTest/TestHarness.h"
 #include "CppUTestExt/MockSupport.h"
@@ -25,6 +26,8 @@ void flash_writer_page_write(void *page, void *data, size_t len)
                  .withPointerParameter("page_adress", page)
                  .withPointerParameter("source_adress", data)
                  .withIntParameter("size", len);
+
+    memcpy(page, data, len);
 }
 
 /* This TEST_GROUP contains the tests to check that the mock flash functions
@@ -60,11 +63,16 @@ TEST(FlashWriterMockTestGroup, CanErasePage)
 
 TEST(FlashWriterMockTestGroup, CanWritePage)
 {
-    mock("flash").expectOneCall("page_write")
-                 .withPointerParameter("page_adress", (void *)0xcafebabe)
-                 .withPointerParameter("source_adress", (void *)0xdeadbeef)
-                 .withIntParameter("size", 42);
+    char buf[30];
+    char data[] = "Hello";
 
-    flash_writer_page_write((void *)0xcafebabe, (void *)0xdeadbeef, 42);
+    mock("flash").expectOneCall("page_write")
+                 .withPointerParameter("page_adress", buf)
+                 .withPointerParameter("source_adress", data)
+                 .withIntParameter("size", 5);
+
+    flash_writer_page_write(buf, data, 5);
+
+    STRCMP_EQUAL(data, buf);
 }
 
