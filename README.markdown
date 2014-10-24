@@ -79,7 +79,7 @@ They should simply send the MessagePack encoded response on the bus.
 
 * Jump to application (0x01). No parameters. Simply starts the application code.
 * CRC flash region (0x02). 2 parameters : start and end adress of the region we want to check. Returns the CRC32 of this region.
-* Write flash (0x03). Parameters : Start adress, expected device class (string) and sequence of bytes to write. Returns nothing.
+* Write flash (0x03). Parameters : Start adress and sequence of bytes to write. Returns nothing.
 * Read flash (0x04). Parameters : Start adress and length. Returns sequence of read bytes
 * Check write status (0x05). Parameters: None. Returns: True if a write is currently in progress, False otherwise.
 * Update config (0x06). The only parameters is a MessagePack map containing the configuration values to update. If a config value is not in its parameters, it will not be changed.
@@ -131,7 +131,7 @@ The bootloader is expected to be one of the safest part of the robot firmware.
 Correcting a bug in the bootloader could be very complicated, requiring disassembly of the robot in the worst cases.
 Therefore, when implementing the bootloader or the associated protocol, the following safety points must be taken into account:
 * The bootloader must *never* erase itself or its configuration page.
-* It should never write to flash if the device class does not match. Doing so might result in the wrong firmware being written to the board, which is dangerous.
+* It should never write to flash if the device class does not match. Doing so might result in the wrong firmware being written to the board, which is dangerous. Not implemented yet.
 * If the application CRC does not match, the bootloader should not boot it.
 * On power up the bootloader should wait enough time for the user to input commands before jumping to the application code.
 
