@@ -1,4 +1,34 @@
 #include "command.h"
+#include "flash_writer.h"
+
+// XXX Change page size
+static char page_buffer[1024];
+
+void command_write_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out)
+{
+    void *adress;
+
+    int8_t type;
+    int size;
+
+    bool success;
+
+    cmp_read_uint(args, (void *)&adress);
+
+    success = cmp_read_ext(args, &type, &size, page_buffer);
+
+    if (!success) {
+        return;
+    }
+
+    flash_writer_unlock();
+
+    flash_writer_page_erase(adress);
+
+    flash_writer_page_write(adress, page_buffer, size);
+
+    flash_writer_lock();
+}
 
 int protocol_execute_command(char *data, command_t *commands, int command_len, char *output_data)
 {

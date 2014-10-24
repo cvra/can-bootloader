@@ -8,6 +8,7 @@ tests:
     - tests/mocks/flash_writer_mock.cpp
     - tests/mocks/can_interface_mock.cpp
     - tests/config_tests.cpp
+    - tests/flash_command_tests.cpp
 
 source:
     - can_datagram.c
