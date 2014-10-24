@@ -24,7 +24,6 @@ void flash_writer_page_write(void *page, void *data, size_t len)
 {
     mock("flash").actualCall("page_write")
                  .withPointerParameter("page_adress", page)
-                 .withPointerParameter("source_adress", data)
                  .withIntParameter("size", len);
 
     memcpy(page, data, len);
@@ -68,7 +67,6 @@ TEST(FlashWriterMockTestGroup, CanWritePage)
 
     mock("flash").expectOneCall("page_write")
                  .withPointerParameter("page_adress", buf)
-                 .withPointerParameter("source_adress", data)
                  .withIntParameter("size", 5);
 
     flash_writer_page_write(buf, data, 5);

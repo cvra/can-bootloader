@@ -33,7 +33,6 @@ TEST(ConfigPage, FirstPageIsCopiedIntoSecond)
 {
     mock("flash").expectOneCall("page_write")
                  .withPointerParameter("page_adress", page2)
-                 .withPointerParameter("source_adress", page1)
                  .withIntParameter("size", page_size);
 
     mock("flash").expectOneCall("page_erase")
@@ -49,7 +48,6 @@ TEST(ConfigPage, SecondPageIsCopiedIntoFirst)
 {
     mock("flash").expectOneCall("page_write")
                  .withPointerParameter("page_adress", page1)
-                 .withPointerParameter("source_adress", page2)
                  .withIntParameter("size", page_size);
 
     mock("flash").expectOneCall("page_erase")
