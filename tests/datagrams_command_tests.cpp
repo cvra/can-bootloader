@@ -41,7 +41,7 @@ TEST(ProtocolCommandTestGroup, CommandIsCalled)
 
     mock().expectOneCall("command");
 
-    protocol_execute_command(command_data, commands, LEN(commands), NULL);
+    protocol_execute_command(command_data, commands, LEN(commands), NULL, NULL);
 
     mock().checkExpectations();
 }
@@ -58,7 +58,7 @@ TEST(ProtocolCommandTestGroup, CorrectCommandIsCalled)
 
     mock().expectOneCall("command");
 
-    protocol_execute_command(command_data, commands, LEN(commands), NULL);
+    protocol_execute_command(command_data, commands, LEN(commands), NULL, NULL);
 
     mock().checkExpectations();
 }
@@ -82,7 +82,7 @@ TEST(ProtocolCommandTestGroup, CorrectArgcIsSent)
 
     mock().expectOneCall("command").withIntParameter("argc", 42);
 
-    protocol_execute_command(command_data, commands, LEN(commands), NULL);
+    protocol_execute_command(command_data, commands, LEN(commands), NULL, NULL);
 
     mock().checkExpectations();
 }
@@ -118,7 +118,7 @@ TEST(ProtocolCommandTestGroup, CanReadArgs)
           .withIntParameter("a", 42)
           .withIntParameter("b", 43);
 
-    protocol_execute_command(command_data, commands, LEN(commands), NULL);
+    protocol_execute_command(command_data, commands, LEN(commands), NULL, NULL);
 
     mock().checkExpectations();
 }
@@ -140,7 +140,7 @@ TEST(ProtocolCommandTestGroup, ExecuteReturnsZeroWhenValidCommand)
     // Argument array length
     cmp_write_array(&command_builder, 0);
 
-    result = protocol_execute_command(command_data, commands, LEN(commands), NULL);
+    result = protocol_execute_command(command_data, commands, LEN(commands), NULL, NULL);
     CHECK_EQUAL(0, result);
 }
 
@@ -157,7 +157,7 @@ TEST(ProtocolCommandTestGroup, ExecuteInvalidCommand)
     // Argument array length
     cmp_write_array(&command_builder, 0);
 
-    result = protocol_execute_command(command_data, commands, LEN(commands), NULL);
+    result = protocol_execute_command(command_data, commands, LEN(commands), NULL, NULL);
     CHECK_EQUAL(-ERR_INVALID_COMMAND, result);
 }
 
@@ -172,7 +172,7 @@ TEST(ProtocolCommandTestGroup, ExecuteWithoutArgumentsMeansArgcZero)
 
     mock().expectOneCall("command").withIntParameter("argc", 0);
 
-    result = protocol_execute_command(command_data, commands, LEN(commands), NULL);
+    result = protocol_execute_command(command_data, commands, LEN(commands), NULL, NULL);
 
     CHECK_EQUAL(0, result);
 
@@ -189,7 +189,7 @@ TEST(ProtocolCommandTestGroup, CallingNonExistingFunctionReturnsCorrectErrorCode
     // Non existing command
     cmp_write_uint(&command_builder, 1);
 
-    result = protocol_execute_command(command_data, commands, LEN(commands), NULL);
+    result = protocol_execute_command(command_data, commands, LEN(commands), NULL, NULL);
 
     CHECK_EQUAL(-ERR_COMMAND_NOT_FOUND, result);
 }
@@ -233,7 +233,7 @@ TEST(ProtocolOutputCommand, CanPassOutputBuffer)
 
     cmp_write_uint(&command_builder, 1);
 
-    result = protocol_execute_command(command_data, commands, LEN(commands), output_data);
+    result = protocol_execute_command(command_data, commands, LEN(commands), output_data, NULL);
 
     BYTES_EQUAL(0xa5, output_data[0]); // string of length 5
     STRCMP_EQUAL("Hello", &output_data[1]);

@@ -37,7 +37,7 @@ void command_jump_to_application(int argc, cmp_ctx_t *args, cmp_ctx_t *out)
     application_main();
 }
 
-int protocol_execute_command(char *data, command_t *commands, int command_len, char *output_data)
+int protocol_execute_command(char *data, command_t *commands, int command_len, char *output_buffer, bootloader_config_t *config)
 {
     serializer_t serializer;
     cmp_ctx_t command_reader;
@@ -52,7 +52,7 @@ int protocol_execute_command(char *data, command_t *commands, int command_len, c
     serializer_init(&serializer, data, 0);
     serializer_cmp_ctx_factory(&command_reader, &serializer);
 
-    serializer_init(&out_serializer, output_data, 0);
+    serializer_init(&out_serializer, output_buffer, 0);
     serializer_cmp_ctx_factory(&out_writer, &out_serializer);
 
     read_success = cmp_read_int(&command_reader, &commmand_index);

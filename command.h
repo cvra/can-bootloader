@@ -2,6 +2,7 @@
 #define COMMAND_H_
 
 #include <serializer/serialization.h>
+#include "config.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -32,9 +33,10 @@ typedef struct {
  * @param [in] data The raw data to parse.
  * @param [in] commands A list of all possible commands.
  * @param [in] command_len Length of the commands array.
+ * @param [in] config A pointer to a bootloader configuration structure that will be passed to the commands.
  * @param [out] output_buffer A buffer where the command can place its results, which will be sent back to the client.
  */
-int protocol_execute_command(char *data, command_t *commands, int command_len, char *output_buffer);
+int protocol_execute_command(char *data, command_t *commands, int command_len, char *output_buffer, bootloader_config_t *config);
 
 /** Command used to write to a flash page.
  *
