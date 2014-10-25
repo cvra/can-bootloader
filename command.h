@@ -36,7 +36,8 @@ typedef struct {
  * @param [in] command_len Length of the commands array.
  * @param [in] config A pointer to a bootloader configuration structure that will be passed to the commands.
  * @param [out] output_buffer A buffer where the command can place its results, which will be sent back to the client.
- * @returns A negative error code if there was a problem.
+ * @returns The amount of bytes written to output_buffer on successful command completion.
+ * @returns A negative error code if the command execution encountered an error.
  */
 int protocol_execute_command(char *data, command_t *commands, int command_len, char *output_buffer, bootloader_config_t *config);
 

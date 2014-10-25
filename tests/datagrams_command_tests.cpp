@@ -238,3 +238,19 @@ TEST(ProtocolOutputCommand, CanPassOutputBuffer)
     BYTES_EQUAL(0xa5, output_data[0]); // string of length 5
     STRCMP_EQUAL("Hello", &output_data[1]);
 }
+
+TEST(ProtocolOutputCommand, BytesCountIsReturned)
+{
+    int result;
+
+    command_t commands[] = {
+        {.index = 0x01, .callback = output_mock_command},
+    };
+
+    cmp_write_uint(&command_builder, 1);
+
+    result = protocol_execute_command(command_data, commands, LEN(commands), output_data, NULL);
+
+    CHECK_EQUAL(6, result);
+}
+

@@ -97,7 +97,7 @@ int protocol_execute_command(char *data, command_t *commands, int command_len, c
     for (i = 0; i < command_len; ++i) {
         if (commands[i].index == commmand_index) {
             commands[i].callback(argc, &command_reader, &out_writer, NULL);
-            return 0;
+            return serializer_written_bytes_count(&out_serializer);
         }
     }
 
