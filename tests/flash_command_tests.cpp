@@ -101,3 +101,45 @@ TEST(JumpToApplicationCodetestGroup, CanJumpToApplication)
     mock().checkExpectations();
     mock().clear();
 }
+
+TEST_GROUP(CRCFlashRegionTestGroup)
+{
+    serializer_t command_serializer;
+    cmp_ctx_t command_builder;
+    char command_data[1024];
+
+    serializer_t output_serializer;
+    cmp_ctx_t output_builder;
+    char output_data[1024];
+
+    void setup(void)
+    {
+        serializer_init(&command_serializer, command_data, sizeof command_data);
+        serializer_cmp_ctx_factory(&command_builder, &command_serializer);
+        memset(command_data, 0, sizeof command_data);
+
+        serializer_init(&output_serializer, output_data, sizeof output_data);
+        serializer_cmp_ctx_factory(&output_builder, &output_serializer);
+        memset(output_data, 0, sizeof output_data);
+    }
+};
+
+TEST(CRCFlashRegionTestGroup, CanGetCRCOfARegion)
+{
+    uint32_t crc;
+    bool success;
+    char page[32];
+
+    memset(page, 0, sizeof page);
+
+    // Writes adress
+    cmp_write_u64(&command_builder, (size_t)page);
+
+    // Writes length
+    cmp_write_uint(&command_builder, sizeof page);
+
+    command_crc_region(0, &command_builder, &output_builder, NULL);
+    success = cmp_read_uint(&output_builder, &crc);
+    CHECK_TRUE(success);
+    CHECK_EQUAL(0x190a55ad, crc);
+}

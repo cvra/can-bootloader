@@ -46,6 +46,9 @@ int protocol_execute_command(char *data, command_t *commands, int command_len, c
  */
 void command_write_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config);
 
+/** Command used to compute the CRC of a flash page. */
+void command_crc_region(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config);
+
 /** Command used to jump to the application code.
  *
  * @note Should not be called directly but be a part of the commands given to protocol_execute_command.
