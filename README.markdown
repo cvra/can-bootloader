@@ -84,6 +84,9 @@ They should simply send the MessagePack encoded response on the bus.
 * Check write status (0x05). Parameters: None. Returns: True if a write is currently in progress, False otherwise.
 * Update config (0x06). The only parameters is a MessagePack map containing the configuration values to update. If a config value is not in its parameters, it will not be changed.
 
+*Note:* Adresses (pointers) in the arguments are represented as 64 bits integers.
+64 bits was chosen to allow tests to run on 64 bits platforms too.
+
 ## Multicast write
 When using multicast write the recommended way is the following :
 
