@@ -36,7 +36,7 @@ TEST(FlashCommandTestGroup, CanFlashSinglePage)
     const char *data = "xkcd";
 
     // Writes the adress of the page
-    cmp_write_uint(&command_builder, (size_t)page);
+    cmp_write_u64(&command_builder, (size_t)page);
 
     // Writes the correct device class
     cmp_write_str(&command_builder, config.device_class, strlen(config.device_class));
