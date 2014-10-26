@@ -53,39 +53,45 @@ bootloader_config_t config_read(void *buffer, size_t buffer_size)
     cmp_ctx_t context;
     serializer_t serializer;
 
-    int key_count;
-    char key[64];
-    int key_len;
 
     // Create a MessagePack instance in memory
     serializer_init(&serializer, block_payload_get(buffer), buffer_size - 4);
     serializer_cmp_ctx_factory(&context, &serializer);
 
-    cmp_read_map(&context, &key_count);
+    config_unserialize(&result, &context);
+
+    return result;
+}
+
+void config_unserialize(bootloader_config_t *config, cmp_ctx_t *context)
+{
+    int key_count;
+    char key[64];
+    int key_len;
+
+    cmp_read_map(context, &key_count);
 
     while (key_count --) {
         key_len = sizeof key;
-        cmp_read_str(&context, key, &key_len);
+        cmp_read_str(context, key, &key_len);
         key[key_len] = 0;
 
         if (!strcmp("ID", key)) {
-            cmp_read_u8(&context, &result.ID);
+            cmp_read_u8(context, &config->ID);
         }
 
         if (!strcmp("name", key)) {
             int name_len = 65;
-            cmp_read_str(&context, result.board_name, &name_len);
+            cmp_read_str(context, config->board_name, &name_len);
         }
 
         if (!strcmp("device_class", key)) {
             int name_len = 65;
-            cmp_read_str(&context, result.device_class, &name_len);
+            cmp_read_str(context, config->device_class, &name_len);
         }
 
         if (!strcmp("application_crc", key)) {
-            cmp_read_u32(&context,  &result.application_crc);
+            cmp_read_u32(context,  &config->application_crc);
         }
     }
-
-    return result;
 }

@@ -6,6 +6,7 @@ extern "C" {
 #endif
 
 #include <stdlib.h>
+#include <serializer/serialization.h>
 
 typedef struct {
     uint8_t ID; /**< Node ID */
@@ -28,6 +29,8 @@ bool config_is_valid(void *page, size_t page_size);
 void config_write(void *buffer,  bootloader_config_t config, size_t buffer_size);
 
 bootloader_config_t config_read(void *buffer, size_t buffer_size);
+
+void config_unserialize(bootloader_config_t *config, cmp_ctx_t *context);
 
 #ifdef __cplusplus
 }
