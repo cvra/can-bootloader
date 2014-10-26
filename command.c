@@ -64,6 +64,11 @@ void command_crc_region(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_co
     cmp_write_uint(out, crc);
 }
 
+void command_config_update(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config)
+{
+    config_unserialize(config, args);
+}
+
 int protocol_execute_command(char *data, command_t *commands, int command_len, char *output_buffer, bootloader_config_t *config)
 {
     serializer_t serializer;

@@ -56,6 +56,8 @@ void command_crc_region(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_co
  */
 void command_jump_to_application(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config);
 
+void command_config_update(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config);
+
 #ifdef __cplusplus
 }
 #endif
