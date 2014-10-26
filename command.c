@@ -10,7 +10,8 @@ void (*application_main)(void);
 
 void command_write_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config)
 {
-    void *adress;
+    void *address;
+    uint64_t tmp;
 
     int8_t type;
     int size;
@@ -18,7 +19,8 @@ void command_write_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_c
 
     bool success;
 
-    cmp_read_u64(args, (void *)&adress);
+    cmp_read_u64(args, &tmp);
+    address = (void *)tmp;
 
     size = 64;
     cmp_read_str(args, device_class, &size);
@@ -35,9 +37,9 @@ void command_write_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_c
 
     flash_writer_unlock();
 
-    flash_writer_page_erase(adress);
+    flash_writer_page_erase(address);
 
-    flash_writer_page_write(adress, page_buffer, size);
+    flash_writer_page_write(address, page_buffer, size);
 
     flash_writer_lock();
 }
@@ -50,15 +52,15 @@ void command_jump_to_application(int argc, cmp_ctx_t *args, cmp_ctx_t *out, boot
 void command_crc_region(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config)
 {
     uint32_t crc;
-    void *adress;
+    void *address;
     uint32_t size;
     uint64_t tmp;
 
     cmp_read_u64(args, &tmp);
-    adress = (void *)tmp;
+    address = (void *)tmp;
     cmp_read_uint(args, &size);
 
-    crc = crc32(0, adress, size);
+    crc = crc32(0, address, size);
     cmp_write_uint(out, crc);
 }
 
