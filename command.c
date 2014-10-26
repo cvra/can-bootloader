@@ -11,6 +11,7 @@ void (*application_main)(void);
 void command_write_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config)
 {
     void *adress;
+    uint64_t tmp;
 
     int8_t type;
     int size;
@@ -18,7 +19,8 @@ void command_write_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_c
 
     bool success;
 
-    cmp_read_u64(args, (void *)&adress);
+    cmp_read_u64(args, &tmp);
+    adress = (void *)tmp;
 
     size = 64;
     cmp_read_str(args, device_class, &size);
