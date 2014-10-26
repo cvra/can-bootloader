@@ -58,12 +58,12 @@ bootloader_config_t config_read(void *buffer, size_t buffer_size)
     serializer_init(&serializer, block_payload_get(buffer), buffer_size - 4);
     serializer_cmp_ctx_factory(&context, &serializer);
 
-    config_unserialize(&result, &context);
+    config_update_from_serialized(&result, &context);
 
     return result;
 }
 
-void config_unserialize(bootloader_config_t *config, cmp_ctx_t *context)
+void config_update_from_serialized(bootloader_config_t *config, cmp_ctx_t *context)
 {
     int key_count;
     char key[64];
