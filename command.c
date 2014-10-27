@@ -53,8 +53,6 @@ void command_read_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_co
 
     cmp_read_u32(args, &size);
 
-    /* check flash address? */
-
     cmp_write_bin(out, address, size);
 }
 
