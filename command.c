@@ -55,7 +55,7 @@ void command_read_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_co
 
     /* check flash address? */
 
-    cmp_write_str32(out, (char*)address, size);
+    cmp_write_bin(out, address, size);
 }
 
 void command_jump_to_application(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config)
