@@ -10,6 +10,7 @@ tests:
     - tests/config_tests.cpp
     - tests/flash_command_tests.cpp
     - tests/config_commands_tests.cpp
+    - tests/integration_tests.cpp
 
 source:
     - can_datagram.c

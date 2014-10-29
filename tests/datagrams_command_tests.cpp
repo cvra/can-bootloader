@@ -7,7 +7,7 @@
 
 #define LEN(a) (sizeof(a) / sizeof(a[0]))
 
-void mock_command(int argc, cmp_ctx_t *arg_context, cmp_ctx_t *out_context, bootloader_config_t *config)
+static void mock_command(int argc, cmp_ctx_t *arg_context, cmp_ctx_t *out_context, bootloader_config_t *config)
 {
     mock().actualCall("command");
 }
