@@ -16,6 +16,13 @@ int can_interface_read_message(uint32_t *message_id, uint8_t *message)
                       .returnIntValue();
 }
 
+void can_interface_send_message(uint32_t message_id, uint8_t *message, int len)
+{
+    mock("can").actualCall("write")
+               .withIntParameter("len", len)
+               .withIntParameter("id", message_id);
+}
+
 void can_mock_message(uint32_t message_id, uint8_t *msg, int message_len)
 {
     expected_id = message_id;
@@ -67,4 +74,14 @@ TEST(CanInterfaceMockTestGroup, CanGetMessage)
 
     can_interface_read_message(&id, msg);
     STRCMP_EQUAL("hello", (char *)msg);
+}
+
+TEST(CanInterfaceMockTestGroup, CanOutputMessage)
+{
+    uint8_t msg[] = {1,2,3};
+    mock("can").expectOneCall("write")
+               .withIntParameter("len", 3)
+               .withIntParameter("id", 0x42);
+    can_interface_send_message(0x42, msg, 3);
+
 }
