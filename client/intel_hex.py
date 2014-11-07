@@ -1,10 +1,9 @@
 from growing_list import GrowingList
 from collections import namedtuple
-from enum import IntEnum
 
 IHexLine = namedtuple("IHexLine", ['length', 'adress', 'type', 'data'])
 
-class RecordType(IntEnum):
+class RecordType:
     Data = 0
     End = 1
     ExtendedAdressMode = 4
