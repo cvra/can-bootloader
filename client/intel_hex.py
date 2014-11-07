@@ -18,7 +18,7 @@ def ihex_parse_line(line):
     for i in range(0, len(data_part), 2):
         data.append(int(data_part[i:i+2], 16))
 
-    return IHexLine(length=length, adress=adress, type=type, data=bytes(data))
+    return IHexLine(length=length, adress=adress, type=type, data=data)
 
 def ihex_to_memory(lines):
     """
