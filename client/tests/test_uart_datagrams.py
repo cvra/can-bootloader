@@ -41,4 +41,36 @@ class UARTDatagramEncodeTestCase(unittest.TestCase):
         expected = bytes([0xdb, 0xdd]) # transposed esc
         self.assertEqual(expected, datagram[0:2], "ESC was not correctly escaped")
 
+class UARTDatagramDecodeTestCase(unittest.TestCase):
+    def test_can_decode_simple_datagram(self):
+        """
+        Simply tries to decode a complete datagram.
+        """
+        datagram = [0,0,0,0xff,0x41,0xd9, 0x12, 0xC0]
+        datagram = bytes(datagram)
+        datagram = datagram_decode(datagram)
+        self.assertEqual(bytes([0,0,0]), datagram)
 
+    def test_invalid_crc_raises_exception(self):
+        """
+        Checks that having a wrong crc raises an exception.
+        """
+        datagram = [0,0,0,0xde, 0xad, 0xde, 0xad, 0xC0]
+        datagram = bytes(datagram)
+        with self.assertRaises(CRCMismatchError):
+            datagram_decode(datagram)
+
+    def test_escape_is_unescaped(self):
+        """
+        Checks that ESC + ESC_ESC is transformed to ESC.
+        """
+        datagram = b'\xdb\xdd\xc3\x03\xe4\xd1\xc0'
+        datagram = datagram_decode(datagram)
+        self.assertEqual(bytes([0xdb]), datagram)
+
+    def test_end_is_unsescaped(self):
+        """
+        Checks that ESC + ESC_END is transformed to END.
+        """
+        datagram = datagram_decode(b'\xdb\xdcIf-=\xc0')
+        self.assertEqual(bytes([0xc0]), datagram)
