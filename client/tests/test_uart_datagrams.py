@@ -8,7 +8,7 @@ class UARTDatagramEncodeTestCase(unittest.TestCase):
         Checks that the CRC is correctly encapsulated at the end of the datagram.
         """
         data = bytes([0] * 3)
-        expected_crc = struct.pack('<I', 4282505490)
+        expected_crc = struct.pack('>I', 4282505490)
 
         datagram = datagram_encode(data)
         self.assertEqual(expected_crc, datagram[-5:-1], "CRC mismatch")
