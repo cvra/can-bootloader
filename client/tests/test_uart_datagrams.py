@@ -74,3 +74,13 @@ class UARTDatagramDecodeTestCase(unittest.TestCase):
         """
         datagram = datagram_decode(b'\xdb\xdcIf-=\xc0')
         self.assertEqual(bytes([0xc0]), datagram)
+
+    def test_that_weird_sequences_work(self):
+        """
+        Decode order matters. This can be revealed by making a packet
+        containing ESC + ESC_END, which would cause a problem if the replace
+        happens in the wrong order.
+        """
+        data = ESC + ESC_END
+        datagram = datagram_encode(data)
+        self.assertEqual(data, datagram_decode(datagram))

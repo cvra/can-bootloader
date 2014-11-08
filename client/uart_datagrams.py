@@ -26,9 +26,9 @@ def datagram_decode(data):
     """
     Decodes a datagram. Exact inverse of datagram_encode()
     """
-    data = data[:-1] # remove end marker
-    data = data.replace(ESC + ESC_ESC, ESC)
+    data = data[:-1] # remote end marker
     data = data.replace(ESC + ESC_END, END)
+    data = data.replace(ESC + ESC_ESC, ESC)
 
     expected_crc = struct.unpack('>I', data[-4:])[0]
     actual_crc = crc32(data[:-4])
