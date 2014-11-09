@@ -41,7 +41,7 @@ TEST(FlashCommandTestGroup, CanFlashSinglePage)
     // Writes the correct device class
     cmp_write_str(&command_builder, config.device_class, strlen(config.device_class));
 
-    cmp_write_ext(&command_builder, 0x00, strlen(data), data);
+    cmp_write_bin(&command_builder, data, strlen(data));
 
     mock("flash").expectOneCall("unlock");
     mock("flash").expectOneCall("lock");

@@ -29,7 +29,7 @@ void command_write_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_c
         return;
     }
 
-    success = cmp_read_ext(args, &type, &size, page_buffer);
+    success = cmp_read_bin(args, page_buffer, &size);
 
     if (!success) {
         return;
