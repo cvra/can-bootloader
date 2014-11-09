@@ -3,9 +3,14 @@ from zlib import crc32
 
 class CRCMismatchError(RuntimeError):
     """
-    Error raised when a packet has an invalid CRC.
+    Error raised when a datagram has an invalid CRC.
     """
     pass
+
+class FrameError(RuntimeError):
+    """
+    Error raised when a datagram is too short to be valid.
+    """
 
 END = b'\xC0'
 ESC = b'\xDB'
@@ -26,6 +31,11 @@ def datagram_decode(data):
     """
     Decodes a datagram. Exact inverse of datagram_encode()
     """
+
+    # Checks if the data is at least long enough for the CRC and the END marker
+    if len(data) < 5:
+        raise FrameError
+
     data = data[:-1] # remote end marker
     data = data.replace(ESC + ESC_END, END)
     data = data.replace(ESC + ESC_ESC, ESC)

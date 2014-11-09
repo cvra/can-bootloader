@@ -84,3 +84,13 @@ class UARTDatagramDecodeTestCase(unittest.TestCase):
         data = ESC + ESC_END
         datagram = datagram_encode(data)
         self.assertEqual(data, datagram_decode(datagram))
+
+    def test_that_too_short_sequence_raises_exception(self):
+        """
+        Checks that decoding a datagram smaller than 5 bytes (CRC + END) raises
+        an exception.
+        """
+
+        with self.assertRaises(FrameError):
+            datagram_decode(bytes([1,2,3,3]))
+
