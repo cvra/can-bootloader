@@ -63,4 +63,19 @@ class WriteCommandTestCase(unittest.TestCase):
         # Finally data
         self.assertEqual(raw_packet[-1], 12)
 
+class JumpToApplicationMainTestCase(unittest.TestCase):
+    """
+    Tests for the jump to application main command.
+    """
+    def setUp(self):
+        raw_packet = encode_jump_to_main()
+        unpacker = Unpacker()
+        unpacker.feed(raw_packet)
+        self.command = list(unpacker)
+
+    def test_jump_cmd_index(self):
+        """
+        Checks that the index for the command is correct.
+        """
+        self.assertEqual(self.command[0], 1)
 
