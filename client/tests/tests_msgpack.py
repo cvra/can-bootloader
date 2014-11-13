@@ -26,3 +26,18 @@ class MessagePackTestCase(unittest.TestCase):
         # Format is 0xc4, lenght, data
         expected = bytes([0xc4, 4, 0, 1, 2, 3])
         self.assertEqual(expected, packer.pack(data))
+
+    def test_can_unpack_multiple_values(self):
+        """
+        Checks that we can unpack a stream of value as used in the command format.
+        """
+        packer = Packer(use_bin_type=True)
+
+        # Creates command stream
+        data = packb(1) + packb([1,2,3])
+
+        # Stream deserializes it
+        a = Unpacker()
+        a.feed(data)
+
+        self.assertEqual(list(a), [1, [1,2,3]])
