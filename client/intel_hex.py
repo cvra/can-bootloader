@@ -8,7 +8,7 @@ class RecordType:
     End = 1
     ExtendedAdressMode = 4
 
-def ihex_parse_line(line):
+def parse_line(line):
     length = int(line[1:3], 16)
     adress = int(line[3:7], 16)
     type = int(line[7:9])
@@ -20,7 +20,7 @@ def ihex_parse_line(line):
 
     return IHexLine(length=length, adress=adress, type=type, data=data)
 
-def ihex_to_memory(lines):
+def to_memory(lines):
     """
     Transforms a list of lines into a binary memory representation.
     """
@@ -29,7 +29,7 @@ def ihex_to_memory(lines):
     start_adress = 0
 
     for l in lines:
-        l = ihex_parse_line(l)
+        l = parse_line(l)
 
         if l.type == RecordType.Data:
             for i in range(l.length):
