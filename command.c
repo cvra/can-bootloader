@@ -2,6 +2,7 @@
 #include "flash_writer.h"
 #include <string.h>
 #include <serializer/crc.h>
+#include "boot_arg.h"
 
 // XXX Change page size
 static char page_buffer[1024];
@@ -46,7 +47,7 @@ void command_write_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_c
 
 void command_jump_to_application(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config)
 {
-    application_main();
+    reboot(BOOT_ARG_JMP_TO_APP);
 }
 
 void command_crc_region(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config)
