@@ -45,6 +45,25 @@ void command_write_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_c
     flash_writer_lock();
 }
 
+void command_read_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config)
+{
+    uint64_t tmp;
+    uint32_t size;
+
+    if (cmp_read_u64(args, &tmp)) {
+        return;
+    }
+    void *address = (void *)tmp;
+
+    if (cmp_read_u32(args, &size)) {
+        return;
+    }
+
+    if (cmp_write_bin(out, address, size)) {
+        return;
+    }
+}
+
 void command_jump_to_application(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config)
 {
     reboot(BOOT_ARG_JMP_TO_APP);
