@@ -1,6 +1,4 @@
-from collections import namedtuple
-from msgpack import Packer, Unpacker
-
+import msgpack
 
 class Frame:
     """
@@ -18,7 +16,7 @@ def encode_frame(frame):
     """
     Encodes the given frame to raw messagepack bytes.
     """
-    packer = Packer(use_bin_type=True)
+    packer = msgpack.Packer(use_bin_type=True)
     data = packer.pack(frame.extended)
     data = data + packer.pack(frame.transmission_request)
     data = data + packer.pack(frame.id)
@@ -30,7 +28,7 @@ def decode_frame(data):
     """
     Decodes the given messagepack bytes to a Frame object.
     """
-    unpacker = Unpacker()
+    unpacker = msgpack.Unpacker()
     result = Frame()
 
     unpacker.feed(data)
