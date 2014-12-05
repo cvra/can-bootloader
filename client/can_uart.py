@@ -1,5 +1,5 @@
 from collections import namedtuple
-from msgpack import Packer
+from msgpack import Packer, Unpacker
 
 
 class Frame:
@@ -25,4 +25,20 @@ def encode_frame(frame):
     data += packer.pack(frame.data)
 
     return data
+
+def decode_frame(data):
+    """
+    Decodes the given messagepack bytes to a Frame object.
+    """
+    unpacker = Unpacker()
+    result = Frame()
+
+    unpacker.feed(data)
+
+    result.extended = unpacker.unpack()
+    result.transmission_request = unpacker.unpack()
+    result.id = unpacker.unpack()
+    result.data = unpacker.unpack()
+
+    return result
 

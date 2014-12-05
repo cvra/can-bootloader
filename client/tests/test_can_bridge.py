@@ -68,3 +68,46 @@ class CanFrameEncodingTestCase(unittest.TestCase):
         marker = 0xc4 # binary marker
         self.assertEqual(data[-4 - 1], marker)
         self.assertEqual(data[-4], len(frame.data))
+
+class CanFrameDecodingTestCase(unittest.TestCase):
+    """
+    Checks that decoding CAN frames works well.
+
+    This depends on CAN encoding tests working as well.
+    """
+
+    def test_extended_frame_flag(self):
+        """
+        Checks that the extended flag can be correctly decoded.
+        """
+        frame = decode_frame(encode_frame(Frame(extended=True)))
+        self.assertTrue(frame.extended)
+
+        frame = decode_frame(encode_frame(Frame(extended=False)))
+        self.assertFalse(frame.extended)
+
+    def test_rtr_flag(self):
+        """
+        Checks that the Remote Transmission Request can be correctly
+        decoded.
+        """
+        frame = decode_frame(encode_frame(Frame(transmission_request=True)))
+        self.assertTrue(frame.transmission_request)
+
+        frame = decode_frame(encode_frame(Frame(transmission_request=False)))
+        self.assertFalse(frame.transmission_request)
+
+    def test_frameid(self):
+        """
+        Checks that the frame ID is correctly decoded.
+        """
+        frame = decode_frame(encode_frame(Frame(id=42)))
+        self.assertEqual(frame.id, 42)
+
+    def test_data(self):
+        """
+        Checks that the data field is correctly decoded.
+        """
+        data = 'hello'.encode('ascii')
+        frame = decode_frame(encode_frame(Frame(data=data)))
+        self.assertEqual(data, frame.data)
