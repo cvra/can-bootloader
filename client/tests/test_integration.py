@@ -1,4 +1,4 @@
-import can, commands, uart_datagrams, can_uart
+import can, commands, serial_datagrams, can_uart
 import unittest
 
 class IntegrationTesting(unittest.TestCase):
@@ -22,7 +22,7 @@ class IntegrationTesting(unittest.TestCase):
         frames = [can_uart.encode_frame(f) for f in frames]
 
         # Packs each frame in a serial datagram
-        frames = [uart_datagrams.datagram_encode(f) for f in frames]
+        frames = [serial_datagrams.datagram_encode(f) for f in frames]
 
         # Flattens the list of UART datagram frames to a stream of byte
         data = [c for f in frames for c in f]

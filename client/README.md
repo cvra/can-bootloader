@@ -21,7 +21,7 @@ This implies that there is a few different level of encapsulations:
 Translating this into code gives the following (extracted from integration testing):
 
 ```py
-import can, commands, uart_datagrams, can_uart
+import can, commands, serial_datagrams, can_uart
 
 # Data to write to flash
 data = "Hello, world!".encode('ascii')
@@ -39,9 +39,9 @@ frames = can.datagram_to_frames(data, source=0)
 frames = [can_uart.encode_frame(f) for f in frames]
 
 # Packs each frame in a serial datagram
-frames = [uart_datagrams.datagram_encode(f) for f in frames]
+frames = [serial_datagrams.datagram_encode(f) for f in frames]
 
-# Flattens the list of UART datagram frames to a stream of byte
+# Flattens the list of serial datagram to a stream of byte
 data = [c for f in frames for c in f]
 
 # Print can be replace with anything (socket write, serial port, etc..)

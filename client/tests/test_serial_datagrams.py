@@ -1,6 +1,6 @@
 import unittest
 import struct
-from uart_datagrams import *
+from serial_datagrams import *
 
 class UARTDatagramEncodeTestCase(unittest.TestCase):
     def test_crc_encapsulation(self):
