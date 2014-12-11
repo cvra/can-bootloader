@@ -1,4 +1,4 @@
-from can_uart import *
+from can_bridge import *
 import unittest
 import msgpack
 

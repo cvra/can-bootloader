@@ -21,7 +21,7 @@ This implies that there is a few different level of encapsulations:
 Translating this into code gives the following (extracted from integration testing):
 
 ```py
-import can, commands, serial_datagrams, can_uart
+import can, commands, serial_datagrams, can_bridge
 
 # Data to write to flash
 data = "Hello, world!".encode('ascii')
@@ -36,7 +36,7 @@ data = can.encode_datagram(data=data, destinations=[1])
 frames = can.datagram_to_frames(data, source=0)
 
 # Serializes CAN frames for the bridge
-frames = [can_uart.encode_frame(f) for f in frames]
+frames = [can_bridge.encode_frame(f) for f in frames]
 
 # Packs each frame in a serial datagram
 frames = [serial_datagrams.datagram_encode(f) for f in frames]
