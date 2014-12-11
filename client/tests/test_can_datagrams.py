@@ -8,9 +8,6 @@ try:
 except ImportError:
     import mock
 
-
-
-
 class CanDatagramTestCase(unittest.TestCase):
     data = 'hello, world'.encode('ascii')
 
@@ -64,6 +61,66 @@ class CanDatagramTestCase(unittest.TestCase):
         crc = encode_datagram([1], data)[:4]
         self.assertEqual(crc, expected)
 
+    def test_frame_too_long_raises_valueerror(self):
+        """
+        This test checks that building a Frame longer than 8 bytes raises a
+        ValueError.
+        """
+        with self.assertRaises(ValueError):
+            Frame(data=bytes(range(10)))
 
+    def assertBitSet(self, value, bit):
+        value = value & (1 << bit)
+        self.assertTrue(value, "Bit {} not set".format(bit))
 
+    def assertBitClear(self, value, bit):
+        value = value & (1 << bit)
+        self.assertFalse(value, "Bit {} not set".format(bit))
+
+    def test_assertbit(self):
+        self.assertBitSet(3, 1)
+        self.assertBitClear(2, 0)
+
+        with self.assertRaises(AssertionError):
+            self.assertBitSet(3, 5)
+
+        with self.assertRaises(AssertionError):
+            self.assertBitClear(2, 1)
+
+    def test_datagram_start_bit(self):
+        """
+        Checks if the start bit is encoded correctly.
+        """
+        dt = encode_datagram([1], bytes())
+        msgs = datagram_to_frames(dt, source=0)
+
+        # Bit 7 is start bit.
+        self.assertBitSet(next(msgs).id, 7)
+        self.assertBitClear(next(msgs).id, 7)
+
+    def test_datagram_source_id(self):
+        """
+        Checks that the source indication is encoded correctly.
+        """
+        dt = encode_datagram([1], bytes())
+        msgs = datagram_to_frames(dt, source=42)
+
+        # 7 first bits are source ID
+        mask = 0x7f
+
+        # Checks that the id is correct for all frams
+        self.assertEqual(next(msgs).id & mask, 42)
+        self.assertEqual(next(msgs).id & mask, 42)
+
+    def test_datagram_has_all_data(self):
+        """
+        Checks that grouping all frames makes the whole datagram.
+        """
+        dt = encode_datagram([1], bytes(range(10)))
+        msgs = datagram_to_frames(dt, source=42)
+
+        # Concatenate all data in datagrams
+        recomposed_data = [b for m in msgs for b in m.data]
+
+        self.assertEqual(recomposed_data, list(dt))
 
