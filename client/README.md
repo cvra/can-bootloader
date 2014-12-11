@@ -18,7 +18,7 @@ This implies that there is a few different level of encapsulations:
 5. Each bridge command is encapsulated in a single serial datagram (`uart_datagrams.py`).
 6. Encoded datagrams can now be sent on the serial link.
 
-Translating this into code gives the following:
+Translating this into code gives the following (extracted from integration testing):
 
 ```py
 import can, commands, uart_datagrams, can_uart
