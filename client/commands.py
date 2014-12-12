@@ -4,7 +4,7 @@ class CommandType:
     JumpToMain = 1
     Write = 3
 
-def encode_write_flash(adress, data, device_class):
+def encode_write_flash(data, adress, device_class):
     """
     Encodes the command to write the given data at the given adress in a
     messagepack byte object.

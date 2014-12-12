@@ -14,7 +14,7 @@ class WriteCommandTestCase(unittest.TestCase):
         data = bytes(range(4))
         device = "dummy"
 
-        raw_packet = encode_write_flash(adress, data, device)
+        raw_packet = encode_write_flash(data, adress, device)
 
         unpacker = Unpacker()
         unpacker.feed(raw_packet)
@@ -52,7 +52,7 @@ class WriteCommandTestCase(unittest.TestCase):
         """
         Checks that the write command uses bin type.
         """
-        raw_packet = encode_write_flash(0x1, bytes([12]), "dummy")
+        raw_packet = encode_write_flash(bytes([12]), adress=1, device_class="dummy")
 
         # 0xc4 is binary type marker
         self.assertEqual(raw_packet[-3], 0xc4)
