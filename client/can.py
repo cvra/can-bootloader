@@ -20,7 +20,7 @@ class Frame:
 
 
 
-def encode_datagram(destinations, data):
+def encode_datagram(data, destinations):
     """
     Encodes the given data and destination list to form a complete datagram.
     This datagram can then be cut into CAN messages by datagram_to_frames.

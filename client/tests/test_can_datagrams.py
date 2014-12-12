@@ -15,8 +15,7 @@ class CanDatagramTestCase(unittest.TestCase):
         """
         This test checks if we can encode a single destination in the datagram.
         """
-        destinations = [10]
-        dt = encode_datagram(destinations, self.data)
+        dt = encode_datagram(self.data, [10])
 
         # Destination nodes length
         self.assertEqual(dt[4], 1)
@@ -28,7 +27,7 @@ class CanDatagramTestCase(unittest.TestCase):
         """
         This test checks if we can encode several destinations.
         """
-        dt = encode_datagram([1,2,3], self.data)
+        dt = encode_datagram(self.data, [1,2,3])
 
         # Length
         self.assertEqual(dt[4], 3)
@@ -40,7 +39,7 @@ class CanDatagramTestCase(unittest.TestCase):
         """
         Checks if we can read data length.
         """
-        dt = encode_datagram([1], self.data)
+        dt = encode_datagram(self.data, [1])
         data_length = unpack_from('>I', dt, 4 + 2)[0]
         self.assertEqual(len(self.data), data_length)
 
@@ -48,7 +47,7 @@ class CanDatagramTestCase(unittest.TestCase):
         """
         Checks if we can add data.
         """
-        dt = encode_datagram([1], self.data)
+        dt = encode_datagram(self.data, [1])
         data = dt[4 + 1 + 1 + 4:]
         self.assertEqual(data, self.data)
 
@@ -58,7 +57,7 @@ class CanDatagramTestCase(unittest.TestCase):
         """
         data = 'hello'.encode('ascii')
         expected = pack('>I', crc32(bytes([1,1,0,0,0,5]) + data))
-        crc = encode_datagram([1], data)[:4]
+        crc = encode_datagram(data, [1])[:4]
         self.assertEqual(crc, expected)
 
     def test_frame_too_long_raises_valueerror(self):
@@ -91,7 +90,7 @@ class CanDatagramTestCase(unittest.TestCase):
         """
         Checks if the start bit is encoded correctly.
         """
-        dt = encode_datagram([1], bytes())
+        dt = encode_datagram(bytes(), [1])
         msgs = datagram_to_frames(dt, source=0)
 
         # Bit 7 is start bit.
@@ -102,7 +101,7 @@ class CanDatagramTestCase(unittest.TestCase):
         """
         Checks that the source indication is encoded correctly.
         """
-        dt = encode_datagram([1], bytes())
+        dt = encode_datagram(bytes(), [1])
         msgs = datagram_to_frames(dt, source=42)
 
         # 7 first bits are source ID
@@ -116,7 +115,7 @@ class CanDatagramTestCase(unittest.TestCase):
         """
         Checks that grouping all frames makes the whole datagram.
         """
-        dt = encode_datagram([1], bytes(range(10)))
+        dt = encode_datagram(bytes(range(10)), [1])
         msgs = datagram_to_frames(dt, source=42)
 
         # Concatenate all data in datagrams
