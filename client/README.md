@@ -27,10 +27,10 @@ import can, commands, serial_datagrams, can_bridge
 data = "Hello, world!".encode('ascii')
 
 # Generates the command
-data = commands.encode_write_flash(data=data, adress=0x00, device_class="dummy")
+data = commands.encode_write_flash(data, adress=0x00, device_class="dummy")
 
 # Encapsulates it in a CAN datagram
-data = can.encode_datagram(data=data, destinations=[1])
+data = can.encode_datagram(data, destinations=[1])
 
 # Slice the datagram in frames
 frames = can.datagram_to_frames(data, source=0)
