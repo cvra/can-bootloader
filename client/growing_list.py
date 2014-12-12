@@ -1,5 +1,7 @@
 class GrowingList(list):
-    def __init__(self, default_value=None, iterable=[]):
+    def __init__(self, default_value=None, iterable=None):
+        if iterable is None:
+            iterable = []
         list.__init__(self, iterable)
         self.default_value = default_value
 
