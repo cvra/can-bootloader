@@ -1,6 +1,18 @@
 import msgpack
 from can import Frame
 
+class CANBridgeCommand:
+    SendFrame = 0
+    SetIDFilter = 1
+
+def encode_frame_command(frame):
+    """
+    Encodes the send command with the given CAN frame.
+    """
+    packer = msgpack.Packer(use_bin_type=True)
+    command = packer.pack(CANBridgeCommand.SendFrame)
+    command = command + encode_frame(frame)
+    return command
 
 def encode_frame(frame):
     """
