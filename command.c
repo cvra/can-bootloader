@@ -7,7 +7,6 @@
 // XXX Change page size
 static char page_buffer[1024];
 
-void (*application_main)(void);
 
 void command_write_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config)
 {
@@ -66,7 +65,7 @@ void command_read_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_co
 
 void command_jump_to_application(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config)
 {
-    reboot(BOOT_ARG_JMP_TO_APP);
+    reboot(BOOT_ARG_START_APPLICATION);
 }
 
 void command_crc_region(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config)

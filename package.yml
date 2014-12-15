@@ -17,3 +17,7 @@ source:
     - command.c
     - config.c
 
+target.arm:
+    - flash_writer_stm32f3.c
+    - boot_arg.c
+    - boot.s
