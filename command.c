@@ -4,6 +4,8 @@
 #include "boot_arg.h"
 #include <crc/crc32.h>
 
+extern int app_start, config_page1, config_page2s;   // defined by linker
+
 void command_write_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config)
 {
     void *address;
@@ -14,6 +16,11 @@ void command_write_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_c
 
     cmp_read_uinteger(args, &tmp);
     address = (void *)tmp;
+
+    // refuse to overwrite bootloader or config pages
+    if (address < &app_start) {
+        return;
+    }
 
     size = 64;
     cmp_read_str(args, device_class, &size);
@@ -54,7 +61,11 @@ void command_read_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_co
 
 void command_jump_to_application(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config)
 {
-    reboot(BOOT_ARG_START_APPLICATION);
+    if (crc32(0, &app_start, config->application_size) == config->application_crc) {
+        reboot(BOOT_ARG_START_APPLICATION);
+    } else {
+        reboot(BOOT_ARG_START_BOOTLOADER_NO_TIMEOUT);
+    }
 }
 
 void command_crc_region(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config)
@@ -111,7 +122,7 @@ int protocol_execute_command(char *data, command_t *commands, int command_len, c
 
     for (i = 0; i < command_len; ++i) {
         if (commands[i].index == commmand_index) {
-            commands[i].callback(argc, &command_reader, &out_writer, NULL);
+            commands[i].callback(argc, &command_reader, &out_writer, config);
             return serializer_written_bytes_count(&out_serializer);
         }
     }
