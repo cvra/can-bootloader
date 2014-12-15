@@ -9,9 +9,7 @@ void command_write_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_c
     void *address;
     void *src;
     uint64_t tmp;
-
-    int8_t type;
-    int size;
+    uint32_t size;
     char device_class[64];
 
     bool success;
@@ -87,8 +85,8 @@ int protocol_execute_command(char *data, command_t *commands, int command_len, c
 {
     serializer_t serializer;
     cmp_ctx_t command_reader;
-    int commmand_index, i;
-    int argc;
+    int32_t commmand_index, i;
+    uint32_t argc;
     bool read_success;
 
     serializer_t out_serializer;
