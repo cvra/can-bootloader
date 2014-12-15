@@ -12,8 +12,6 @@ void command_write_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_c
     uint32_t size;
     char device_class[64];
 
-    bool success;
-
     cmp_read_uinteger(args, &tmp);
     address = (void *)tmp;
 
@@ -24,14 +22,12 @@ void command_write_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_c
         return;
     }
 
-    success = cmp_read_bin_size(args, &size);
+    if (!cmp_read_bin_size(args, &size)) {
+        return;
+    }
 
     /* This is ugly, yet required to achieve zero copy. */
     src = ((serializer_t *)(args->buf))->_read_cursor;
-
-    if (!success) {
-        return;
-    }
 
     flash_writer_unlock();
 
