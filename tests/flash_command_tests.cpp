@@ -102,7 +102,7 @@ TEST(JumpToApplicationCodetestGroup, CanJumpToApplication)
     mock().clear();
 }
 
-TEST_GROUP(CRCFlashRegionTestGroup)
+TEST_GROUP(ReadFlashTestGroup)
 {
     serializer_t command_serializer;
     cmp_ctx_t command_builder;
@@ -124,7 +124,7 @@ TEST_GROUP(CRCFlashRegionTestGroup)
     }
 };
 
-TEST(CRCFlashRegionTestGroup, CanGetCRCOfARegion)
+TEST(ReadFlashTestGroup, CanGetCRCOfARegion)
 {
     uint32_t crc;
     bool success;
@@ -142,4 +142,23 @@ TEST(CRCFlashRegionTestGroup, CanGetCRCOfARegion)
     success = cmp_read_uint(&output_builder, &crc);
     CHECK_TRUE(success);
     CHECK_EQUAL(0x190a55ad, crc);
+}
+
+TEST(ReadFlashTestGroup, CanReadData)
+{
+    char page[] = "Hello, world";
+    char read_data[128];
+    uint32_t read_size = sizeof read_data;
+
+    cmp_write_u64(&command_builder, (size_t)page);
+    cmp_write_u32(&command_builder, strlen(page));
+
+    command_read_flash(2, &command_builder, &output_builder, NULL);
+    cmp_read_bin(&output_builder, read_data, &read_size);
+
+    CHECK_EQUAL(strlen(page), read_size);
+
+    // Null terminate the string
+    read_data[read_size] = '\0';
+    STRCMP_EQUAL(page, read_data);
 }

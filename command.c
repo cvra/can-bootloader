@@ -1,16 +1,13 @@
 #include "command.h"
 #include "flash_writer.h"
 #include <string.h>
-#include <serializer/crc.h>
 #include "boot_arg.h"
-
-// XXX Change page size
-static char page_buffer[1024];
-
+#include <crc/crc32.h>
 
 void command_write_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config)
 {
     void *address;
+    void *src;
     uint64_t tmp;
 
     int8_t type;
@@ -29,7 +26,10 @@ void command_write_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_c
         return;
     }
 
-    success = cmp_read_bin(args, page_buffer, &size);
+    success = cmp_read_bin_size(args, &size);
+
+    /* This is ugly, yet required to achieve zero copy. */
+    src = ((serializer_t *)(args->buf))->_read_cursor;
 
     if (!success) {
         return;
@@ -39,28 +39,23 @@ void command_write_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_c
 
     flash_writer_page_erase(address);
 
-    flash_writer_page_write(address, page_buffer, size);
+    flash_writer_page_write(address, src, size);
 
     flash_writer_lock();
 }
 
 void command_read_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config)
 {
+    void *address;
     uint64_t tmp;
     uint32_t size;
 
-    if (cmp_read_u64(args, &tmp)) {
-        return;
-    }
-    void *address = (void *)tmp;
+    cmp_read_u64(args, &tmp);
+    address = (void *)tmp;
 
-    if (cmp_read_u32(args, &size)) {
-        return;
-    }
+    cmp_read_u32(args, &size);
 
-    if (cmp_write_bin(out, address, size)) {
-        return;
-    }
+    cmp_write_bin(out, address, size);
 }
 
 void command_jump_to_application(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config)

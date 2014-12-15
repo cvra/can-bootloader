@@ -1,6 +1,7 @@
 depends:
     - test-runner
     - serializer
+    - crc
 
 tests:
     - tests/can_datagram_tests.cpp
