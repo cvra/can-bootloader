@@ -1,16 +1,15 @@
 #include "command.h"
 #include "flash_writer.h"
 #include <string.h>
-#include <serializer/crc.h>
+#include <crc/crc32.h>
 
-// XXX Change page size
-static char page_buffer[1024];
 
 void (*application_main)(void);
 
 void command_write_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config)
 {
     void *address;
+    void *src;
     uint64_t tmp;
 
     int8_t type;
@@ -29,7 +28,10 @@ void command_write_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_c
         return;
     }
 
-    success = cmp_read_bin(args, page_buffer, &size);
+    success = cmp_read_bin_size(args, &size);
+
+    /* This is ugly, yet required to achieve zero copy. */
+    src = ((serializer_t *)(args->buf))->_read_cursor;
 
     if (!success) {
         return;
@@ -39,7 +41,7 @@ void command_write_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_c
 
     flash_writer_page_erase(address);
 
-    flash_writer_page_write(address, page_buffer, size);
+    flash_writer_page_write(address, src, size);
 
     flash_writer_lock();
 }
