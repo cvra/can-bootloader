@@ -88,7 +88,7 @@ void command_config_update(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader
     config_update_from_serialized(config, args);
 }
 
-int protocol_execute_command(char *data, command_t *commands, int command_len, char *output_buffer, bootloader_config_t *config)
+int protocol_execute_command(char *data, size_t data_len, command_t *commands, int command_len, char *out_buf, size_t out_len, bootloader_config_t *config)
 {
     serializer_t serializer;
     cmp_ctx_t command_reader;
@@ -99,11 +99,10 @@ int protocol_execute_command(char *data, command_t *commands, int command_len, c
     serializer_t out_serializer;
     cmp_ctx_t out_writer;
 
-    // XXX size 0 should be replaced with correct size
-    serializer_init(&serializer, data, 0);
+    serializer_init(&serializer, data, data_len);
     serializer_cmp_ctx_factory(&command_reader, &serializer);
 
-    serializer_init(&out_serializer, output_buffer, 0);
+    serializer_init(&out_serializer, out_buf, out_len);
     serializer_cmp_ctx_factory(&out_writer, &out_serializer);
 
     read_success = cmp_read_int(&command_reader, &commmand_index);
