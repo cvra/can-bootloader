@@ -14,7 +14,7 @@ void command_write_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_c
 
     bool success;
 
-    cmp_read_u64(args, &tmp);
+    cmp_read_uinteger(args, &tmp);
     address = (void *)tmp;
 
     size = 64;
@@ -48,7 +48,7 @@ void command_read_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_co
     uint64_t tmp;
     uint32_t size;
 
-    cmp_read_u64(args, &tmp);
+    cmp_read_uinteger(args, &tmp);
     address = (void *)tmp;
 
     cmp_read_u32(args, &size);
@@ -68,7 +68,7 @@ void command_crc_region(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_co
     uint32_t size;
     uint64_t tmp;
 
-    cmp_read_u64(args, &tmp);
+    cmp_read_uinteger(args, &tmp);
     address = (void *)tmp;
     cmp_read_uint(args, &size);
 
