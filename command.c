@@ -1,7 +1,7 @@
 #include "command.h"
 #include "flash_writer.h"
 #include <string.h>
-#include <serializer/crc.h>
+#include <crc/crc32.h>
 
 // XXX Change page size
 static char page_buffer[1024];

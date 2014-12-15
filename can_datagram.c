@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "can_datagram.h"
-#include <serializer/crc.h>
+#include <crc/crc32.h>
 
 void can_datagram_init(can_datagram_t *dt)
 {
