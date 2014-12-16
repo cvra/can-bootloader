@@ -71,13 +71,13 @@ bootloader_config_t config_read(void *buffer, size_t buffer_size)
 
 void config_update_from_serialized(bootloader_config_t *config, cmp_ctx_t *context)
 {
-    int key_count;
+    uint32_t key_count;
     char key[64];
-    int key_len;
+    uint32_t key_len;
 
     cmp_read_map(context, &key_count);
 
-    while (key_count --) {
+    while (key_count--) {
         key_len = sizeof key;
         cmp_read_str(context, key, &key_len);
         key[key_len] = 0;
@@ -87,12 +87,12 @@ void config_update_from_serialized(bootloader_config_t *config, cmp_ctx_t *conte
         }
 
         if (!strcmp("name", key)) {
-            int name_len = 65;
+            uint32_t name_len = 65;
             cmp_read_str(context, config->board_name, &name_len);
         }
 
         if (!strcmp("device_class", key)) {
-            int name_len = 65;
+            uint32_t name_len = 65;
             cmp_read_str(context, config->device_class, &name_len);
         }
 
