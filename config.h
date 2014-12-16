@@ -13,6 +13,8 @@ typedef struct {
     char board_name[64 + 1];   /**< Node human readable name, eg: 'arms.left.shoulder'. */
     char device_class[64 + 1]; /**< Node device class example : 'CVRA.motorboard.v1'*/
     uint32_t application_crc;
+    uint32_t application_size;
+    uint32_t update_count;
 } bootloader_config_t;
 
 /** This function syncs the two given pages, copying the page with the wrong
