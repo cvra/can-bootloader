@@ -15,6 +15,8 @@ extern "C" {
  */
 int can_interface_read_message(uint32_t *message_id, uint8_t *message);
 
+void can_interface_send_message(uint32_t message_id, uint8_t *message, int len);
+
 #ifdef __cplusplus
 }
 #endif
