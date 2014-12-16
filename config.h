@@ -28,7 +28,7 @@ bool config_is_valid(void *page, size_t page_size);
  *
  * It must be done on a RAM buffer because we will modify it non sequentially, to add CRC.
  */
-void config_write(void *buffer,  bootloader_config_t config, size_t buffer_size);
+void config_write(void *buffer, bootloader_config_t *config, size_t buffer_size);
 
 bootloader_config_t config_read(void *buffer, size_t buffer_size);
 
