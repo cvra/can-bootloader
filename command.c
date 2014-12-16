@@ -1,10 +1,15 @@
-#include "command.h"
-#include "flash_writer.h"
 #include <string.h>
-#include "boot_arg.h"
 #include <crc/crc32.h>
+#include <serializer/checksum_block.h>
+#include "flash_writer.h"
+#include "boot_arg.h"
+#include "config.h"
+#include "command.h"
 
-extern int app_start, config_page1, config_page2s;   // defined by linker
+extern int app_start, config_page1, config_page2;   // defined by linker
+
+// temporary, pagesize for stm32f3
+uint8_t page_buffer[2048];
 
 void command_write_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config)
 {
@@ -86,6 +91,28 @@ void command_crc_region(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_co
 void command_config_update(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config)
 {
     config_update_from_serialized(config, args);
+}
+
+void command_config_write_to_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config)
+{
+    config->update_count += 1;
+
+    memset(page_buffer, 0, sizeof(page_buffer));
+
+    config_write(page_buffer + 4, config, sizeof(page_buffer));
+    block_crc_update(page_buffer, sizeof(page_buffer) - 4);
+
+    flash_writer_unlock();
+    flash_writer_page_erase(&config_page1);
+    flash_writer_page_write(&config_page1, page_buffer, sizeof(page_buffer));
+    flash_writer_lock();
+
+    if (block_crc_verify(&config_page1, sizeof(page_buffer))) {
+        flash_writer_unlock();
+        flash_writer_page_erase(&config_page2);
+        flash_writer_page_write(&config_page2, page_buffer, sizeof(page_buffer));
+        flash_writer_lock();
+    }
 }
 
 int protocol_execute_command(char *data, size_t data_len, command_t *commands, int command_len, char *out_buf, size_t out_len, bootloader_config_t *config)
