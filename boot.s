@@ -1,3 +1,20 @@
+@ boot code for bootloader
+@ This is the first code executed after reset. It checks the start of RAM for a
+@ 7 byte magic value followed a 1 byte argument.
+@ boot arguments:
+@   0 : bootloader, with timeout (default)
+@   1 : bootloader, without timeout
+@   2 : application, RAM content is not altered
+@   3 : internal ST bootloader from system memeory
+@
+@ This is has several purposes:
+@ - Start the bootloader with an arbument (such as disable the timeout)
+@ - Start the application from the bootloader itself without having to manually
+@   reset every peripheral that was used.
+@ - The application can omit the bootloader after a software reset to preserve
+@   the RAM contents (with exception to the first two words).
+@ - Start the internal bootloader from ST to flash via UART/CAN/USB_DFU...
+
 .extern bootloader_startup
 .extern app_start
 
@@ -6,12 +23,6 @@
 
 .equ magic_value_lo,    0x01234567
 .equ magic_value_hi,    0x0089abcd
-
-@ boot arguments:
-@   0 : bootloader, with timeout (default)
-@   1 : bootloader, without timeout
-@   2 : application, RAM content is not altered
-@   3 : ST bootloader
 
 .thumb
 .thumb_func
