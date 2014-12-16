@@ -8,7 +8,7 @@ void can_datagram_init(can_datagram_t *dt)
     memset(dt, 0, sizeof *dt);
 }
 
-void can_datagram_set_adress_buffer(can_datagram_t *dt, uint8_t *buf)
+void can_datagram_set_address_buffer(can_datagram_t *dt, uint8_t *buf)
 {
     dt->destination_nodes = buf;
 }

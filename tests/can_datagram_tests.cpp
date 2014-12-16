@@ -8,13 +8,13 @@
 TEST_GROUP(CANDatagramTestGroup)
 {
     can_datagram_t dt;
-    uint8_t adress_buffer[128];
+    uint8_t address_buffer[128];
     uint8_t data_buffer[128];
 
     void setup(void)
     {
         can_datagram_init(&dt);
-        can_datagram_set_adress_buffer(&dt, adress_buffer);
+        can_datagram_set_address_buffer(&dt, address_buffer);
         can_datagram_set_data_buffer(&dt, data_buffer, sizeof data_buffer);
     }
 };
@@ -35,7 +35,7 @@ TEST(CANDatagramTestGroup, CanInitDatagram)
 TEST(CANDatagramTestGroup, CanSetDestinationAdressesBuffer)
 {
     uint8_t buf[10];
-    can_datagram_set_adress_buffer(&dt, buf);
+    can_datagram_set_address_buffer(&dt, buf);
 
     POINTERS_EQUAL(buf, dt.destination_nodes);
 }
@@ -60,13 +60,13 @@ TEST(CANDatagramTestGroup, CanComputeCRC)
 TEST_GROUP(CANDatagramInputTestGroup)
 {
     can_datagram_t datagram;
-    uint8_t adress_buffer[128];
+    uint8_t address_buffer[128];
     uint8_t data_buffer[128];
 
     void setup(void)
     {
         can_datagram_init(&datagram);
-        can_datagram_set_adress_buffer(&datagram, adress_buffer);
+        can_datagram_set_address_buffer(&datagram, address_buffer);
         can_datagram_set_data_buffer(&datagram, data_buffer, sizeof data_buffer);
     }
 
@@ -295,7 +295,7 @@ TEST(CANDatagramInputTestGroup, CanResetToStart)
 TEST_GROUP(CANDatagramOutputTestGroup)
 {
     can_datagram_t datagram;
-    uint8_t adress_buffer[128];
+    uint8_t address_buffer[128];
     uint8_t data_buffer[128];
 
     char output[64];
@@ -304,7 +304,7 @@ TEST_GROUP(CANDatagramOutputTestGroup)
     void setup(void)
     {
         can_datagram_init(&datagram);
-        can_datagram_set_adress_buffer(&datagram, adress_buffer);
+        can_datagram_set_address_buffer(&datagram, address_buffer);
         can_datagram_set_data_buffer(&datagram, data_buffer, sizeof data_buffer);
         memset(output, 0, sizeof output);
     }

@@ -34,8 +34,8 @@ typedef struct {
 /** Sets the structure field to default values. */
 void can_datagram_init(can_datagram_t *dt);
 
-/** Sets the buffer to use to store destination adresses. */
-void can_datagram_set_adress_buffer(can_datagram_t *dt, uint8_t *buf);
+/** Sets the buffer to use to store destination addresses. */
+void can_datagram_set_address_buffer(can_datagram_t *dt, uint8_t *buf);
 
 /** Sets the buffer to use for data storage. */
 void can_datagram_set_data_buffer(can_datagram_t *dt, uint8_t *buf, size_t buf_size);
