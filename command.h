@@ -32,14 +32,16 @@ typedef struct {
 
 /** Parses a datagram data field and executes the correct function.
  * @param [in] data The raw data to parse.
+ * @param [in] data_len Length of data.
  * @param [in] commands A list of all possible commands.
  * @param [in] command_len Length of the commands array.
  * @param [in] config A pointer to a bootloader configuration structure that will be passed to the commands.
- * @param [out] output_buffer A buffer where the command can place its results, which will be sent back to the client.
+ * @param [out] out_buf A buffer where the command can place its results, which will be sent back to the client.
+ * @param [in] out_len Length of out_buf.
  * @returns The amount of bytes written to output_buffer on successful command completion.
  * @returns A negative error code if the command execution encountered an error.
  */
-int protocol_execute_command(char *data, command_t *commands, int command_len, char *output_buffer, bootloader_config_t *config);
+int protocol_execute_command(char *data, size_t data_len, command_t *commands, int command_len, char *out_buf, size_t out_len, bootloader_config_t *config);
 
 /** Command used to write to a flash page.
  *

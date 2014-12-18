@@ -108,7 +108,8 @@ The config contains the following informations, stored as a messagepack map.
 * name: Human readable name describing the board (ex: "arms.left.shoulder"). Max length: 64
 * device_class: Board model (ex: "CVRA.MotorController.v1"). Max length: 64
 * application_crc: Application CRC. If the CRC matches the bootloader will automatically boot into it after a timeout.
-* updateCnt: Firmware update counter. Used for diagnostics and lifespan estimation.
+* application_size: Needed for CRC calculation.
+* update_count: Firmware update counter. Used for diagnostics and lifespan estimation.
 
 Additional informations are stored in the bootloader binary :
 * Git commit SHA
