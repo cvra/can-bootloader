@@ -23,7 +23,7 @@ void read_eval(can_datagram_t *input, can_datagram_t *output, bootloader_config_
     if (can_datagram_is_valid(input)) {
         for (i = 0; i < input->destination_nodes_len; ++i) {
             if (input->destination_nodes[i] == config->ID){
-                len = protocol_execute_command((char *)input->data, commands, command_len, (char *)output->data, config);
+                len = protocol_execute_command((char *)input->data, input->data_len, commands, command_len, (char *)output->data, output->data_len, config);
 
                 /* Checks if there was any error. */
                 if (len < 0) {
@@ -56,11 +56,11 @@ TEST_GROUP(IntegrationTesting)
     void setup(void)
     {
         can_datagram_init(&input_datagram);
-        can_datagram_set_adress_buffer(&input_datagram, input_datagram_destinations);
+        can_datagram_set_address_buffer(&input_datagram, input_datagram_destinations);
         can_datagram_set_data_buffer(&input_datagram, input_datagram_data, sizeof input_datagram_data);
 
         can_datagram_init(&output_datagram);
-        can_datagram_set_adress_buffer(&output_datagram, output_datagram_destinations);
+        can_datagram_set_address_buffer(&output_datagram, output_datagram_destinations);
         can_datagram_set_data_buffer(&output_datagram, output_datagram_data, sizeof output_datagram_data);
 
         // Loads default config for testing
