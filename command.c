@@ -95,8 +95,8 @@ void command_config_write_to_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bo
 
     memset(page_buffer, 0, page_size);
 
-    config_write(page_buffer + 4, config, page_size);
-    block_crc_update(page_buffer, page_size - 4);
+    config_write(page_buffer, config, page_size);
+    block_crc_update(page_buffer, page_size);
 
     void *config1 = memory_get_config1_addr();
 
