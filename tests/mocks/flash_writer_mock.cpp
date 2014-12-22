@@ -3,6 +3,10 @@
 #include "CppUTest/TestHarness.h"
 #include "CppUTestExt/MockSupport.h"
 
+// This symbol is supposed to be provided by the linker
+extern "C" {
+int app_start;
+}
 
 void flash_writer_unlock(void)
 {
