@@ -134,6 +134,11 @@ int can_datagram_output_bytes(can_datagram_t *dt, char *buffer, size_t buffer_le
                 break;
 
             case 4: /* Data */
+                /* If already finished, just return. */
+                if (dt->_data_bytes_written == dt->data_len) {
+                    return 0;
+                }
+
                 buffer[i] = dt->data[dt->_data_bytes_written];
                 dt->_data_bytes_written ++;
 
