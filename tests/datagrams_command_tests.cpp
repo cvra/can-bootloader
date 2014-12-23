@@ -33,9 +33,9 @@ TEST_GROUP(ProtocolCommandTestGroup)
 
 TEST(ProtocolCommandTestGroup, CommandIsCalled)
 {
-    command_t commands[] = {
-        {.index = 0x00, .callback = mock_command},
-    };
+    command_t commands[1];
+    commands[0].index = 0x00;
+    commands[0].callback = mock_command;
 
     cmp_write_uint(&command_builder, 0x0);
 
@@ -48,10 +48,11 @@ TEST(ProtocolCommandTestGroup, CommandIsCalled)
 
 TEST(ProtocolCommandTestGroup, CorrectCommandIsCalled)
 {
-    command_t commands[] = {
-        {.index = 0x00, .callback = NULL},
-        {.index = 0x02, .callback = mock_command},
-    };
+    command_t commands[2];
+    commands[0].index = 0x00;
+    commands[0].callback = NULL;
+    commands[1].index = 0x02;
+    commands[1].callback = mock_command;
 
     // Write command index
     cmp_write_uint(&command_builder, 0x2);
@@ -70,9 +71,9 @@ void argc_log_command(int argc, cmp_ctx_t *dummy, cmp_ctx_t *out, bootloader_con
 
 TEST(ProtocolCommandTestGroup, CorrectArgcIsSent)
 {
-    command_t commands[] = {
-        {.index = 0x02, .callback = argc_log_command},
-    };
+    command_t commands[1];
+    commands[0].index = 0x02;
+    commands[0].callback = argc_log_command;
 
     // Write command index
     cmp_write_uint(&command_builder, 0x2);
@@ -100,9 +101,9 @@ void args_log_command(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_conf
 
 TEST(ProtocolCommandTestGroup, CanReadArgs)
 {
-    command_t commands[] = {
-        {.index = 0x02, .callback = args_log_command},
-    };
+    command_t commands[1];
+    commands[0].index = 0x02;
+    commands[0].callback = args_log_command;
 
     // Command index
     cmp_write_uint(&command_builder, 0x2);
@@ -130,9 +131,10 @@ void dummy_command(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_
 TEST(ProtocolCommandTestGroup, ExecuteReturnsZeroWhenValidCommand)
 {
     int result;
-    command_t commands[] = {
-        {.index = 0x00, .callback = dummy_command},
-    };
+
+    command_t commands[1];
+    commands[0].index = 0x00;
+    commands[0].callback = dummy_command;
 
     // Command index
     cmp_write_uint(&command_builder, 0x0);
@@ -147,9 +149,9 @@ TEST(ProtocolCommandTestGroup, ExecuteReturnsZeroWhenValidCommand)
 TEST(ProtocolCommandTestGroup, ExecuteInvalidCommand)
 {
     int result;
-    command_t commands[] = {
-        {.index = 0x00, .callback = dummy_command},
-    };
+    command_t commands[1];
+    commands[0].index = 0x00;
+    commands[0].callback = dummy_command;
 
     // Invalid command index, here a float
     cmp_write_float(&command_builder, 3.14);
@@ -164,9 +166,9 @@ TEST(ProtocolCommandTestGroup, ExecuteInvalidCommand)
 TEST(ProtocolCommandTestGroup, ExecuteWithoutArgumentsMeansArgcZero)
 {
     int result;
-    command_t commands[] = {
-        {.index = 0x01, .callback = argc_log_command},
-    };
+    command_t commands[1];
+    commands[0].index = 0x01;
+    commands[0].callback = argc_log_command;
 
     cmp_write_uint(&command_builder, 1);
 
@@ -182,9 +184,10 @@ TEST(ProtocolCommandTestGroup, ExecuteWithoutArgumentsMeansArgcZero)
 TEST(ProtocolCommandTestGroup, CallingNonExistingFunctionReturnsCorrectErrorCode)
 {
     int result;
-    command_t commands[] = {
-        {.index = 0x00, .callback = argc_log_command},
-    };
+
+    command_t commands[1];
+    commands[0].index = 0x00;
+    commands[0].callback = argc_log_command;
 
     // Non existing command
     cmp_write_uint(&command_builder, 1);
@@ -227,9 +230,9 @@ void output_mock_command(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_c
 TEST(ProtocolOutputCommand, CanPassOutputBuffer)
 {
     int result;
-    command_t commands[] = {
-        {.index = 0x01, .callback = output_mock_command},
-    };
+    command_t commands[1];
+    commands[0].index = 0x01;
+    commands[0].callback = output_mock_command;
 
     cmp_write_uint(&command_builder, 1);
 
@@ -242,10 +245,9 @@ TEST(ProtocolOutputCommand, CanPassOutputBuffer)
 TEST(ProtocolOutputCommand, BytesCountIsReturned)
 {
     int result;
-
-    command_t commands[] = {
-        {.index = 0x01, .callback = output_mock_command},
-    };
+    command_t commands[1];
+    commands[0].index = 0x01;
+    commands[0].callback = output_mock_command;
 
     cmp_write_uint(&command_builder, 1);
 

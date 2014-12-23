@@ -41,6 +41,11 @@ void read_eval(can_datagram_t *input, can_datagram_t *output, bootloader_config_
     }
 }
 
+static void mock_command(int argc, cmp_ctx_t *arg_context, cmp_ctx_t *out_context, bootloader_config_t *config)
+{
+    mock().actualCall("command");
+}
+
 TEST_GROUP(IntegrationTesting)
 {
     can_datagram_t input_datagram;
@@ -52,6 +57,7 @@ TEST_GROUP(IntegrationTesting)
     uint8_t output_datagram_data[1000];
 
     bootloader_config_t config;
+    command_t commands[1];
 
     void setup(void)
     {
@@ -65,6 +71,9 @@ TEST_GROUP(IntegrationTesting)
 
         // Loads default config for testing
         config.ID = 0x01;
+
+        commands[0].index = 1;
+        commands[0].callback = mock_command;
     }
 
     void teardown(void)
@@ -94,10 +103,6 @@ TEST(IntegrationTesting, CanReadWholeDatagram)
     CHECK_TRUE(can_datagram_is_valid(&input_datagram));
 }
 
-static void mock_command(int argc, cmp_ctx_t *arg_context, cmp_ctx_t *out_context, bootloader_config_t *config)
-{
-    mock().actualCall("command");
-}
 
 TEST(IntegrationTesting, ExecutesCommand)
 {
@@ -109,9 +114,6 @@ TEST(IntegrationTesting, ExecutesCommand)
         0x1 // data
     };
 
-    command_t commands[] = {
-        {.index = 1, .callback = mock_command}
-    };
 
     can_mock_message(0x0, &message[0], 8);
     read_eval(&input_datagram, &output_datagram, &config, commands, 1);
@@ -134,9 +136,6 @@ TEST(IntegrationTesting, ExecutesCommandOnlyIfAdressed)
         0x1 // data
     };
 
-    command_t commands[] = {
-        {.index = 1, .callback = mock_command}
-    };
 
     config.ID = 12;
 
@@ -159,9 +158,6 @@ TEST(IntegrationTesting, ExecutesIfWeAreInMultiCast)
         0x1 // data
     };
 
-    command_t commands[] = {
-        {.index = 1, .callback = mock_command}
-    };
 
     config.ID = 0x12;
 
@@ -190,9 +186,7 @@ TEST(IntegrationTesting, OutputDatagramIsValid)
         0x1 // data
     };
 
-    command_t commands[] = {
-        {.index = 1, .callback = command_output}
-    };
+    commands[0].callback = command_output;
 
     can_mock_message(0x0, &message[0], 8);
     read_eval(&input_datagram, &output_datagram, &config, commands, 1);
