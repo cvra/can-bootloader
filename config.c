@@ -31,7 +31,7 @@ void config_write(void *buffer, bootloader_config_t *config, size_t buffer_size)
     serializer_init(&serializer, block_payload_get(buffer), buffer_size - 4);
     serializer_cmp_ctx_factory(&context, &serializer);
 
-    cmp_write_map(&context, 4);
+    cmp_write_map(&context, 6);
 
     cmp_write_str(&context, "ID", 2);
     cmp_write_u8(&context, config->ID);
