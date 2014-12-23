@@ -79,7 +79,8 @@ void can_datagram_input_byte(can_datagram_t *dt, uint8_t val)
 
 bool can_datagram_is_complete(can_datagram_t *dt)
 {
-    return dt->_reader_state > 0 && dt->_data_bytes_read == dt->data_len;
+    return dt->_reader_state > 0 && dt->_data_bytes_read == dt->data_len
+           && dt->_data_length_bytes_read == 4;
 }
 
 bool can_datagram_is_valid(can_datagram_t *dt)
