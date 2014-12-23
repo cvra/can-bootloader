@@ -362,17 +362,24 @@ TEST_GROUP(CANDatagramOutputTestGroup)
     }
 };
 
+TEST(CANDatagramOutputTestGroup, CanOutputProtocolVersion)
+{
+    ret = can_datagram_output_bytes(&datagram, output, 1);
+    CHECK_EQUAL(1, ret);
+    BYTES_EQUAL(0x01, output[0]);
+}
+
 TEST(CANDatagramOutputTestGroup, CanOutputCRC)
 {
     datagram.crc = 0xdeadbeef;
 
-    ret = can_datagram_output_bytes(&datagram, output, 4);
+    ret = can_datagram_output_bytes(&datagram, output, 5);
 
-    BYTES_EQUAL(0xde, output[0]);
-    BYTES_EQUAL(0xad, output[1]);
-    BYTES_EQUAL(0xbe, output[2]);
-    BYTES_EQUAL(0xef, output[3]);
-    CHECK_EQUAL(4, ret);
+    BYTES_EQUAL(0xde, output[1]);
+    BYTES_EQUAL(0xad, output[2]);
+    BYTES_EQUAL(0xbe, output[3]);
+    BYTES_EQUAL(0xef, output[4]);
+    CHECK_EQUAL(5, ret);
 }
 
 TEST(CANDatagramOutputTestGroup, CanStopMidCRC)
@@ -380,12 +387,12 @@ TEST(CANDatagramOutputTestGroup, CanStopMidCRC)
     datagram.crc = 0xdeadbeef;
 
     // Only output 2 bytes
-    ret = can_datagram_output_bytes(&datagram, output, 2);
+    ret = can_datagram_output_bytes(&datagram, output, 3);
 
-    CHECK_EQUAL(2, ret);
-    BYTES_EQUAL(0xde, output[0]);
-    BYTES_EQUAL(0xad, output[1]);
-    BYTES_EQUAL(0x00, output[2]);
+    CHECK_EQUAL(3, ret);
+    BYTES_EQUAL(0xde, output[1]);
+    BYTES_EQUAL(0xad, output[2]);
+    BYTES_EQUAL(0x00, output[3]);
 }
 
 TEST(CANDatagramOutputTestGroup, CanStopMidCRCAndRestart)
@@ -393,7 +400,7 @@ TEST(CANDatagramOutputTestGroup, CanStopMidCRCAndRestart)
     datagram.crc = 0xdeadbeef;
 
     // Only output 2 bytes
-    can_datagram_output_bytes(&datagram, output, 2);
+    can_datagram_output_bytes(&datagram, output, 3);
 
     // Writes the next two bytes
     ret = can_datagram_output_bytes(&datagram, output, 2);
@@ -401,7 +408,6 @@ TEST(CANDatagramOutputTestGroup, CanStopMidCRCAndRestart)
     CHECK_EQUAL(2, ret);
     BYTES_EQUAL(0xbe, output[0]);
     BYTES_EQUAL(0xef, output[1]);
-    BYTES_EQUAL(0x00, output[2]);
 }
 
 TEST(CANDatagramOutputTestGroup, CanOutputDestinationNodeList)
@@ -410,11 +416,11 @@ TEST(CANDatagramOutputTestGroup, CanOutputDestinationNodeList)
     datagram.destination_nodes[0] = 42;
     datagram.destination_nodes[1] = 43;
 
-    can_datagram_output_bytes(&datagram, output, 7);
+    can_datagram_output_bytes(&datagram, output, 8);
 
-    BYTES_EQUAL(2, output[4]);
-    BYTES_EQUAL(42, output[5]);
-    BYTES_EQUAL(43, output[6]);
+    BYTES_EQUAL(2, output[5]);
+    BYTES_EQUAL(42, output[6]);
+    BYTES_EQUAL(43, output[7]);
 }
 
 
@@ -425,12 +431,12 @@ TEST(CANDatagramOutputTestGroup, CanOutputDataLength)
 
     datagram.data_len = 0xcafebabe;
 
-    can_datagram_output_bytes(&datagram, output, 10);
+    can_datagram_output_bytes(&datagram, output, 11);
 
-    BYTES_EQUAL(0xca, output[6]);
-    BYTES_EQUAL(0xfe, output[7]);
-    BYTES_EQUAL(0xba, output[8]);
-    BYTES_EQUAL(0xbe, output[9]);
+    BYTES_EQUAL(0xca, output[7]);
+    BYTES_EQUAL(0xfe, output[8]);
+    BYTES_EQUAL(0xba, output[9]);
+    BYTES_EQUAL(0xbe, output[10]);
 }
 
 TEST(CANDatagramOutputTestGroup, CanOutputData)
@@ -442,10 +448,10 @@ TEST(CANDatagramOutputTestGroup, CanOutputData)
     datagram.data[0] = 42;
     datagram.data[1] = 43;
 
-    can_datagram_output_bytes(&datagram, output, 12);
+    can_datagram_output_bytes(&datagram, output, 13);
 
-    BYTES_EQUAL(42, output[10]);
-    BYTES_EQUAL(43, output[11]);
+    BYTES_EQUAL(42, output[11]);
+    BYTES_EQUAL(43, output[12]);
 }
 
 TEST(CANDatagramOutputTestGroup, IfWeStopEarlierBytesWrittenIsReturned)
@@ -461,8 +467,8 @@ TEST(CANDatagramOutputTestGroup, IfWeStopEarlierBytesWrittenIsReturned)
     // Output the first 10 bytes
     can_datagram_output_bytes(&datagram, output, 10);
 
-    // So now we only have two bytes to send, but we ask for more
+    // So now we only have three bytes to send, but we ask for more
     ret = can_datagram_output_bytes(&datagram, output, 10);
 
-    CHECK_EQUAL(2, ret);
+    CHECK_EQUAL(3, ret);
 }

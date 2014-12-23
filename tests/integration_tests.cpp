@@ -180,9 +180,10 @@ static void command_output(int argc, cmp_ctx_t *arg_context, cmp_ctx_t *out_cont
     cmp_write_str(out_context, "hello", 5);
 }
 
-IGNORE_TEST(IntegrationTesting, OutputDatagramIsValid)
+TEST(IntegrationTesting, OutputDatagramIsValid)
 {
     uint8_t message[] = {
+        0x01,
         0x9e, 0x5b, 0x06, 0xb8,// CRC
         0x01,
         0x01, // dest nodes
@@ -195,7 +196,7 @@ IGNORE_TEST(IntegrationTesting, OutputDatagramIsValid)
     can_mock_message(0x0, &message[0], 8);
     read_eval(&input_datagram, &output_datagram, &config, commands, 1);
 
-    can_mock_message(0x0, &message[8], 3);
+    can_mock_message(0x0, &message[8], 4);
     read_eval(&input_datagram, &output_datagram, &config, commands, 1);
 
     // Check that the data lenght is correct

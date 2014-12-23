@@ -16,7 +16,7 @@ enum {
 void can_datagram_init(can_datagram_t *dt)
 {
     memset(dt, 0, sizeof *dt);
-    dt->_writer_state = STATE_CRC;
+    dt->protocol_version = CAN_DATAGRAM_VERSION;
 }
 
 void can_datagram_set_address_buffer(can_datagram_t *dt, uint8_t *buf)
@@ -118,6 +118,11 @@ int can_datagram_output_bytes(can_datagram_t *dt, char *buffer, size_t buffer_le
     size_t i;
     for (i = 0; i < buffer_len; i++ ) {
         switch (dt->_writer_state) {
+            case STATE_PROTOCOL_VERSION:
+                buffer[i] = dt->protocol_version;
+                dt->_writer_state = STATE_CRC;
+                break;
+
             case STATE_CRC:
                 buffer[i] = dt->crc >> (24 - 8 * dt->_crc_bytes_written);
                 dt->_crc_bytes_written ++;
