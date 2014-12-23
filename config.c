@@ -43,13 +43,13 @@ void config_write(void *buffer, bootloader_config_t *config, size_t buffer_size)
     cmp_write_str(&context, config->device_class, strlen(config->device_class));
 
     cmp_write_str(&context, "application_crc", 15);
-    cmp_write_u32(&context, config->application_crc);
+    cmp_write_uint(&context, config->application_crc);
 
     cmp_write_str(&context, "application_size", 16);
-    cmp_write_u32(&context, config->application_size);
+    cmp_write_uint(&context, config->application_size);
 
     cmp_write_str(&context, "update_count", 12);
-    cmp_write_u32(&context, config->update_count);
+    cmp_write_uint(&context, config->update_count);
 }
 
 bootloader_config_t config_read(void *buffer, size_t buffer_size)
@@ -83,7 +83,7 @@ void config_update_from_serialized(bootloader_config_t *config, cmp_ctx_t *conte
         key[key_len] = 0;
 
         if (!strcmp("ID", key)) {
-            cmp_read_u8(context, &config->ID);
+            cmp_read_uchar(context, &config->ID);
         }
 
         if (!strcmp("name", key)) {
@@ -97,15 +97,15 @@ void config_update_from_serialized(bootloader_config_t *config, cmp_ctx_t *conte
         }
 
         if (!strcmp("application_crc", key)) {
-            cmp_read_u32(context,  &config->application_crc);
+            cmp_read_uint(context,  &config->application_crc);
         }
 
         if (!strcmp("application_size", key)) {
-            cmp_read_u32(context,  &config->application_size);
+            cmp_read_uint(context,  &config->application_size);
         }
 
         if (!strcmp("update_count", key)) {
-            cmp_read_u32(context,  &config->update_count);
+            cmp_read_uint(context,  &config->update_count);
         }
     }
 }
