@@ -167,6 +167,25 @@ TEST(CANDatagramInputTestGroup, IsCompleteWhenAllDataAreRead)
     CHECK_TRUE(can_datagram_is_complete(&datagram));
 }
 
+TEST(CANDatagramInputTestGroup, IsNotCompleteWhenReadInProgress)
+{
+    uint8_t buf[] = {
+        0x00, 0x00, 0x00, 0x00, // CRC
+        1, // destination node list length
+        3, // destination nodes
+        0x00, 0x00, 0x00, 0x01, // data length
+        0x42
+    };
+
+    input_data(&buf[0], 8);
+
+    CHECK_FALSE(can_datagram_is_complete(&datagram));
+
+    input_data(&buf[8], sizeof(buf) - 8);
+
+    CHECK_TRUE(can_datagram_is_complete(&datagram));
+}
+
 TEST(CANDatagramInputTestGroup, IsInvalidOnCRCMismatch)
 {
     int len = 1;
