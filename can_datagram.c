@@ -4,6 +4,7 @@
 #include <crc/crc32.h>
 
 enum {
+    STATE_PROTOCOL_VERSION,
     STATE_CRC,
     STATE_DST_LEN,
     STATE_DST,
@@ -15,6 +16,7 @@ enum {
 void can_datagram_init(can_datagram_t *dt)
 {
     memset(dt, 0, sizeof *dt);
+    dt->_writer_state = STATE_CRC;
 }
 
 void can_datagram_set_address_buffer(can_datagram_t *dt, uint8_t *buf)
@@ -31,6 +33,11 @@ void can_datagram_set_data_buffer(can_datagram_t *dt, uint8_t *buf, size_t buf_s
 void can_datagram_input_byte(can_datagram_t *dt, uint8_t val)
 {
     switch (dt->_reader_state) {
+        case STATE_PROTOCOL_VERSION:
+            dt->protocol_version = val;
+            dt->_reader_state = STATE_CRC;
+            break;
+
         case STATE_CRC:
             dt->crc = (dt->crc << 8) | val;
             dt->_crc_bytes_read ++;
@@ -94,12 +101,12 @@ bool can_datagram_is_complete(can_datagram_t *dt)
 
 bool can_datagram_is_valid(can_datagram_t *dt)
 {
-    return can_datagram_compute_crc(dt) == dt->crc;
+    return can_datagram_compute_crc(dt) == dt->crc && dt->protocol_version == CAN_DATAGRAM_VERSION;
 }
 
 void can_datagram_start(can_datagram_t *dt)
 {
-    dt->_reader_state = STATE_CRC;
+    dt->_reader_state = STATE_PROTOCOL_VERSION;
     dt->_crc_bytes_read = 0;
     dt->_destination_nodes_read = 0;
     dt->_data_bytes_read = 0;

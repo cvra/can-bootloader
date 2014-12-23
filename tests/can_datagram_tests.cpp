@@ -78,9 +78,16 @@ TEST_GROUP(CANDatagramInputTestGroup)
     }
 };
 
+TEST(CANDatagramInputTestGroup, ReadProtocolVersion)
+{
+    uint8_t buf[] = {1};
+    input_data(buf, sizeof buf);
+    CHECK_EQUAL(1, datagram.protocol_version);
+}
+
 TEST(CANDatagramInputTestGroup, CANReadCRC)
 {
-    uint8_t buf[] = {0xde, 0xad, 0xbe, 0xef};
+    uint8_t buf[] = {0x01, 0xde, 0xad, 0xbe, 0xef};
     input_data(buf, sizeof buf);
 
     CHECK_EQUAL(0xdeadbeef, datagram.crc);
@@ -88,7 +95,7 @@ TEST(CANDatagramInputTestGroup, CANReadCRC)
 
 TEST(CANDatagramInputTestGroup, CanReadDestinationLength)
 {
-    uint8_t buf[] = {0x00, 0x00, 0x00, 0x00, 42};
+    uint8_t buf[] = {0x01, 0x00, 0x00, 0x00, 0x00, 42};
 
     input_data(buf, sizeof buf);
 
@@ -100,6 +107,7 @@ TEST(CANDatagramInputTestGroup, CanReadDestinations)
     int i;
 
     uint8_t buf[] = {
+        0x01, // protocol version
         0x00, 0x00, 0x00, 0x00, // CRC
         5, // destination node list length
         2, 3 // destination nodes
@@ -114,6 +122,7 @@ TEST(CANDatagramInputTestGroup, CanReadDestinations)
 TEST(CANDatagramInputTestGroup, CanReadDataLength)
 {
     uint8_t buf[] = {
+        0x01, // protocol version
         0x00, 0x00, 0x00, 0x00, // CRC
         1, // destination node list length
         3, // destination nodes
@@ -132,6 +141,7 @@ TEST(CANDatagramInputTestGroup, CanReadData)
     int len = strlen(data);
 
     uint8_t buf[] = {
+        0x01, // protocol version
         0x00, 0x00, 0x00, 0x00, // CRC
         1, // destination node list length
         3, // destination nodes
@@ -155,6 +165,7 @@ TEST(CANDatagramInputTestGroup, EmptyDatagramIsNotComplete)
 TEST(CANDatagramInputTestGroup, IsCompleteWhenAllDataAreRead)
 {
     uint8_t buf[] = {
+        0x01, // protocol version
         0x00, 0x00, 0x00, 0x00, // CRC
         1, // destination node list length
         3, // destination nodes
@@ -170,6 +181,7 @@ TEST(CANDatagramInputTestGroup, IsCompleteWhenAllDataAreRead)
 TEST(CANDatagramInputTestGroup, IsNotCompleteWhenReadInProgress)
 {
     uint8_t buf[] = {
+        0x01, // protocol version
         0x00, 0x00, 0x00, 0x00, // CRC
         1, // destination node list length
         3, // destination nodes
@@ -190,6 +202,7 @@ TEST(CANDatagramInputTestGroup, IsInvalidOnCRCMismatch)
 {
     int len = 1;
     uint8_t buf[] = {
+        0x01, // protocol version
         0x00, 0x00, 0x00, 0x00, // CRC
         1, // destination node list length
         3, // destination nodes
@@ -206,6 +219,7 @@ TEST(CANDatagramInputTestGroup, IsInvalidOnCRCMismatch)
 TEST(CANDatagramInputTestGroup, IsValidWhenAllDataAreReadAndCRCMatches)
 {
     uint8_t buf[] = {
+        0x01, // protocol version
         0x80, 0xd8, 0xa4, 0x47, // CRC
         1, // destination node list length
         14, // destination nodes
@@ -218,9 +232,25 @@ TEST(CANDatagramInputTestGroup, IsValidWhenAllDataAreReadAndCRCMatches)
     CHECK_TRUE(can_datagram_is_valid(&datagram));
 }
 
+TEST(CANDatagramInputTestGroup, IsInvalidIfProtocolVersionDoesntMatch)
+{
+    uint8_t buf[] = {
+        0x40, // wrong protocol version
+        0x80, 0xd8, 0xa4, 0x47, // CRC
+        1, // destination node list length
+        14, // destination nodes
+        0x00, 0x00, 0x00, 0x01, // data length
+        0x42 // data
+    };
+
+    input_data(buf, sizeof buf);
+    CHECK_FALSE(can_datagram_is_valid(&datagram));
+}
+
 TEST(CANDatagramInputTestGroup, CRCIsComputedInMoreThanOneDestinationNodeAndData)
 {
     uint8_t buf[] = {
+        0x01, // protocol version
         0x05, 0x23, 0xb7, 0x30,
         2, // destination node list length
         14, 15, // destination nodes
@@ -239,6 +269,7 @@ TEST(CANDatagramInputTestGroup, DoesNotAppendMoreBytesThanDataLen)
      * are simply discarded. */
     int len = 1;
     uint8_t buf[] = {
+        0x01, // protocol version
         0x9a, 0x54, 0xb8, 0x63, // CRC
         1, // destination node list length
         14, // destination nodes
@@ -265,6 +296,7 @@ TEST(CANDatagramInputTestGroup, DoesNotOverflowDataBuffer)
     int len = strlen(data);
 
     uint8_t buf[] = {
+        0x01, // protocol version
         0x9a, 0x54, 0xb8, 0x63, // CRC
         1, // destination node list length
         14, // destination nodes
@@ -295,6 +327,7 @@ TEST(CANDatagramInputTestGroup, CanResetToStart)
 
     int len = 1;
     uint8_t buf[] = {
+        0x01, // protocol version
         0xde, 0xad, 0xbe, 0xef,  // CRC
         1, // destination node list length
         14, // destination nodes

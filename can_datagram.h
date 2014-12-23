@@ -9,7 +9,10 @@
 extern "C" {
 #endif
 
+#define CAN_DATAGRAM_VERSION 1
+
 typedef struct {
+    int protocol_version;
     uint32_t crc;
 
     uint8_t destination_nodes_len;
