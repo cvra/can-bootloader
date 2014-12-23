@@ -1,5 +1,5 @@
 # Bootloader protocol
-
+[![Build Status](https://travis-ci.org/cvra/can-bootloader.svg)](https://travis-ci.org/cvra/can-bootloader)
 # Design goals
 
 The bootloader protocol must be able to run over UART (point to point) or CAN (using adressing).
