@@ -3,6 +3,15 @@
 #include "can_datagram.h"
 #include <crc/crc32.h>
 
+enum {
+    STATE_CRC,
+    STATE_DST_LEN,
+    STATE_DST,
+    STATE_DATA_LEN,
+    STATE_DATA,
+    STATE_TRAILING,
+};
+
 void can_datagram_init(can_datagram_t *dt)
 {
     memset(dt, 0, sizeof *dt);
@@ -22,50 +31,50 @@ void can_datagram_set_data_buffer(can_datagram_t *dt, uint8_t *buf, size_t buf_s
 void can_datagram_input_byte(can_datagram_t *dt, uint8_t val)
 {
     switch (dt->_reader_state) {
-        case 0: /* CRC */
+        case STATE_CRC:
             dt->crc = (dt->crc << 8) | val;
             dt->_crc_bytes_read ++;
 
             if (dt->_crc_bytes_read == 4) {
-                dt->_reader_state ++;
+                dt->_reader_state = STATE_DST_LEN;
             }
             break;
 
-        case 1: /* Destination nodes list length */
+        case STATE_DST_LEN: /* Destination nodes list length */
             dt->destination_nodes_len = val;
-            dt->_reader_state++;
+            dt->_reader_state = STATE_DST;
             break;
 
-        case 2: /* Destination nodes */
+        case STATE_DST: /* Destination nodes */
             dt->destination_nodes[dt->_destination_nodes_read] = val;
             dt->_destination_nodes_read ++;
 
             if (dt->_destination_nodes_read == dt->destination_nodes_len) {
-                dt->_reader_state ++;
+                dt->_reader_state = STATE_DATA_LEN;
             }
             break;
 
-        case 3: /* Data length, MSB */
+        case STATE_DATA_LEN: /* Data length, MSB */
             dt->data_len = (dt->data_len << 8) | val;
             dt->_data_length_bytes_read ++;
 
             if (dt->_data_length_bytes_read == 4) {
-                dt->_reader_state++;
+                dt->_reader_state = STATE_DATA;
             }
 
             break;
 
 
-        case 4: /* Data */
+        case STATE_DATA: /* Data */
             dt->data[dt->_data_bytes_read] = val;
             dt->_data_bytes_read ++;
 
             if (dt->_data_bytes_read == dt->data_len) {
-                dt->_reader_state ++;
+                dt->_reader_state = STATE_TRAILING;
             }
 
             if (dt->_data_buffer_size == dt->_data_bytes_read) {
-                dt->_reader_state ++;
+                dt->_reader_state = STATE_TRAILING;
             }
 
             break;
@@ -90,7 +99,7 @@ bool can_datagram_is_valid(can_datagram_t *dt)
 
 void can_datagram_start(can_datagram_t *dt)
 {
-    dt->_reader_state = 0;
+    dt->_reader_state = STATE_CRC;
     dt->_crc_bytes_read = 0;
     dt->_destination_nodes_read = 0;
     dt->_data_bytes_read = 0;
@@ -102,39 +111,39 @@ int can_datagram_output_bytes(can_datagram_t *dt, char *buffer, size_t buffer_le
     size_t i;
     for (i = 0; i < buffer_len; i++ ) {
         switch (dt->_writer_state) {
-            case 0: /* CRC */
+            case STATE_CRC:
                 buffer[i] = dt->crc >> (24 - 8 * dt->_crc_bytes_written);
                 dt->_crc_bytes_written ++;
 
                 if (dt->_crc_bytes_written == 4) {
-                    dt->_writer_state ++;
+                    dt->_writer_state = STATE_DST_LEN;
                 }
                 break;
 
-            case 1: /* Destination node length */
+            case STATE_DST_LEN: /* Destination node length */
                 buffer[i] = dt->destination_nodes_len;
-                dt->_writer_state ++;
+                dt->_writer_state = STATE_DST;
                 break;
 
-            case 2: /* Destination nodes */
+            case STATE_DST: /* Destination nodes */
                 buffer[i] = dt->destination_nodes[dt->_destination_nodes_written];
                 dt->_destination_nodes_written ++;
 
                 if (dt->_destination_nodes_written == dt->destination_nodes_len) {
-                    dt->_writer_state ++;
+                    dt->_writer_state = STATE_DATA_LEN;
                 }
                 break;
 
-            case 3: /* Data length MSB first */
+            case STATE_DATA_LEN: /* Data length MSB first */
                 buffer[i] = dt->data_len >> (24 - 8 * dt->_data_length_bytes_written);
                 dt->_data_length_bytes_written ++;
 
                 if (dt->_data_length_bytes_written == 4) {
-                    dt->_writer_state ++;
+                    dt->_writer_state = STATE_DATA;
                 }
                 break;
 
-            case 4: /* Data */
+            case STATE_DATA: /* Data */
                 /* If already finished, just return. */
                 if (dt->_data_bytes_written == dt->data_len) {
                     return 0;
