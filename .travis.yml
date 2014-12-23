@@ -1,0 +1,55 @@
+language: cpp
+compiler:
+    - gcc
+    - clang
+
+before_install:
+
+      # Install cpputest
+    - pushd ..
+    - wget "https://github.com/cpputest/cpputest.github.io/blob/master/releases/cpputest-3.6.tar.gz?raw=true" -O cpputest.tar.gz
+    - tar -xzf cpputest.tar.gz 
+    - cd cpputest-3.6/
+    - ./configure
+    - make
+    - sudo make install
+    - popd
+
+    # Install packager.py
+    - sudo pip install pyaml jinja2
+    - git clone https://github.com/cvra/packager ../packager
+
+    # Install test environment for the client
+    - sudo apt-get install python-virtualenv python3
+    - python3 --version
+
+before_script:    
+    # Create client test environment
+    - virtualenv --python=python3 venv
+    - source venv/bin/activate
+    - python --version
+    - pip install -r client/requirements.txt
+    - pip install mock # python 3.2 doesn't have unittest.mock
+    - deactivate
+
+    # Prepare bootloader build
+    - ../packager/packager.py
+    - mkdir build/
+    - pushd build/
+    - cmake ..
+    - popd
+
+script: 
+    # Booloader tests
+    - pushd build/
+    - make
+    - ./tests
+    - popd
+
+    # Client tests
+    - source venv/bin/activate
+    - pushd client/
+    - python -m unittest2
+    - deactivate
+    - popd
+

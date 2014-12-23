@@ -4,6 +4,7 @@
 #include <serializer/serialization.h>
 #include "../flash_writer.h"
 #include "../command.h"
+#include "../boot_arg.h"
 
 
 TEST_GROUP(FlashCommandTestGroup)
@@ -82,25 +83,43 @@ TEST(FlashCommandTestGroup, CheckThatDeviceClassIsRespected)
 
 TEST_GROUP(JumpToApplicationCodetestGroup)
 {
+    bootloader_config_t config;
+    void teardown()
+    {
+        mock().checkExpectations();
+        mock().clear();
+    }
 };
-
-static void main_mock(void)
-{
-    mock().actualCall("application");
-}
 
 TEST(JumpToApplicationCodetestGroup, CanJumpToApplication)
 {
-    extern void (*application_main)(void);
-    UT_PTR_SET(application_main, main_mock);
-    mock().expectOneCall("application");
+    // We cannot test proper memory access now as the symbol is provided by the linker on real targets
+    config.application_size = 0;
 
-    // We don't have any arguments and we won't write any datagram so we can safely pass NULL
-    command_jump_to_application(0, NULL, NULL, NULL);
+    // Expect to reboot into application
+    mock().expectOneCall("reboot").withIntParameter("arg", BOOT_ARG_START_APPLICATION);
 
-    mock().checkExpectations();
-    mock().clear();
+    command_jump_to_application(0, NULL, NULL, &config);
 }
+
+TEST(JumpToApplicationCodetestGroup, WrongCRCMeansReboot)
+{
+    // This test checks that the bootloader will reboot into itself when presented with a bad CRC
+    // We cannot test proper memory access now as the symbol is provided by the linker on real targets
+    config.application_size = 0;
+
+    config.application_crc = 0xbad;
+
+    // Expect to reboot into itself with timeout disabled
+    mock().expectOneCall("reboot").withIntParameter("arg", BOOT_ARG_START_BOOTLOADER_NO_TIMEOUT);
+
+    command_jump_to_application(0, NULL, NULL, &config);
+}
+
+TEST(JumpToApplicationCodetestGroup, InvalidCRCReturnsToBootloader)
+{
+}
+
 
 TEST_GROUP(ReadFlashTestGroup)
 {

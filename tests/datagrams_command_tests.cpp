@@ -33,32 +33,33 @@ TEST_GROUP(ProtocolCommandTestGroup)
 
 TEST(ProtocolCommandTestGroup, CommandIsCalled)
 {
-    command_t commands[] = {
-        {.index = 0x00, .callback = mock_command},
-    };
+    command_t commands[1];
+    commands[0].index = 0x00;
+    commands[0].callback = mock_command;
 
     cmp_write_uint(&command_builder, 0x0);
 
     mock().expectOneCall("command");
 
-    protocol_execute_command(command_data, commands, LEN(commands), NULL, NULL);
+    protocol_execute_command(command_data, sizeof command_data, commands, LEN(commands), NULL, 0, NULL);
 
     mock().checkExpectations();
 }
 
 TEST(ProtocolCommandTestGroup, CorrectCommandIsCalled)
 {
-    command_t commands[] = {
-        {.index = 0x00, .callback = NULL},
-        {.index = 0x02, .callback = mock_command},
-    };
+    command_t commands[2];
+    commands[0].index = 0x00;
+    commands[0].callback = NULL;
+    commands[1].index = 0x02;
+    commands[1].callback = mock_command;
 
     // Write command index
     cmp_write_uint(&command_builder, 0x2);
 
     mock().expectOneCall("command");
 
-    protocol_execute_command(command_data, commands, LEN(commands), NULL, NULL);
+    protocol_execute_command(command_data, sizeof command_data, commands, LEN(commands), NULL, 0, NULL);
 
     mock().checkExpectations();
 }
@@ -70,9 +71,9 @@ void argc_log_command(int argc, cmp_ctx_t *dummy, cmp_ctx_t *out, bootloader_con
 
 TEST(ProtocolCommandTestGroup, CorrectArgcIsSent)
 {
-    command_t commands[] = {
-        {.index = 0x02, .callback = argc_log_command},
-    };
+    command_t commands[1];
+    commands[0].index = 0x02;
+    commands[0].callback = argc_log_command;
 
     // Write command index
     cmp_write_uint(&command_builder, 0x2);
@@ -82,7 +83,7 @@ TEST(ProtocolCommandTestGroup, CorrectArgcIsSent)
 
     mock().expectOneCall("command").withIntParameter("argc", 42);
 
-    protocol_execute_command(command_data, commands, LEN(commands), NULL, NULL);
+    protocol_execute_command(command_data, sizeof command_data, commands, LEN(commands), NULL, 0, NULL);
 
     mock().checkExpectations();
 }
@@ -100,9 +101,9 @@ void args_log_command(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_conf
 
 TEST(ProtocolCommandTestGroup, CanReadArgs)
 {
-    command_t commands[] = {
-        {.index = 0x02, .callback = args_log_command},
-    };
+    command_t commands[1];
+    commands[0].index = 0x02;
+    commands[0].callback = args_log_command;
 
     // Command index
     cmp_write_uint(&command_builder, 0x2);
@@ -118,7 +119,7 @@ TEST(ProtocolCommandTestGroup, CanReadArgs)
           .withIntParameter("a", 42)
           .withIntParameter("b", 43);
 
-    protocol_execute_command(command_data, commands, LEN(commands), NULL, NULL);
+    protocol_execute_command(command_data, sizeof command_data, commands, LEN(commands), NULL, 0, NULL);
 
     mock().checkExpectations();
 }
@@ -130,9 +131,10 @@ void dummy_command(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_
 TEST(ProtocolCommandTestGroup, ExecuteReturnsZeroWhenValidCommand)
 {
     int result;
-    command_t commands[] = {
-        {.index = 0x00, .callback = dummy_command},
-    };
+
+    command_t commands[1];
+    commands[0].index = 0x00;
+    commands[0].callback = dummy_command;
 
     // Command index
     cmp_write_uint(&command_builder, 0x0);
@@ -140,16 +142,16 @@ TEST(ProtocolCommandTestGroup, ExecuteReturnsZeroWhenValidCommand)
     // Argument array length
     cmp_write_array(&command_builder, 0);
 
-    result = protocol_execute_command(command_data, commands, LEN(commands), NULL, NULL);
+    result = protocol_execute_command(command_data, sizeof command_data, commands, LEN(commands), NULL, 0, NULL);
     CHECK_EQUAL(0, result);
 }
 
 TEST(ProtocolCommandTestGroup, ExecuteInvalidCommand)
 {
     int result;
-    command_t commands[] = {
-        {.index = 0x00, .callback = dummy_command},
-    };
+    command_t commands[1];
+    commands[0].index = 0x00;
+    commands[0].callback = dummy_command;
 
     // Invalid command index, here a float
     cmp_write_float(&command_builder, 3.14);
@@ -157,22 +159,22 @@ TEST(ProtocolCommandTestGroup, ExecuteInvalidCommand)
     // Argument array length
     cmp_write_array(&command_builder, 0);
 
-    result = protocol_execute_command(command_data, commands, LEN(commands), NULL, NULL);
+    result = protocol_execute_command(command_data, sizeof command_data, commands, LEN(commands), NULL, 0, NULL);
     CHECK_EQUAL(-ERR_INVALID_COMMAND, result);
 }
 
 TEST(ProtocolCommandTestGroup, ExecuteWithoutArgumentsMeansArgcZero)
 {
     int result;
-    command_t commands[] = {
-        {.index = 0x01, .callback = argc_log_command},
-    };
+    command_t commands[1];
+    commands[0].index = 0x01;
+    commands[0].callback = argc_log_command;
 
     cmp_write_uint(&command_builder, 1);
 
     mock().expectOneCall("command").withIntParameter("argc", 0);
 
-    result = protocol_execute_command(command_data, commands, LEN(commands), NULL, NULL);
+    result = protocol_execute_command(command_data, sizeof command_data, commands, LEN(commands), NULL, 0, NULL);
 
     CHECK_EQUAL(0, result);
 
@@ -182,14 +184,15 @@ TEST(ProtocolCommandTestGroup, ExecuteWithoutArgumentsMeansArgcZero)
 TEST(ProtocolCommandTestGroup, CallingNonExistingFunctionReturnsCorrectErrorCode)
 {
     int result;
-    command_t commands[] = {
-        {.index = 0x00, .callback = argc_log_command},
-    };
+
+    command_t commands[1];
+    commands[0].index = 0x00;
+    commands[0].callback = argc_log_command;
 
     // Non existing command
     cmp_write_uint(&command_builder, 1);
 
-    result = protocol_execute_command(command_data, commands, LEN(commands), NULL, NULL);
+    result = protocol_execute_command(command_data, sizeof command_data, commands, LEN(commands), NULL, 0, NULL);
 
     CHECK_EQUAL(-ERR_COMMAND_NOT_FOUND, result);
 }
@@ -227,13 +230,13 @@ void output_mock_command(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_c
 TEST(ProtocolOutputCommand, CanPassOutputBuffer)
 {
     int result;
-    command_t commands[] = {
-        {.index = 0x01, .callback = output_mock_command},
-    };
+    command_t commands[1];
+    commands[0].index = 0x01;
+    commands[0].callback = output_mock_command;
 
     cmp_write_uint(&command_builder, 1);
 
-    protocol_execute_command(command_data, commands, LEN(commands), output_data, NULL);
+    protocol_execute_command(command_data, sizeof command_data, commands, LEN(commands), output_data, sizeof output_data, NULL);
 
     BYTES_EQUAL(0xa5, output_data[0]); // string of length 5
     STRCMP_EQUAL("Hello", &output_data[1]);
@@ -242,14 +245,13 @@ TEST(ProtocolOutputCommand, CanPassOutputBuffer)
 TEST(ProtocolOutputCommand, BytesCountIsReturned)
 {
     int result;
-
-    command_t commands[] = {
-        {.index = 0x01, .callback = output_mock_command},
-    };
+    command_t commands[1];
+    commands[0].index = 0x01;
+    commands[0].callback = output_mock_command;
 
     cmp_write_uint(&command_builder, 1);
 
-    result = protocol_execute_command(command_data, commands, LEN(commands), output_data, NULL);
+    result = protocol_execute_command(command_data, sizeof command_data, commands, LEN(commands), output_data, sizeof output_data, NULL);
 
     CHECK_EQUAL(6, result);
 }

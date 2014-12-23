@@ -84,7 +84,7 @@ TEST_GROUP(ConfigSerializationTest)
 
     void config_read_and_write()
     {
-        config_write(config_buffer, config, sizeof config_buffer);
+        config_write(config_buffer, &config, sizeof config_buffer);
         result = config_read(config_buffer, sizeof config_buffer);
     }
 };
@@ -123,4 +123,22 @@ TEST(ConfigSerializationTest, CanSerializeApplicationCRC)
     config_read_and_write();
 
     CHECK_EQUAL(0xdeadbeef, result.application_crc);
+}
+
+TEST(ConfigSerializationTest, CanSerializeApplicationSize)
+{
+    config.application_size = 42;
+
+    config_read_and_write();
+
+    CHECK_EQUAL(42, result.application_size);
+}
+
+TEST(ConfigSerializationTest, CanSerializeUpdateCount)
+{
+    config.update_count = 23;
+
+    config_read_and_write();
+
+    CHECK_EQUAL(23, result.update_count);
 }

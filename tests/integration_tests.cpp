@@ -23,7 +23,7 @@ void read_eval(can_datagram_t *input, can_datagram_t *output, bootloader_config_
     if (can_datagram_is_valid(input)) {
         for (i = 0; i < input->destination_nodes_len; ++i) {
             if (input->destination_nodes[i] == config->ID){
-                len = protocol_execute_command((char *)input->data, commands, command_len, (char *)output->data, config);
+                len = protocol_execute_command((char *)input->data, input->data_len, commands, command_len, (char *)output->data, output->data_len, config);
 
                 /* Checks if there was any error. */
                 if (len < 0) {
@@ -41,6 +41,11 @@ void read_eval(can_datagram_t *input, can_datagram_t *output, bootloader_config_
     }
 }
 
+static void mock_command(int argc, cmp_ctx_t *arg_context, cmp_ctx_t *out_context, bootloader_config_t *config)
+{
+    mock().actualCall("command");
+}
+
 TEST_GROUP(IntegrationTesting)
 {
     can_datagram_t input_datagram;
@@ -52,19 +57,23 @@ TEST_GROUP(IntegrationTesting)
     uint8_t output_datagram_data[1000];
 
     bootloader_config_t config;
+    command_t commands[1];
 
     void setup(void)
     {
         can_datagram_init(&input_datagram);
-        can_datagram_set_adress_buffer(&input_datagram, input_datagram_destinations);
+        can_datagram_set_address_buffer(&input_datagram, input_datagram_destinations);
         can_datagram_set_data_buffer(&input_datagram, input_datagram_data, sizeof input_datagram_data);
 
         can_datagram_init(&output_datagram);
-        can_datagram_set_adress_buffer(&output_datagram, output_datagram_destinations);
+        can_datagram_set_address_buffer(&output_datagram, output_datagram_destinations);
         can_datagram_set_data_buffer(&output_datagram, output_datagram_data, sizeof output_datagram_data);
 
         // Loads default config for testing
         config.ID = 0x01;
+
+        commands[0].index = 1;
+        commands[0].callback = mock_command;
     }
 
     void teardown(void)
@@ -94,10 +103,6 @@ TEST(IntegrationTesting, CanReadWholeDatagram)
     CHECK_TRUE(can_datagram_is_valid(&input_datagram));
 }
 
-static void mock_command(int argc, cmp_ctx_t *arg_context, cmp_ctx_t *out_context, bootloader_config_t *config)
-{
-    mock().actualCall("command");
-}
 
 TEST(IntegrationTesting, ExecutesCommand)
 {
@@ -109,9 +114,6 @@ TEST(IntegrationTesting, ExecutesCommand)
         0x1 // data
     };
 
-    command_t commands[] = {
-        {.index = 1, .callback = mock_command}
-    };
 
     can_mock_message(0x0, &message[0], 8);
     read_eval(&input_datagram, &output_datagram, &config, commands, 1);
@@ -134,9 +136,6 @@ TEST(IntegrationTesting, ExecutesCommandOnlyIfAdressed)
         0x1 // data
     };
 
-    command_t commands[] = {
-        {.index = 1, .callback = mock_command}
-    };
 
     config.ID = 12;
 
@@ -159,9 +158,6 @@ TEST(IntegrationTesting, ExecutesIfWeAreInMultiCast)
         0x1 // data
     };
 
-    command_t commands[] = {
-        {.index = 1, .callback = mock_command}
-    };
 
     config.ID = 0x12;
 
@@ -190,9 +186,7 @@ TEST(IntegrationTesting, OutputDatagramIsValid)
         0x1 // data
     };
 
-    command_t commands[] = {
-        {.index = 1, .callback = command_output}
-    };
+    commands[0].callback = command_output;
 
     can_mock_message(0x0, &message[0], 8);
     read_eval(&input_datagram, &output_datagram, &config, commands, 1);

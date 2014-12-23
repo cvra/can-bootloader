@@ -3,6 +3,10 @@
 #include "CppUTest/TestHarness.h"
 #include "CppUTestExt/MockSupport.h"
 
+// This symbol is supposed to be provided by the linker
+extern "C" {
+int app_start;
+}
 
 void flash_writer_unlock(void)
 {
@@ -67,9 +71,9 @@ TEST(FlashWriterMockTestGroup, CanWritePage)
 
     mock("flash").expectOneCall("page_write")
                  .withPointerParameter("page_adress", buf)
-                 .withIntParameter("size", 5);
+                 .withIntParameter("size", strlen(data) + 1);
 
-    flash_writer_page_write(buf, data, 5);
+    flash_writer_page_write(buf, data, strlen(data) + 1);
 
     STRCMP_EQUAL(data, buf);
 }

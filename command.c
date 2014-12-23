@@ -5,11 +5,7 @@
 #include "boot_arg.h"
 #include "config.h"
 #include "command.h"
-
-extern int app_start, config_page1, config_page2;   // defined by linker
-
-// temporary, pagesize for stm32f3
-uint8_t page_buffer[2048];
+#include "memory.h"
 
 void command_write_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config)
 {
@@ -23,7 +19,7 @@ void command_write_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_c
     address = (void *)tmp;
 
     // refuse to overwrite bootloader or config pages
-    if (address < &app_start) {
+    if (address < memory_get_app_addr()) {
         return;
     }
 
@@ -66,7 +62,7 @@ void command_read_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_co
 
 void command_jump_to_application(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config)
 {
-    if (crc32(0, &app_start, config->application_size) == config->application_crc) {
+    if (crc32(0, memory_get_app_addr(), config->application_size) == config->application_crc) {
         reboot(BOOT_ARG_START_APPLICATION);
     } else {
         reboot(BOOT_ARG_START_BOOTLOADER_NO_TIMEOUT);
@@ -97,20 +93,23 @@ void command_config_write_to_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bo
 {
     config->update_count += 1;
 
-    memset(page_buffer, 0, sizeof(page_buffer));
+    memset(page_buffer, 0, page_size);
 
-    config_write(page_buffer + 4, config, sizeof(page_buffer));
-    block_crc_update(page_buffer, sizeof(page_buffer) - 4);
+    config_write(page_buffer + 4, config, page_size);
+    block_crc_update(page_buffer, page_size - 4);
+
+    void *config1 = memory_get_config1_addr();
 
     flash_writer_unlock();
-    flash_writer_page_erase(&config_page1);
-    flash_writer_page_write(&config_page1, page_buffer, sizeof(page_buffer));
+    flash_writer_page_erase(config1);
+    flash_writer_page_write(config1, page_buffer, page_size);
     flash_writer_lock();
 
-    if (block_crc_verify(&config_page1, sizeof(page_buffer))) {
+    if (block_crc_verify(config1, page_size)) {
+        void *config2 = memory_get_config2_addr();
         flash_writer_unlock();
-        flash_writer_page_erase(&config_page2);
-        flash_writer_page_write(&config_page2, page_buffer, sizeof(page_buffer));
+        flash_writer_page_erase(&config2);
+        flash_writer_page_write(&config2, page_buffer, page_size);
         flash_writer_lock();
     }
 }
