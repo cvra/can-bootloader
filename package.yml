@@ -13,6 +13,7 @@ tests:
     - tests/config_commands_tests.cpp
     - tests/datagrams_command_tests.cpp
     - tests/integration_tests.cpp
+    - tests/mocks/memory_mock.c
 
 source:
     - can_datagram.c
