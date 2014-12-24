@@ -1,6 +1,6 @@
 #include <stdint.h>
 #include <libopencm3/cm3/scb.h>
-#include "boot_arg.h"
+#include <boot_arg.h>
 
 #define BOOT_ARG_MAGIC_VALUE_LO 0x01234567
 #define BOOT_ARG_MAGIC_VALUE_HI 0x0089abcd
