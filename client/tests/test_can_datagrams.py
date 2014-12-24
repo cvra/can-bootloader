@@ -11,6 +11,14 @@ except ImportError:
 class CanDatagramTestCase(unittest.TestCase):
     data = 'hello, world'.encode('ascii')
 
+    def test_encode_datagram_version(self):
+        """
+        This test checks if we can properly encode the datagram version.
+        """
+        dt = encode_datagram(self.data, [1])
+        self.assertEqual(DATAGRAM_VERSION, dt[0])
+        pass
+
     def test_can_encode_single_destination(self):
         """
         This test checks if we can encode a single destination in the datagram.
@@ -18,10 +26,10 @@ class CanDatagramTestCase(unittest.TestCase):
         dt = encode_datagram(self.data, [10])
 
         # Destination nodes length
-        self.assertEqual(dt[4], 1)
+        self.assertEqual(dt[5], 1)
 
         # Destination nodes list
-        self.assertEqual(dt[5], 10)
+        self.assertEqual(dt[6], 10)
 
     def test_can_encode_multiple_destinations(self):
         """
@@ -30,17 +38,17 @@ class CanDatagramTestCase(unittest.TestCase):
         dt = encode_datagram(self.data, [1,2,3])
 
         # Length
-        self.assertEqual(dt[4], 3)
+        self.assertEqual(dt[5], 3)
 
         # Nodes
-        self.assertEqual(dt[5:8], bytes([1,2,3]))
+        self.assertEqual(dt[6:9], bytes([1,2,3]))
 
     def test_can_encode_data_length(self):
         """
         Checks if we can read data length.
         """
         dt = encode_datagram(self.data, [1])
-        data_length = unpack_from('>I', dt, 4 + 2)[0]
+        data_length = unpack_from('>I', dt, 1 + 4 + 2)[0]
         self.assertEqual(len(self.data), data_length)
 
     def test_can_add_data(self):
@@ -48,16 +56,16 @@ class CanDatagramTestCase(unittest.TestCase):
         Checks if we can add data.
         """
         dt = encode_datagram(self.data, [1])
-        data = dt[4 + 1 + 1 + 4:]
+        data = dt[1 + 4 + 1 + 1 + 4:]
         self.assertEqual(data, self.data)
 
     def test_crc_is_at_the_correct_place(self):
         """
-        Checks that the first 4 bytes are made of the crc.
+        Checks that the 4 bytes after the version are made of the crc.
         """
         data = 'hello'.encode('ascii')
         expected = pack('>I', crc32(bytes([1,1,0,0,0,5]) + data))
-        crc = encode_datagram(data, [1])[:4]
+        crc = encode_datagram(data, [1])[1:5]
         self.assertEqual(crc, expected)
 
     def test_frame_too_long_raises_valueerror(self):
