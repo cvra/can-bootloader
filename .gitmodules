@@ -1,3 +1,6 @@
 [submodule "libopencm3"]
 	path = libopencm3
 	url = https://github.com/libopencm3/libopencm3.git
+[submodule "packager"]
+	path = packager
+	url = https://github.com/cvra/packager.git
