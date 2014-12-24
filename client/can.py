@@ -1,6 +1,8 @@
 import struct
 from zlib import crc32
 
+DATAGRAM_VERSION = 1
+
 class Frame:
     """
     A single CAN frame.
@@ -26,11 +28,12 @@ def encode_datagram(data, destinations):
     This datagram can then be cut into CAN messages by datagram_to_frames.
     """
 
+    version = struct.pack('B', DATAGRAM_VERSION)
     adresses = bytes([len(destinations)] + destinations)
     dt = struct.pack('>I', len(data)) + data
     crc = struct.pack('>I', crc32(adresses + dt))
 
-    return crc + adresses + dt
+    return version + crc + adresses + dt
 
 def datagram_to_frames(datagram, source):
     """

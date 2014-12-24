@@ -32,11 +32,12 @@ The CAN datagram layer has the following resposibilities :
 
 The datagram format is the following :
 
-1. CRC32 of the whole datagram : 4 bytes
-2. Destination ID list length (m) : 1 byte
-3. Destination IDs : m bytes
-4. Data length : 4 bytes, MSB first
-5. Data: n bytes
+1. Protocol version (currently 0x01): 1 byte
+2. CRC32 of the whole datagram : 4 bytes
+3. Destination ID list length (m) : 1 byte
+4. Destination IDs : m bytes
+5. Data length : 4 bytes, MSB first
+6. Data: n bytes
 
 # UART Transport layer
 Just send the bytes at 115200 bauds, 8 bit, no parity.
