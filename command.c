@@ -108,8 +108,8 @@ void command_config_write_to_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bo
     if (block_crc_verify(config1, page_size)) {
         void *config2 = memory_get_config2_addr();
         flash_writer_unlock();
-        flash_writer_page_erase(&config2);
-        flash_writer_page_write(&config2, page_buffer, page_size);
+        flash_writer_page_erase(config2);
+        flash_writer_page_write(config2, page_buffer, page_size);
         flash_writer_lock();
     }
 }
