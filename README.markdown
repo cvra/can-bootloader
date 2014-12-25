@@ -21,9 +21,9 @@ There is one bit to indicate if this message is the first of a datagram (1) or i
 
 The format of the CAN message ID is :
 
-* 7 bits for the source ID
-* 1 bit for start of datagram bit
-* 3 reserved bits
+* bits 10..8: 3 reserved bits, set to zero for bootloader frames
+* bit 7: 1 bit for start of datagram bit (1 if first frame in datagram, 0 otherwise)
+* bits 6..0: bits for the source ID
 
 ## CAN Datagram format
 The CAN datagram layer has the following resposibilities :
