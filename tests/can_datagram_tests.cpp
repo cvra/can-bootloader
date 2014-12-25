@@ -472,3 +472,15 @@ TEST(CANDatagramOutputTestGroup, IfWeStopEarlierBytesWrittenIsReturned)
 
     CHECK_EQUAL(3, ret);
 }
+
+TEST_GROUP(CANIDTestGroup)
+{
+};
+
+TEST(CANIDTestGroup, CanFindIfStartOfDatagram)
+{
+    int source_id = 0x2;
+    int start_bit = (1 << 7);
+    CHECK_FALSE(can_datagram_id_start_is_set(source_id));
+    CHECK_TRUE(can_datagram_id_start_is_set(source_id | start_bit));
+}

@@ -3,6 +3,8 @@
 #include "can_datagram.h"
 #include <crc/crc32.h>
 
+#define ID_START_MASK (1 << 7)
+
 enum {
     STATE_PROTOCOL_VERSION,
     STATE_CRC,
@@ -192,4 +194,9 @@ uint32_t can_datagram_compute_crc(can_datagram_t *dt)
     crc = crc32(crc, tmp, 4);
     crc = crc32(crc, &dt->data[0], dt->data_len);
     return crc;
+}
+
+bool can_datagram_id_start_is_set(unsigned int id)
+{
+    return id & ID_START_MASK;
 }
