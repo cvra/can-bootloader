@@ -104,8 +104,8 @@ class ReceiveDatagram:
             if len(self.data) >= self.dest_len:
                 self.crc = crc32(self.data[:self.dest_len], self.crc)
                 self.dest = []
-                for d in struct.iter_unpack('B',self.data[:self.dest_len]):
-                    self.dest += d
+                for i in range(0, self.dest_len):
+                    self.dest += struct.unpack_from('B', self.data, i)
                 self.data = self.data[self.dest_len:]
                 self.state = STATE_DATA_LEN
         if self.state == STATE_DATA_LEN:
