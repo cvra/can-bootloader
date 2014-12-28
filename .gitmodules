@@ -7,3 +7,6 @@
 [submodule "dependencies/serializer"]
 	path = dependencies/serializer
 	url = https://github.com/cvra/serializer.git
+[submodule "dependencies/crc"]
+	path = dependencies/crc
+	url = https://github.com/cvra/CRC.git
