@@ -28,4 +28,3 @@
 # Build scripts and directories
 CMakeLists.txt
 build/*
-dependencies/*
