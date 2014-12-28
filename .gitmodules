@@ -10,3 +10,6 @@
 [submodule "dependencies/crc"]
 	path = dependencies/crc
 	url = https://github.com/cvra/CRC.git
+[submodule "dependencies/test-runner"]
+	path = dependencies/test-runner
+	url = https://github.com/cvra/test-runner.git
