@@ -3,10 +3,11 @@ from msgpack import Packer
 class CommandType:
     JumpToMain = 1
     CRCReginon = 2
-    Write = 3
-    Read = 4
-    UpdateConfig = 6
-    SaveConfig = 7
+    Erase = 3
+    Write = 4
+    Read = 6
+    UpdateConfig = 7
+    SaveConfig = 8
 
 def encode_command(command_code, *arguments):
     """
@@ -21,6 +22,12 @@ def encode_crc_region(address, length):
     Encodes the command to request the CRC of a region in flash.
     """
     return encode_command(CommandType.CRCReginon, address, length)
+
+def encode_erase_flash_page(adress, device_class):
+    """
+    Encodes the command to erase the flash page at given address.
+    """
+    return encode_command(CommandType.Erase, adress, device_class)
 
 def encode_write_flash(data, adress, device_class):
     """
