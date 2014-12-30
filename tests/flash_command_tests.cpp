@@ -62,6 +62,8 @@ TEST(FlashCommandTestGroup, CheckErrorHandlingWithIllFormatedArguments)
 {
     // We simply check that no mock flash operation occurs
     command_write_flash(1, &command_builder, NULL, &config);
+
+    mock().checkExpectations();
 }
 
 TEST(FlashCommandTestGroup, CheckThatDeviceClassIsRespected)
@@ -74,11 +76,13 @@ TEST(FlashCommandTestGroup, CheckThatDeviceClassIsRespected)
     // Writes a "wrong" device class
     cmp_write_str(&command_builder, "fail", 4);
 
-    cmp_write_ext(&command_builder, 0x00, strlen(data), data);
+    cmp_write_bin(&command_builder, data, strlen(data));
 
     // Executes the command. Since the device class mismatch it should not make
     // any write
     command_write_flash(1, &command_builder, NULL, &config);
+
+    mock().checkExpectations();
 }
 
 TEST_GROUP(JumpToApplicationCodetestGroup)
