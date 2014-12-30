@@ -63,6 +63,38 @@ class WriteCommandTestCase(unittest.TestCase):
         # Finally data
         self.assertEqual(raw_packet[-1], 12)
 
+class EraseCommandTestCase(unittest.TestCase):
+    """
+    Tests for the erase flash page command.
+    """
+    def setUp(self):
+        address = 0xfa1afe1
+        device = "LivewareProblem"
+
+        raw_packet = encode_erase_flash_page(address, device)
+
+        unpacker = Unpacker()
+        unpacker.feed(raw_packet)
+        self.command = list(unpacker)
+
+    def test_erase_command_index(self):
+        """
+        Checks that the index for the command is correct.
+        """
+        self.assertEqual(self.command[0], CommandType.Erase)
+
+    def test_erase_command_address(self):
+        """
+        Checks that the page addres is correct.
+        """
+        self.assertEqual(self.command[1][0], 0xfa1afe1)
+
+    def test_erase_command_device(self):
+        """
+        Checks that the device name is correct.
+        """
+        self.assertEqual(self.command[1][1].decode('ascii'), "LivewareProblem")
+
 class JumpToApplicationMainTestCase(unittest.TestCase):
     """
     Tests for the jump to application main command.
