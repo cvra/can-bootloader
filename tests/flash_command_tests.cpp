@@ -48,7 +48,6 @@ TEST(FlashCommandTestGroup, CanFlashSinglePage)
 
     mock("flash").expectOneCall("unlock");
     mock("flash").expectOneCall("lock");
-    mock("flash").expectOneCall("page_erase").withPointerParameter("adress", page);
 
     mock("flash").expectOneCall("page_write")
                  .withPointerParameter("page_adress", page)
@@ -83,6 +82,46 @@ TEST(FlashCommandTestGroup, CheckThatDeviceClassIsRespected)
     // Executes the command. Since the device class mismatch it should not make
     // any write
     command_write_flash(1, &command_builder, NULL, &config);
+
+    mock().checkExpectations();
+}
+
+TEST(FlashCommandTestGroup, CanErasePage)
+{
+    int page;
+
+    // Writes the adress of the page
+    cmp_write_u64(&command_builder, (size_t)&page);
+
+    // Writes the correct device class
+    cmp_write_str(&command_builder, config.device_class, strlen(config.device_class));
+
+    mock("flash").expectOneCall("unlock");
+    mock("flash").expectOneCall("lock");
+
+    mock("flash").expectOneCall("page_erase").withPointerParameter("adress", &page);
+
+    command_erase_flash_page(1, &command_builder, NULL, &config);
+
+    mock().checkExpectations();
+}
+
+TEST(FlashCommandTestGroup, DeviceClassIsRespectedForErasePage)
+{
+    // Writes the adress of the page
+    cmp_write_u64(&command_builder, (size_t)&page);
+
+    // Writes the correct device class
+    cmp_write_str(&command_builder, "fail", 4);
+
+    command_erase_flash_page(1, &command_builder, NULL, &config);
+
+    mock().checkExpectations();
+}
+
+TEST(FlashCommandTestGroup, CheckIllFormatedArgumentsForErasePage)
+{
+    command_erase_flash_page(1, &command_builder, NULL, &config);
 
     mock().checkExpectations();
 }
