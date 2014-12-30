@@ -25,6 +25,8 @@ The format of the CAN message ID is :
 * bit 7: 1 bit for start of datagram bit (1 if first frame in datagram, 0 otherwise)
 * bits 6..0: bits for the source ID
 
+*Note:* The first 3 bits of the ID are dominant (0) for bootloader frames. It has therefore highest priority on the bus.
+
 ## CAN Datagram format
 The CAN datagram layer has the following resposibilities :
 * Adressing
