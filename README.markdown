@@ -80,11 +80,12 @@ They should simply send the MessagePack encoded response on the bus.
 
 1. Jump to application (0x01). No parameters. Simply starts the application code.
 2. CRC flash region (0x02). 2 parameters : start adress and length of the region we want to check. Returns the CRC32 of this region.
-3. Write flash (0x03). Parameters : Start adress, device class (string) and sequence of bytes to write. Returns nothing.
-4. Read flash (0x04). Parameters : Start adress and length. Returns sequence of read bytes
-5. Check write status (0x05). Parameters: None. Returns: True if a write is currently in progress, False otherwise.
-6. Update config (0x06). The only parameters is a MessagePack map containing the configuration values to update. If a config value is not in its parameters, it will not be changed.
-7. Save config to flash.
+3. Erase flash page (0x03). Parameters : Page address, device class (string). Returns nothing.
+4. Write flash (0x04). Parameters : Start adress, device class (string) and sequence of bytes to write. Returns nothing.
+5. Read flash (0x05). Parameters : Start adress and length. Returns sequence of read bytes
+6. Check write status (0x06). Parameters: None. Returns: True if a write is currently in progress, False otherwise.
+7. Update config (0x07). The only parameters is a MessagePack map containing the configuration values to update. If a config value is not in its parameters, it will not be changed.
+8. Save config to flash.
 
 *Note:* Adresses (pointers) in the arguments are represented as 64 bits integers.
 64 bits was chosen to allow tests to run on 64 bits platforms too.
