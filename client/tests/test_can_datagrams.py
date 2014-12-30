@@ -131,3 +131,52 @@ class CanDatagramTestCase(unittest.TestCase):
 
         self.assertEqual(recomposed_data, list(dt))
 
+    def test_datagram_can_receive(self):
+        """
+        Checks if datagrams are received correctly
+        """
+        rec = ReceiveDatagram()
+        data = bytes("hello world!", 'ascii')
+        dest_ids = [23, 42]
+        ret = rec.input_data(encode_datagram(data, dest_ids))
+        self.assertEqual(ret, True)
+        self.assertEqual(rec.data, data)
+        self.assertEqual(rec.dest, dest_ids)
+        self.assertEqual(rec.dest_len, len(dest_ids))
+        self.assertEqual(rec.version, DATAGRAM_VERSION)
+
+    def test_datagram_can_receive_from_multiple(self):
+        """
+        Checks if datagrams are received correctly from multiple frames
+        """
+        rec = ReceiveDatagram()
+        data = bytes("hello world!", 'ascii')
+        dest_ids = [23, 42]
+        frames = datagram_to_frames(encode_datagram(data, dest_ids), 1)
+        for f in frames:
+            ret = rec.input_data(f.data)
+        self.assertEqual(ret, True)
+        self.assertEqual(rec.data, data)
+        self.assertEqual(rec.dest, dest_ids)
+        self.assertEqual(rec.dest_len, len(dest_ids))
+        self.assertEqual(rec.version, DATAGRAM_VERSION)
+
+    def test_datagram_can_detect_version_error(self):
+        """
+        Checks if a datagram version error is detected
+        """
+        rec = ReceiveDatagram()
+        dt = encode_datagram(bytes("hello world!", 'ascii'), [23, 42])
+        # alter crc
+        alt_dt = struct.pack('B', DATAGRAM_VERSION + 1) + dt[1:]
+        self.assertRaises(DatagramVersionError, rec.input_data, alt_dt)
+
+    def test_datagram_can_detect_crc_error(self):
+        """
+        Checks if a crc error is detected
+        """
+        rec = ReceiveDatagram()
+        dt = encode_datagram(bytes("hello world!", 'ascii'), [23, 42])
+        # alter crc
+        alt_dt = dt[0:1] + struct.pack('>I', 0x00000000) + dt[5:]
+        self.assertRaises(CRCMismatchError, rec.input_data, alt_dt)
