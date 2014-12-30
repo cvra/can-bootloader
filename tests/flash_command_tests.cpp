@@ -2,6 +2,8 @@
 #include <CppUTest/TestHarness.h>
 #include <CppUTestExt/MockSupport.h>
 #include <serializer/serialization.h>
+#include <crc/crc32.h>
+#include "mocks/memory_mock.h"
 #include "../flash_writer.h"
 #include "../command.h"
 #include "../boot_arg.h"
@@ -97,8 +99,12 @@ TEST_GROUP(JumpToApplicationCodetestGroup)
 
 TEST(JumpToApplicationCodetestGroup, CanJumpToApplication)
 {
-    // We cannot test proper memory access now as the symbol is provided by the linker on real targets
-    config.application_size = 0;
+    // setup application data and run crc over it
+    memset(&memory_mock_app[0], 0x2a, sizeof(memory_mock_app));
+
+    config.application_size = sizeof(memory_mock_app);
+
+    config.application_crc = crc32(0, &memory_mock_app[0], sizeof(memory_mock_app));
 
     // Expect to reboot into application
     mock().expectOneCall("reboot").withIntParameter("arg", BOOT_ARG_START_APPLICATION);
@@ -108,11 +114,13 @@ TEST(JumpToApplicationCodetestGroup, CanJumpToApplication)
 
 TEST(JumpToApplicationCodetestGroup, WrongCRCMeansReboot)
 {
-    // This test checks that the bootloader will reboot into itself when presented with a bad CRC
-    // We cannot test proper memory access now as the symbol is provided by the linker on real targets
-    config.application_size = 0;
+    // setup application data and run crc over it
+    memset(&memory_mock_app[0], 0x2a, sizeof(memory_mock_app));
 
-    config.application_crc = 0xbad;
+    config.application_size = sizeof(memory_mock_app);
+
+    // ensure wrong application crc
+    config.application_crc = 0xbad ^ crc32(0, &memory_mock_app[0], sizeof(memory_mock_app));
 
     // Expect to reboot into itself with timeout disabled
     mock().expectOneCall("reboot").withIntParameter("arg", BOOT_ARG_START_BOOTLOADER_NO_TIMEOUT);

@@ -7,11 +7,11 @@ extern "C" {
 
 #include "../../memory.h"
 
-extern uint8_t config1[64];
-extern uint8_t config2[64];
-extern uint8_t page_buffer[64];
+extern uint8_t memory_mock_config1[64];
+extern uint8_t memory_mock_config2[64];
+extern uint8_t memory_mock_app[42];
 
-extern int app;
+extern uint8_t page_buffer[64];
 
 #ifdef __cplusplus
 }
