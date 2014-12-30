@@ -43,6 +43,12 @@ typedef struct {
  */
 int protocol_execute_command(char *data, size_t data_len, command_t *commands, int command_len, char *out_buf, size_t out_len, bootloader_config_t *config);
 
+/** Command used to erase a flash page.
+ *
+ * @note Should not be called directly but be a part of the commands given to protocol_execute_command.
+ */
+void command_erase_flash_page(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config);
+
 /** Command used to write to a flash page.
  *
  * @note Should not be called directly but be a part of the commands given to protocol_execute_command.

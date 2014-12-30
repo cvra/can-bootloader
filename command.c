@@ -7,6 +7,34 @@
 #include "command.h"
 #include "memory.h"
 
+void command_erase_flash_page(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config)
+{
+    void *address;
+    uint64_t tmp;
+    char device_class[64];
+
+    cmp_read_uinteger(args, &tmp);
+    address = (void *)tmp;
+
+    // refuse to overwrite bootloader or config pages
+    if (address < memory_get_app_addr()) {
+        return;
+    }
+
+    uint32_t size = 64;
+    cmp_read_str(args, device_class, &size);
+
+    if (strcmp(device_class, config->device_class) != 0) {
+        return;
+    }
+
+    flash_writer_unlock();
+
+    flash_writer_page_erase(address);
+
+    flash_writer_lock();
+}
+
 void command_write_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config)
 {
     void *address;
