@@ -64,6 +64,9 @@ int can_datagram_output_bytes(can_datagram_t *dt, char *buffer, size_t buffer_le
 /** Computes the CRC32 of the datagram. */
 uint32_t can_datagram_compute_crc(can_datagram_t *dt);
 
+/** Returns true if the ID has the start of datagram field set. */
+bool can_datagram_id_start_is_set(unsigned int id);
+
 #ifdef __cplusplus
 }
 #endif
