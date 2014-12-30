@@ -67,8 +67,6 @@ void command_write_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_c
 
     flash_writer_unlock();
 
-    flash_writer_page_erase(address);
-
     flash_writer_page_write(address, src, size);
 
     flash_writer_lock();
