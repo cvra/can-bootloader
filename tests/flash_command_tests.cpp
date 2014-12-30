@@ -48,7 +48,6 @@ TEST(FlashCommandTestGroup, CanFlashSinglePage)
 
     mock("flash").expectOneCall("unlock");
     mock("flash").expectOneCall("lock");
-    mock("flash").expectOneCall("page_erase").withPointerParameter("adress", page);
 
     mock("flash").expectOneCall("page_write")
                  .withPointerParameter("page_adress", page)
