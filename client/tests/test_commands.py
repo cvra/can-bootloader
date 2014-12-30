@@ -25,7 +25,7 @@ class WriteCommandTestCase(unittest.TestCase):
         Checks that the command index is correct. It should be 0x3.
         """
         index = self.command[0]
-        self.assertEqual(3, index)
+        self.assertEqual(CommandType.Write, index)
 
     def test_command_has_correct_adress(self):
         """
@@ -77,5 +77,5 @@ class JumpToApplicationMainTestCase(unittest.TestCase):
         """
         Checks that the index for the command is correct.
         """
-        self.assertEqual(self.command[0], 1)
+        self.assertEqual(self.command[0], CommandType.JumpToMain)
 
