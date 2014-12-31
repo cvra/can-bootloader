@@ -1,3 +1,15 @@
 [submodule "libopencm3"]
 	path = libopencm3
 	url = https://github.com/libopencm3/libopencm3.git
+[submodule "packager"]
+	path = packager
+	url = https://github.com/cvra/packager.git
+[submodule "dependencies/serializer"]
+	path = dependencies/serializer
+	url = https://github.com/cvra/serializer.git
+[submodule "dependencies/crc"]
+	path = dependencies/crc
+	url = https://github.com/cvra/CRC.git
+[submodule "dependencies/test-runner"]
+	path = dependencies/test-runner
+	url = https://github.com/cvra/test-runner.git
