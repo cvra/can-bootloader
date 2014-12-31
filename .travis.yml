@@ -15,15 +15,13 @@ before_install:
     - sudo make install
     - popd
 
-    # Install packager.py
-    - sudo pip install pyaml jinja2
-    - git clone https://github.com/cvra/packager ../packager
-
     # Install test environment for the client
     - sudo apt-get install python-virtualenv python3
     - python3 --version
 
 before_script:    
+    - git submodule update --init --recursive
+
     # Create client test environment
     - virtualenv --python=python3 venv
     - source venv/bin/activate
@@ -33,7 +31,7 @@ before_script:
     - deactivate
 
     # Prepare bootloader build
-    - ../packager/packager.py
+    - ./packager/packager.py
     - mkdir build/
     - pushd build/
     - cmake ..
