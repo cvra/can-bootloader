@@ -23,7 +23,7 @@ before_script:
     - git submodule update --init --recursive
 
     # packager requirements
-    - pip install -r packager/requirements.txt
+    - sudo pip install -r packager/requirements.txt
 
     # Create client test environment
     - virtualenv --python=python3 venv
