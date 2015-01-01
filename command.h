@@ -17,6 +17,12 @@ extern "C" {
 /** Command index could not be found in command table. */
 #define ERR_COMMAND_NOT_FOUND 2
 
+/** Protocol command set version doesn't match received one. */
+#define ERR_INVALID_COMMAND_SET_VERSION 3
+
+/** Version of the protocol command set. */
+#define COMMAND_SET_VERSION 1
+
 typedef struct {
     /** Command ID */
     uint8_t index;

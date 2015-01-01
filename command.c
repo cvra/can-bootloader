@@ -146,6 +146,7 @@ int protocol_execute_command(char *data, size_t data_len, command_t *commands, i
     cmp_ctx_t command_reader;
     int32_t commmand_index, i;
     uint32_t argc;
+    int32_t command_version;
     bool read_success;
 
     serializer_t out_serializer;
@@ -156,6 +157,12 @@ int protocol_execute_command(char *data, size_t data_len, command_t *commands, i
 
     serializer_init(&out_serializer, out_buf, out_len);
     serializer_cmp_ctx_factory(&out_writer, &out_serializer);
+
+    cmp_read_int(&command_reader, &command_version);
+
+    if (command_version != COMMAND_SET_VERSION) {
+        return -ERR_INVALID_COMMAND_SET_VERSION;
+    }
 
     read_success = cmp_read_int(&command_reader, &commmand_index);
 

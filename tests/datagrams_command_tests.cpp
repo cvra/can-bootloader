@@ -37,6 +37,7 @@ TEST(ProtocolCommandTestGroup, CommandIsCalled)
     commands[0].index = 0x00;
     commands[0].callback = mock_command;
 
+    cmp_write_uint(&command_builder, COMMAND_SET_VERSION);
     cmp_write_uint(&command_builder, 0x0);
 
     mock().expectOneCall("command");
@@ -53,6 +54,8 @@ TEST(ProtocolCommandTestGroup, CorrectCommandIsCalled)
     commands[0].callback = NULL;
     commands[1].index = 0x02;
     commands[1].callback = mock_command;
+
+    cmp_write_uint(&command_builder, COMMAND_SET_VERSION);
 
     // Write command index
     cmp_write_uint(&command_builder, 0x2);
@@ -74,6 +77,8 @@ TEST(ProtocolCommandTestGroup, CorrectArgcIsSent)
     command_t commands[1];
     commands[0].index = 0x02;
     commands[0].callback = argc_log_command;
+
+    cmp_write_uint(&command_builder, COMMAND_SET_VERSION);
 
     // Write command index
     cmp_write_uint(&command_builder, 0x2);
@@ -105,6 +110,7 @@ TEST(ProtocolCommandTestGroup, CanReadArgs)
     commands[0].index = 0x02;
     commands[0].callback = args_log_command;
 
+    cmp_write_uint(&command_builder, COMMAND_SET_VERSION);
     // Command index
     cmp_write_uint(&command_builder, 0x2);
 
@@ -136,6 +142,7 @@ TEST(ProtocolCommandTestGroup, ExecuteReturnsZeroWhenValidCommand)
     commands[0].index = 0x00;
     commands[0].callback = dummy_command;
 
+    cmp_write_uint(&command_builder, COMMAND_SET_VERSION);
     // Command index
     cmp_write_uint(&command_builder, 0x0);
 
@@ -152,6 +159,8 @@ TEST(ProtocolCommandTestGroup, ExecuteInvalidCommand)
     command_t commands[1];
     commands[0].index = 0x00;
     commands[0].callback = dummy_command;
+
+    cmp_write_uint(&command_builder, COMMAND_SET_VERSION);
 
     // Invalid command index, here a float
     cmp_write_float(&command_builder, 3.14);
@@ -170,6 +179,7 @@ TEST(ProtocolCommandTestGroup, ExecuteWithoutArgumentsMeansArgcZero)
     commands[0].index = 0x01;
     commands[0].callback = argc_log_command;
 
+    cmp_write_uint(&command_builder, COMMAND_SET_VERSION);
     cmp_write_uint(&command_builder, 1);
 
     mock().expectOneCall("command").withIntParameter("argc", 0);
@@ -189,12 +199,28 @@ TEST(ProtocolCommandTestGroup, CallingNonExistingFunctionReturnsCorrectErrorCode
     commands[0].index = 0x00;
     commands[0].callback = argc_log_command;
 
+    cmp_write_uint(&command_builder, COMMAND_SET_VERSION);
+
     // Non existing command
     cmp_write_uint(&command_builder, 1);
 
     result = protocol_execute_command(command_data, sizeof command_data, commands, LEN(commands), NULL, 0, NULL);
 
     CHECK_EQUAL(-ERR_COMMAND_NOT_FOUND, result);
+}
+
+TEST(ProtocolCommandTestGroup, WrongProtocolVersionHasCorrectErrorCode)
+{
+    int result;
+
+    // 0 is an always invalid version
+    cmp_write_uint(&command_builder, 0);
+
+    // Command ID
+    cmp_write_uint(&command_builder, 1);
+    result = protocol_execute_command(command_data, sizeof command_data, NULL, 0, NULL, 0, NULL);
+
+    CHECK_EQUAL(-ERR_INVALID_COMMAND_SET_VERSION, result);
 }
 
 TEST_GROUP(ProtocolOutputCommand)
@@ -234,6 +260,7 @@ TEST(ProtocolOutputCommand, CanPassOutputBuffer)
     commands[0].index = 0x01;
     commands[0].callback = output_mock_command;
 
+    cmp_write_uint(&command_builder, COMMAND_SET_VERSION);
     cmp_write_uint(&command_builder, 1);
 
     protocol_execute_command(command_data, sizeof command_data, commands, LEN(commands), output_data, sizeof output_data, NULL);
@@ -249,6 +276,7 @@ TEST(ProtocolOutputCommand, BytesCountIsReturned)
     commands[0].index = 0x01;
     commands[0].callback = output_mock_command;
 
+    cmp_write_uint(&command_builder, COMMAND_SET_VERSION);
     cmp_write_uint(&command_builder, 1);
 
     result = protocol_execute_command(command_data, sizeof command_data, commands, LEN(commands), output_data, sizeof output_data, NULL);
