@@ -127,30 +127,6 @@ TEST(IntegrationTesting, ExecutesCommand)
     mock().checkExpectations();
 }
 
-TEST(IntegrationTesting, ExecutesCommandOnlyIfAdressed)
-{
-
-    uint8_t message[] = {
-        0x01, // protocol version
-        0x9e, 0x5b, 0x06, 0xb8,// CRC
-        0x01,
-        0x01, // dest nodes
-        0x0, 0x0, 0x0, 0x1,
-        0x1 // data
-    };
-
-
-    config.ID = 12;
-
-    can_mock_message(0x0, &message[0], 8);
-    read_eval(&input_datagram, &output_datagram, &config, commands, 1);
-    mock().checkExpectations();
-
-    can_mock_message(0x0, &message[8], 4);
-    read_eval(&input_datagram, &output_datagram, &config, commands, 1);
-    mock().checkExpectations();
-}
-
 TEST(IntegrationTesting, ExecutesIfWeAreInMultiCast)
 {
     uint8_t message[] = {
