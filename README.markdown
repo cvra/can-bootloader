@@ -69,10 +69,12 @@ The data field is escaped so a START byte is replaced by ESC ESC_START and an ES
 
 The command format is simple :
 
-    +-------+------+---+-------+
-    |Command|Param1|...|ParamN |
-    +-------+------+---+-------+
+    +-------+------+---+-------+-------+
+    |Version|Command|Param1|...|ParamN |
+    +-------+------+---+-------+-------+
 
+The protocol version is simply an integer that increments everytime a change in the command set is done.
+The command interpreter silently ignores commands with the wrong version number to avoid misinterpreting packets.
 Command and parameters are encoded using MessagePack [1] because it is efficient and extendable.
 The command and its parameters are written in a MessagePack array so we can know the command count.
 Some commands will require an answer for example when writing the application CRC back to the programmer.
