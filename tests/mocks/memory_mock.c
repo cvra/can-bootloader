@@ -4,8 +4,8 @@ uint8_t memory_mock_config1[64];
 uint8_t memory_mock_config2[64];
 uint8_t memory_mock_app[42];
 
-uint8_t page_buffer[64];
-const size_t page_size = sizeof(page_buffer);
+uint8_t config_page_buffer[64];
+const size_t config_page_size = sizeof(config_page_buffer);
 
 void *memory_get_app_addr(void)
 {

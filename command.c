@@ -124,23 +124,23 @@ void command_config_write_to_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bo
 {
     config->update_count += 1;
 
-    memset(page_buffer, 0, page_size);
+    memset(config_page_buffer, 0, config_page_size);
 
-    config_write(page_buffer, config, page_size);
-    block_crc_update(page_buffer, page_size);
+    config_write(config_page_buffer, config, config_page_size);
+    block_crc_update(config_page_buffer, config_page_size);
 
     void *config1 = memory_get_config1_addr();
 
     flash_writer_unlock();
     flash_writer_page_erase(config1);
-    flash_writer_page_write(config1, page_buffer, page_size);
+    flash_writer_page_write(config1, config_page_buffer, config_page_size);
     flash_writer_lock();
 
-    if (block_crc_verify(config1, page_size)) {
+    if (block_crc_verify(config1, config_page_size)) {
         void *config2 = memory_get_config2_addr();
         flash_writer_unlock();
         flash_writer_page_erase(config2);
-        flash_writer_page_write(config2, page_buffer, page_size);
+        flash_writer_page_write(config2, config_page_buffer, config_page_size);
         flash_writer_lock();
     }
 }

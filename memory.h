@@ -8,8 +8,8 @@ extern "C" {
 #include <stdint.h>
 #include <stddef.h>
 
-extern const size_t page_size;
-extern uint8_t page_buffer[];
+extern const size_t config_page_size;
+extern uint8_t config_page_buffer[];
 
 void *memory_get_app_addr(void);
 void *memory_get_config1_addr(void);
