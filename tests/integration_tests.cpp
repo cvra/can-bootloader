@@ -88,7 +88,7 @@ TEST_GROUP(IntegrationTesting)
 TEST(IntegrationTesting, CanReadWholeDatagram)
 {
     uint8_t message[] = {
-        0x01,
+        CAN_DATAGRAM_VERSION,
         0x00, 0x00, 0x00, 0x00, // CRC
         0x01,
         0x01, // dest nodes
@@ -111,12 +111,12 @@ TEST(IntegrationTesting, CanReadWholeDatagram)
 TEST(IntegrationTesting, ExecutesCommand)
 {
     uint8_t message[] = {
-        0x01, // protocol version
+        CAN_DATAGRAM_VERSION,
         0x00, 0x00, 0x00, 0x00, // CRC
         0x01,
         0x01, // dest nodes
         0x0, 0x0, 0x0, 0x2,
-        0x1, 0x1 // data
+        COMMAND_SET_VERSION, 0x1 // data
     };
 
 
@@ -133,12 +133,12 @@ TEST(IntegrationTesting, ExecutesCommand)
 TEST(IntegrationTesting, ExecutesIfWeAreInMultiCast)
 {
     uint8_t message[] = {
-        0x01, // protocol version
+        CAN_DATAGRAM_VERSION,
         0x00, 0x00, 0x00, 0x00, // CRC
         0x02,
         0x01, 0x12, // dest nodes
         0x0, 0x0, 0x0, 0x2,
-        0x1, 0x1 // data
+        COMMAND_SET_VERSION, 0x1 // data
     };
 
 
@@ -162,12 +162,12 @@ static void command_output(int argc, cmp_ctx_t *arg_context, cmp_ctx_t *out_cont
 TEST(IntegrationTesting, OutputDatagramIsValid)
 {
     uint8_t message[] = {
-        0x01,
+        CAN_DATAGRAM_VERSION,
         0x00, 0x00, 0x00, 0x00, // CRC
         0x01,
         0x01, // dest nodes
         0x0, 0x0, 0x0, 0x2,
-        0x1, 0x1 // data
+        COMMAND_SET_VERSION, 0x1 // data
     };
 
     commands[0].callback = command_output;
