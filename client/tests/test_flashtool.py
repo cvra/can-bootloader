@@ -11,10 +11,10 @@ from io import BytesIO
 
 import can, serial_datagrams, can_bridge
 
+@patch('bootloader_flash.write_command')
 class FlashBinaryTestCase(unittest.TestCase):
     fd = "port"
 
-    @patch('bootloader_flash.write_command')
     def test_single_page_erase(self, write):
         """
         Checks that a single page is erased before writing.
@@ -29,8 +29,6 @@ class FlashBinaryTestCase(unittest.TestCase):
         erase_command = encode_erase_flash_page(adress, device_class)
         write.assert_any_call(self.fd, erase_command, destinations)
 
-
-    @patch('bootloader_flash.write_command')
     def test_write_single_chunk(self, write):
         """
         Tests that a single chunk can be written.
@@ -46,7 +44,6 @@ class FlashBinaryTestCase(unittest.TestCase):
 
         write.assert_any_call(self.fd, write_command, destinations)
 
-    @patch('bootloader_flash.write_command')
     def test_write_many_chunks(self, write):
         """
         Checks that we can write many chunks, but still in one page
@@ -64,7 +61,6 @@ class FlashBinaryTestCase(unittest.TestCase):
         write_command = encode_write_flash(bytes([0] * 2048), adress + 2048, device_class)
         write.assert_any_call(self.fd, write_command, destinations)
 
-    @patch('bootloader_flash.write_command')
     def test_erase_multiple_pages(self, write):
         """
         Checks that all pages are erased before writing data to them.
@@ -80,7 +76,6 @@ class FlashBinaryTestCase(unittest.TestCase):
             erase_command = encode_erase_flash_page(addr, device_class)
             write.assert_any_call(self.fd, erase_command, destinations)
 
-    @patch('bootloader_flash.write_command')
     @patch('bootloader_flash.config_update_and_save')
     def test_crc_is_updated(self, conf, write):
         """
