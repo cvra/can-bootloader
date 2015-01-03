@@ -1,6 +1,7 @@
 import unittest
 import struct
 from serial_datagrams import *
+from io import BytesIO
 
 class UARTDatagramEncodeTestCase(unittest.TestCase):
     def test_crc_encapsulation(self):
@@ -94,3 +95,22 @@ class UARTDatagramDecodeTestCase(unittest.TestCase):
         with self.assertRaises(FrameError):
             datagram_decode(bytes([1,2,3,3]))
 
+
+class ReadDatagramTestCase(unittest.TestCase):
+    def test_can_read_datagram(self):
+        """
+        Checks if we can read a whole datagram.
+        """
+        fd = BytesIO(datagram_encode(bytes([1,2,3])))
+        dt = read_datagram(fd)
+        self.assertEqual(dt, bytes([1,2,3]))
+
+    def test_what_happens_if_timeout(self):
+        """
+        Checks that we return None if there was a timeout.
+        """
+        data = datagram_encode(bytes([1,2,3]))
+
+        # Introduce a timeout before receiving the last byte
+        fd = BytesIO(data[:-1])
+        self.assertIsNone(read_datagram(fd))
