@@ -1,6 +1,7 @@
 import argparse
 import page
 import commands
+from zlib import crc32
 
 CHUNK_SIZE = 2048
 
@@ -60,6 +61,12 @@ def flash_binary(fdesc, binary, base_adress, device_class, destinations, page_si
         offset *= CHUNK_SIZE
         command = commands.encode_write_flash(chunk, base_adress + offset, device_class)
         write_command(fdesc, command, destinations)
+
+    # Finally update application CRC and size in config
+    config = dict()
+    config['application_size'] = len(binary)
+    config['application_crc'] = crc32(binary)
+    config_update_and_save(fdesc, config, destinations)
 
 def config_update_and_save(fdesc, config, destinations):
     """

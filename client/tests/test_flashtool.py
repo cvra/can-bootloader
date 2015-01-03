@@ -1,6 +1,7 @@
 import unittest
 from unittest.mock import Mock, patch, ANY, call
 from serial import Serial
+from zlib import crc32
 
 from bootloader_flash import *
 from commands import *
@@ -73,6 +74,20 @@ class FlashBinaryTestCase(unittest.TestCase):
         for addr in [0x1000, 0x1800]:
             erase_command = encode_erase_flash_page(addr, device_class)
             write.assert_any_call(self.fd, erase_command, destinations)
+
+    @patch('bootloader_flash.write_command')
+    @patch('bootloader_flash.config_update_and_save')
+    def test_crc_is_updated(self, conf, write):
+        """
+        Tests that the CRC is updated after flashing a binary.
+        """
+        data = bytes([0] * 10)
+        dst = [1]
+
+        flash_binary(self.fd, data, 0x1000, '', dst)
+
+        expected_config = {'application_size': 10, 'application_crc': crc32(data)}
+        conf.assert_any_call(self.fd, expected_config, dst)
 
 
 class ConfigTestCase(unittest.TestCase):
