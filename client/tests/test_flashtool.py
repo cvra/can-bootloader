@@ -299,3 +299,20 @@ class MainTestCase(unittest.TestCase):
             verification_failed([1,2])
 
         self.print.assert_any_call('Verification failed for nodes 1, 2')
+
+class ArgumentParsingTestCase(unittest.TestCase):
+    """
+    All tests related to argument parsing.
+    """
+
+    def test_simple_case(self):
+        """
+        Tests the most simple case.
+        """
+        commandline = "-b test.bin -a 0x1000 -p /dev/ttyUSB0 -c dummy 1 2 3"
+        args = parse_commandline_args(commandline.split())
+        self.assertEqual('test.bin', args.binary_file)
+        self.assertEqual(0x1000, args.base_address)
+        self.assertEqual('/dev/ttyUSB0', args.serial_device)
+        self.assertEqual('dummy', args.device_class)
+        self.assertEqual([1,2,3], args.ids)

@@ -20,7 +20,7 @@ def parse_commandline_args(args=None):
                         required=True,
                         metavar='FILE')
 
-    parser.add_argument('-a', '--base-adress', dest='base_adress',
+    parser.add_argument('-a', '--base-address', dest='base_address',
                         help='Base adress of the firmware (binary files only)',
                         metavar='ADRESS',
                         required=True,
@@ -31,8 +31,8 @@ def parse_commandline_args(args=None):
                         help='Serial port to which the CAN port is connected to.',
                         metavar='DEVICE')
 
-    parser.add_argument('device_class', help='Device class to flash')
-    parser.add_argument("id", nargs='+', dest="ids", type=int, help="Device IDs to flash")
+    parser.add_argument('-c', '--device-class', dest='device_class', help='Device class to flash', required=True)
+    parser.add_argument("ids", metavar='DEVICEID', nargs='+', type=int, help="Device IDs to flash")
 
     return parser.parse_args(args)
 
