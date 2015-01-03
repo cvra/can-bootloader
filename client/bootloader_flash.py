@@ -1,6 +1,7 @@
 import argparse
 import page
 import commands
+import serial_datagrams, can, can_bridge
 from zlib import crc32
 
 CHUNK_SIZE = 2048
@@ -79,6 +80,23 @@ def config_update_and_save(fdesc, config, destinations):
 
     # Then save the config to flash
     write_command(fdesc, commands.encode_save_config(), destinations)
+
+def read_can_datagram(fdesc):
+    """
+    Reads a full CAN datagram from the CAN <-> serial bridge.
+    """
+    buf = bytes()
+    dt = None
+
+    while dt is None:
+        frame = serial_datagrams.read_datagram(fdesc)
+        frame = can_bridge.decode_frame(frame)
+        buf += frame.data
+        dt = can.decode_datagram(buf)
+
+    return dt
+
+
 
 if __name__ == "__main__":
     parse_commandline_args()

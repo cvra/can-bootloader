@@ -6,6 +6,10 @@ from zlib import crc32
 from bootloader_flash import *
 from commands import *
 
+from io import BytesIO
+
+import can, serial_datagrams, can_bridge
+
 class FlashBinaryTestCase(unittest.TestCase):
     fd = "port"
 
@@ -88,6 +92,38 @@ class FlashBinaryTestCase(unittest.TestCase):
 
         expected_config = {'application_size': 10, 'application_crc': crc32(data)}
         conf.assert_any_call(self.fd, expected_config, dst)
+
+class CANDatagramReadTestCase(unittest.TestCase):
+    """
+    This testcase groups all tests related to reading a datagram from the bus.
+    """
+    def test_read_can_datagram(self):
+        """
+        Tests reading a complete CAN datagram from the bus.
+        """
+        data = 'Hello world'.encode('ascii')
+        # Encapsulates it in a CAN datagram
+        data = can.encode_datagram(data, destinations=[1])
+
+        # Slice the datagram in frames
+        frames = can.datagram_to_frames(data, source=0)
+
+        # Serializes CAN frames for the bridge
+        frames = [can_bridge.encode_frame(f) for f in frames]
+
+        # Packs each frame in a serial datagram
+        frames = bytes(c for i in [serial_datagrams.datagram_encode(f) for f in frames] for c in i)
+
+        # Put all data in a pseudofile
+        fdesc = BytesIO(frames)
+
+        # Read a CAN datagram from that pseudofile
+        dt, dst = read_can_datagram(fdesc)
+
+        self.assertEqual(dt.decode('ascii'), 'Hello world')
+        self.assertEqual(dst, [1])
+
+
 
 
 class ConfigTestCase(unittest.TestCase):
