@@ -2,6 +2,7 @@ import argparse
 import page
 import commands
 import serial_datagrams, can, can_bridge
+import msgpack
 from zlib import crc32
 
 CHUNK_SIZE = 2048
@@ -69,6 +70,21 @@ def flash_binary(fdesc, binary, base_adress, device_class, destinations, page_si
     config['application_crc'] = crc32(binary)
     config_update_and_save(fdesc, config, destinations)
 
+def check_binary(fdesc, binary, base_address, destinations):
+    """
+    Check that the binary was correctly written to all destinations.
+
+    Returns a list of all nodes which are passing the test.
+    """
+    valid_nodes = []
+    for node in destinations:
+        crc = crc_region(fdesc, base_address, len(binary), node)
+        if crc == crc32(binary):
+            valid_nodes.append(node)
+
+    return valid_nodes
+
+
 def config_update_and_save(fdesc, config, destinations):
     """
     Updates the config of the given destinations.
@@ -95,6 +111,16 @@ def read_can_datagram(fdesc):
         dt = can.decode_datagram(buf)
 
     return dt
+
+def crc_region(fdesc, base_address, length, destination):
+    """
+    Asks a single board for the CRC of a region.
+    """
+    command = commands.encode_crc_region(base_address, length)
+    write_command(fdesc, command, [destination])
+    answer = read_can_datagram(fdesc)
+
+    return msgpack.unpackb(answer)
 
 
 
