@@ -1,5 +1,10 @@
 import unittest
-from unittest.mock import Mock, patch, ANY, call
+
+try:
+    from unittest.mock import *
+except ImportError:
+    from mock import *
+
 from serial import Serial
 from zlib import crc32
 
