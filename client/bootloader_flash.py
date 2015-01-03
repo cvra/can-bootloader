@@ -61,6 +61,18 @@ def flash_binary(fdesc, binary, base_adress, device_class, destinations, page_si
         command = commands.encode_write_flash(chunk, base_adress + offset, device_class)
         write_command(fdesc, command, destinations)
 
+def config_update_and_save(fdesc, config, destinations):
+    """
+    Updates the config of the given destinations.
+    Keys not in the given config are left unchanged.
+    """
+    # First send the updated config
+    command = commands.encode_update_config(config)
+    write_command(fdesc, command, destinations)
+
+    # Then save the config to flash
+    write_command(fdesc, commands.encode_save_config(), destinations)
+
 if __name__ == "__main__":
     parse_commandline_args()
     fd = serial.Serial(args.serialdev, baudrate=args.baud, timeout=0.2)

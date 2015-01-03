@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import Mock, patch, ANY
+from unittest.mock import Mock, patch, ANY, call
 from serial import Serial
 
 from bootloader_flash import *
@@ -75,6 +75,22 @@ class FlashBinaryTestCase(unittest.TestCase):
             write.assert_any_call(self.fd, erase_command, destinations)
 
 
+class ConfigTestCase(unittest.TestCase):
+    fd = "port"
 
+    @patch('bootloader_flash.write_command')
+    def test_config_is_updated_and_saved(self, write):
+        """
+        Checks that the config is correctly sent encoded to the board.
+        We then check if the config is saved to flash.
+        """
+        config = {'id':14}
+        dst = [1]
+        update_call = call(self.fd, encode_update_config(config), dst)
+        save_command = call(self.fd, encode_save_config(), dst)
 
+        config_update_and_save(self.fd, config, [1])
+
+        # Checks that the calls were made, and in the correct order
+        write.assert_has_calls([update_call, save_command])
 
