@@ -4,6 +4,8 @@ import commands
 import serial_datagrams, can, can_bridge
 import msgpack
 from zlib import crc32
+import serial
+from sys import exit
 
 CHUNK_SIZE = 2048
 
@@ -30,7 +32,7 @@ def parse_commandline_args(args=None):
                         metavar='DEVICE')
 
     parser.add_argument('device_class', help='Device class to flash')
-    parser.add_argument("id", nargs='+', type=int, help="Device IDs to flash")
+    parser.add_argument("id", nargs='+', dest="ids", type=int, help="Device IDs to flash")
 
     return parser.parse_args(args)
 
@@ -53,7 +55,7 @@ def flash_binary(fdesc, binary, base_adress, device_class, destinations, page_si
     parameters.
     """
 
-    # First erase all pagesj
+    # First erase all pages
     for offset in range(0, len(binary), page_size):
         erase_command = commands.encode_erase_flash_page(base_adress + offset, device_class)
         write_command(fdesc, erase_command, destinations)
@@ -122,9 +124,38 @@ def crc_region(fdesc, base_address, length, destination):
 
     return msgpack.unpackb(answer)
 
+def verification_failed(failed_nodes):
+    """
+    Prints a message about the verification failing and exits
+    """
+    error_msg = "Verification failed for nodes {}".format(", ".join(str(x) for x in failed_nodes))
+    print(error_msg)
+    exit(1)
+
+def main():
+    """
+    Entry point of the application.
+    """
+    args = parse_commandline_args()
+    with open(args.binary_file, 'rb') as f:
+        binary = f.read()
+
+    fd = serial.Serial(args.serial_device, baudrate=115200, timeout=0.2)
+
+    print("Flashing firmware (size: {} bytes)".format(len(binary)))
+    flash_binary(fd, binary, args.base_address, args.device_class, args.ids)
+
+    print("Verifying firmware...")
+    valid_nodes_set = set(check_binary(fd, binary, args.base_address, args.ids))
+    nodes_set = set(args.ids)
+
+    if valid_nodes_set == nodes_set:
+        print("OK")
+    else:
+        verification_failed(nodes_set - valid_nodes_set)
+
 
 
 if __name__ == "__main__":
-    parse_commandline_args()
-    fd = serial.Serial(args.serialdev, baudrate=args.baud, timeout=0.2)
+    main()
 

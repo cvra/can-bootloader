@@ -203,3 +203,99 @@ class CrcRegionTestCase(unittest.TestCase):
         crc_region.assert_any_call(self.fd, 0x1000, 10, 2)
 
         self.assertEqual([2], valid_nodes)
+
+from unittest import skip
+class MainTestCase(unittest.TestCase):
+    """
+    Tests for the main function of the program.
+
+    Since the code has a good coverage and is quite complex, there is an
+    extensive use of mocking in those tests to replace all collaborators.
+    """
+    def setUp(self):
+        """
+        Function that runs before each test.
+
+        The main role of this function is to prepare all mocks that are used in
+        main, setup fake file and devices etc.
+        """
+        mock = lambda m: patch(m).start()
+        self.open = mock('builtins.open')
+        self.print = mock('builtins.print')
+
+        self.parse_cli = mock('bootloader_flash.parse_commandline_args')
+        self.parse_cli.return_value = Mock()
+
+        self.serial = mock('serial.Serial')
+        self.serial_device = Mock()
+        self.serial.return_value = self.serial_device
+
+        self.flash = mock('bootloader_flash.flash_binary')
+        self.check = mock('bootloader_flash.check_binary')
+
+        # Populate command line arguments
+        self.parse_cli.return_value.binary_file = 'test.bin'
+        self.parse_cli.return_value.serial_device = '/dev/ttyUSB0'
+        self.parse_cli.return_value.device_class = 'dummy'
+        self.parse_cli.return_value.base_address = 0x1000
+        self.parse_cli.return_value.ids = [1,2,3]
+
+        # Prepare binary file argument
+        self.binary_data = bytes([0] * 10)
+        self.open.return_value = BytesIO(self.binary_data)
+
+        # Flash checking results
+        self.check.return_value = [1,2,3] # all boards are ok
+
+    def tearDown(self):
+        """
+        function run after each test.
+        """
+        # Deactivate all mocks
+        patch.stopall()
+
+    def test_open_file(self):
+        """
+        Checks that the correct file is opened.
+        """
+        main()
+        self.open.assert_any_call('test.bin', 'rb')
+
+    def test_open_bridge_port(self):
+        """
+        Checks that we open the correct serial port to the bridge.
+        """
+        main()
+        self.serial.assert_any_call('/dev/ttyUSB0', baudrate=115200, timeout=0.2)
+
+    def test_flash_binary(self):
+        """
+        Checks that the binary file is flashed correctly.
+        """
+        main()
+        self.flash.assert_any_call(self.serial_device, self.binary_data, 0x1000, 'dummy', [1,2,3])
+
+    def test_check(self):
+        """
+        Checks that the flash is verified.
+        """
+        main()
+        self.check.assert_any_call(self.serial_device, self.binary_data, 0x1000, [1,2,3])
+
+    def test_check_failed(self):
+        """
+        Checks that the program behaves correctly when verification fails.
+        """
+        self.check.return_value = [1]
+        with patch('bootloader_flash.verification_failed') as failed:
+            main()
+            failed.assert_any_call(set((2,3)))
+
+    def test_verification_failed(self):
+        """
+        Checks that the verification failed method works as expected.
+        """
+        with self.assertRaises(SystemExit):
+            verification_failed([1,2])
+
+        self.print.assert_any_call('Verification failed for nodes 1, 2')
