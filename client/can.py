@@ -20,7 +20,17 @@ class Frame:
         self.transmission_request = transmission_request
         self.extended = extended
 
+class VersionMismatchError(RuntimeError):
+    """
+    Error raised when attempting to decode a datagram with the wrong version.
+    """
+    pass
 
+class CRCMismatchError(RuntimeError):
+    """
+    Error raised when attempting to decode a datagram with the wrong CRC.
+    """
+    pass
 
 def encode_datagram(data, destinations):
     """
@@ -34,6 +44,49 @@ def encode_datagram(data, destinations):
     crc = struct.pack('>I', crc32(adresses + dt))
 
     return version + crc + adresses + dt
+
+def decode_datagram(data):
+    """
+    Decode the given datagram.
+    Returns a tuple containing the data and the list of destination if the datagram is complete and valid.
+    Returns None if the datagram is incomplete.
+
+    Raise an exception if the datagram is invalid (wrong version or wrong CRC).
+    """
+
+    try:
+        version, data = int(data[0]), data[1:]
+        if version != DATAGRAM_VERSION:
+            raise VersionMismatchError
+
+        header_format = '>IB'
+        header_len = struct.calcsize(header_format)
+        header, data = data[0:header_len], data[header_len:]
+        crc, dst_len = struct.unpack(header_format, header)
+
+        # Decodes the destination list
+        destination_format = '{}s'.format(dst_len)
+        destinations, data = data[:dst_len], data[dst_len:]
+        destinations = list(struct.unpack(destination_format, destinations)[0])
+
+        data_len, data = data[:4], data[4:]
+        data_len = struct.unpack('>I', data_len)[0]
+
+        # If we did not receive all data yet
+        if data_len != len(data):
+            return None
+
+        adresses = bytes([len(destinations)] + destinations)
+        dt = struct.pack('>I', len(data)) + data
+
+        if crc32(adresses + dt) != crc:
+            raise CRCMismatchError
+
+    except struct.error:
+        # This means that we have not enough bytes to decode somewhere
+        return None
+
+    return data, destinations
 
 def datagram_to_frames(datagram, source):
     """
