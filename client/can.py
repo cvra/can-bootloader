@@ -2,6 +2,7 @@ import struct
 from zlib import crc32
 
 DATAGRAM_VERSION = 1
+START_OF_DATAGRAM_MASK = (1 << 7)
 
 class Frame:
     """
@@ -31,6 +32,12 @@ class CRCMismatchError(RuntimeError):
     Error raised when attempting to decode a datagram with the wrong CRC.
     """
     pass
+
+def is_start_of_datagram(frame):
+    """
+    Returns true if the given frame has the start of datagram marker.
+    """
+    return bool(frame.id & START_OF_DATAGRAM_MASK)
 
 def encode_datagram(data, destinations):
     """
@@ -92,7 +99,7 @@ def datagram_to_frames(datagram, source):
     """
     Transforms a raw datagram into CAN frames.
     """
-    start_bit = (1 << 7)
+    start_bit = START_OF_DATAGRAM_MASK
 
     while len(datagram) > 8:
         data, datagram = datagram[:8], datagram[8:]

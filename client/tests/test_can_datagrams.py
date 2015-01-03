@@ -178,3 +178,11 @@ class CanDatagramTestCase(unittest.TestCase):
 
         with self.assertRaises(CRCMismatchError):
             decode_datagram(dt)
+
+    def test_that_datagram_start_is_detected_correctly(self):
+        """
+        This test checks that the start of datagram marker on a frame is
+        detected correctly.
+        """
+        self.assertFalse(is_start_of_datagram(Frame(id=2)))
+        self.assertTrue(is_start_of_datagram(Frame(id=2 + (1 << 7))))
