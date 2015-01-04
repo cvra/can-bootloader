@@ -19,6 +19,7 @@ source:
     - can_datagram.c
     - command.c
     - config.c
+    - bootloader.c
 
 target.armv7-m:
     - platform/mcu/armv7-m/boot_arg.c
