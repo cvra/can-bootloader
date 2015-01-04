@@ -29,3 +29,6 @@ target.armv7-m:
 target.stm32f3:
     - platform/mcu/stm32f3/flash_writer.c
     - platform/mcu/stm32f3/can_interface.c
+
+templates:
+    platform/rc-board-v1/include.jinja: 'platform/rc-board-v1/include.mk'
