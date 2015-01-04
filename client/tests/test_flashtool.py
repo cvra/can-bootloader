@@ -156,7 +156,7 @@ class CrcRegionTestCase(unittest.TestCase):
         """
         Checks that a CRC read sends the correct command.
         """
-        read.return_value = msgpack.packb(0xdeadbeef)
+        read.return_value = (msgpack.packb(0xdeadbeef), [1])
 
         crc_region(fdesc=self.fd, base_address=0x1000, length=100, destination=42)
         command = commands.encode_crc_region(0x1000, 100)
@@ -168,7 +168,7 @@ class CrcRegionTestCase(unittest.TestCase):
         """
         Checks that we can read back the CRC answer.
         """
-        read.return_value = msgpack.packb(0xdeadbeef)
+        read.return_value = (msgpack.packb(0xdeadbeef), [1])
         crc = crc_region(fdesc=self.fd, base_address=0x1000, length=100, destination=42)
 
         # Checks that the port was given correctly

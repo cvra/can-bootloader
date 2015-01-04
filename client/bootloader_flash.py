@@ -121,7 +121,7 @@ def crc_region(fdesc, base_address, length, destination):
     """
     command = commands.encode_crc_region(base_address, length)
     write_command(fdesc, command, [destination])
-    answer = read_can_datagram(fdesc)
+    answer, _ = read_can_datagram(fdesc)
 
     return msgpack.unpackb(answer)
 
