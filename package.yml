@@ -23,6 +23,7 @@ source:
 target.armv7-m:
     - platform/mcu/armv7-m/boot_arg.c
     - platform/mcu/armv7-m/boot.s
+    - platform/mcu/armv7-m/timeout_timer.c
 
 target.stm32f3:
     - platform/mcu/stm32f3/flash_writer.c
