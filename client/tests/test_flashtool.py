@@ -15,6 +15,7 @@ import msgpack
 from io import BytesIO
 
 import can, serial_datagrams, can_bridge
+import sys
 
 @patch('bootloader_flash.write_command')
 class FlashBinaryTestCase(unittest.TestCase):
@@ -223,9 +224,6 @@ class MainTestCase(unittest.TestCase):
         self.open = mock('builtins.open')
         self.print = mock('builtins.print')
 
-        self.parse_cli = mock('bootloader_flash.parse_commandline_args')
-        self.parse_cli.return_value = Mock()
-
         self.serial = mock('serial.Serial')
         self.serial_device = Mock()
         self.serial.return_value = self.serial_device
@@ -233,19 +231,15 @@ class MainTestCase(unittest.TestCase):
         self.flash = mock('bootloader_flash.flash_binary')
         self.check = mock('bootloader_flash.check_binary')
 
-        # Populate command line arguments
-        self.parse_cli.return_value.binary_file = 'test.bin'
-        self.parse_cli.return_value.serial_device = '/dev/ttyUSB0'
-        self.parse_cli.return_value.device_class = 'dummy'
-        self.parse_cli.return_value.base_address = 0x1000
-        self.parse_cli.return_value.ids = [1,2,3]
-
         # Prepare binary file argument
         self.binary_data = bytes([0] * 10)
         self.open.return_value = BytesIO(self.binary_data)
 
         # Flash checking results
         self.check.return_value = [1,2,3] # all boards are ok
+
+        # Populate command line arguments
+        sys.argv = "test.py -b test.bin -a 0x1000 -p /dev/ttyUSB0 -c dummy 1 2 3".split()
 
     def tearDown(self):
         """
