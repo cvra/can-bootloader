@@ -109,6 +109,8 @@ def read_can_datagram(fdesc):
 
     while datagram is None:
         frame = serial_datagrams.read_datagram(fdesc)
+        if frame is None: # Timeout, retry
+            continue
         frame = can_bridge.decode_frame(frame)
         buf += frame.data
         datagram = can.decode_datagram(buf)

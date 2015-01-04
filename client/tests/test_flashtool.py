@@ -125,6 +125,29 @@ class CANDatagramReadTestCase(unittest.TestCase):
         self.assertEqual(dt.decode('ascii'), 'Hello world')
         self.assertEqual(dst, [1])
 
+    def test_read_can_datagram_timeout(self):
+        """
+        Tests reading a datagram with a timeout (read_datagram returns None).
+        """
+        data = 'Hello world'.encode('ascii')
+        # Encapsulates it in a CAN datagram
+        data = can.encode_datagram(data, destinations=[1])
+
+        # Slice the datagram in frames
+        frames = can.datagram_to_frames(data, source=0)
+
+        # Serializes CAN frames for the bridge
+        frames = [can_bridge.encode_frame(f) for f in frames]
+
+        # Packs each frame in a serial datagram
+        frames = [serial_datagrams.datagram_encode(f) for f in frames]
+
+        with patch('serial_datagrams.read_datagram') as read:
+            read.side_effect = [None] + frames
+            dt, dst = read_can_datagram(None)
+
+        self.assertEqual(dt.decode('ascii'), 'Hello world')
+        self.assertEqual(dst, [1])
 
 
 
