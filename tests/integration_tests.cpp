@@ -20,6 +20,9 @@ void read_eval(can_datagram_t *input, can_datagram_t *output, bootloader_config_
         can_datagram_input_byte(input, message[i]);
     }
 
+    // Bypass CRC check
+    input->crc = can_datagram_compute_crc(input);
+
     if (can_datagram_is_valid(input)) {
         for (i = 0; i < input->destination_nodes_len; ++i) {
             if (input->destination_nodes[i] == config->ID){
@@ -85,8 +88,8 @@ TEST_GROUP(IntegrationTesting)
 TEST(IntegrationTesting, CanReadWholeDatagram)
 {
     uint8_t message[] = {
-        0x01,
-        0x9e, 0x5b, 0x06, 0xb8,// CRC
+        CAN_DATAGRAM_VERSION,
+        0x00, 0x00, 0x00, 0x00, // CRC
         0x01,
         0x01, // dest nodes
         0x0, 0x0, 0x0, 0x1,
@@ -108,12 +111,12 @@ TEST(IntegrationTesting, CanReadWholeDatagram)
 TEST(IntegrationTesting, ExecutesCommand)
 {
     uint8_t message[] = {
-        0x01, // protocol version
-        0x9e, 0x5b, 0x06, 0xb8,// CRC
+        CAN_DATAGRAM_VERSION,
+        0x00, 0x00, 0x00, 0x00, // CRC
         0x01,
         0x01, // dest nodes
-        0x0, 0x0, 0x0, 0x1,
-        0x1 // data
+        0x0, 0x0, 0x0, 0x2,
+        COMMAND_SET_VERSION, 0x1 // data
     };
 
 
@@ -121,32 +124,8 @@ TEST(IntegrationTesting, ExecutesCommand)
     read_eval(&input_datagram, &output_datagram, &config, commands, 1);
     mock().checkExpectations();
 
-    can_mock_message(0x0, &message[8], 4);
+    can_mock_message(0x0, &message[8], 5);
     mock().expectOneCall("command");
-    read_eval(&input_datagram, &output_datagram, &config, commands, 1);
-    mock().checkExpectations();
-}
-
-TEST(IntegrationTesting, ExecutesCommandOnlyIfAdressed)
-{
-
-    uint8_t message[] = {
-        0x01, // protocol version
-        0x9e, 0x5b, 0x06, 0xb8,// CRC
-        0x01,
-        0x01, // dest nodes
-        0x0, 0x0, 0x0, 0x1,
-        0x1 // data
-    };
-
-
-    config.ID = 12;
-
-    can_mock_message(0x0, &message[0], 8);
-    read_eval(&input_datagram, &output_datagram, &config, commands, 1);
-    mock().checkExpectations();
-
-    can_mock_message(0x0, &message[8], 4);
     read_eval(&input_datagram, &output_datagram, &config, commands, 1);
     mock().checkExpectations();
 }
@@ -154,12 +133,12 @@ TEST(IntegrationTesting, ExecutesCommandOnlyIfAdressed)
 TEST(IntegrationTesting, ExecutesIfWeAreInMultiCast)
 {
     uint8_t message[] = {
-        0x01, // protocol version
-        0xa1, 0x72, 0x71, 0xe7,// CRC
+        CAN_DATAGRAM_VERSION,
+        0x00, 0x00, 0x00, 0x00, // CRC
         0x02,
         0x01, 0x12, // dest nodes
-        0x0, 0x0, 0x0, 0x1,
-        0x1 // data
+        0x0, 0x0, 0x0, 0x2,
+        COMMAND_SET_VERSION, 0x1 // data
     };
 
 
@@ -169,7 +148,7 @@ TEST(IntegrationTesting, ExecutesIfWeAreInMultiCast)
     read_eval(&input_datagram, &output_datagram, &config, commands, 1);
     mock().checkExpectations();
 
-    can_mock_message(0x0, &message[8], 5);
+    can_mock_message(0x0, &message[8], 6);
     mock().expectOneCall("command");
     read_eval(&input_datagram, &output_datagram, &config, commands, 1);
     mock().checkExpectations();
@@ -183,12 +162,12 @@ static void command_output(int argc, cmp_ctx_t *arg_context, cmp_ctx_t *out_cont
 TEST(IntegrationTesting, OutputDatagramIsValid)
 {
     uint8_t message[] = {
-        0x01,
-        0x9e, 0x5b, 0x06, 0xb8,// CRC
+        CAN_DATAGRAM_VERSION,
+        0x00, 0x00, 0x00, 0x00, // CRC
         0x01,
         0x01, // dest nodes
-        0x0, 0x0, 0x0, 0x1,
-        0x1 // data
+        0x0, 0x0, 0x0, 0x2,
+        COMMAND_SET_VERSION, 0x1 // data
     };
 
     commands[0].callback = command_output;
@@ -196,7 +175,7 @@ TEST(IntegrationTesting, OutputDatagramIsValid)
     can_mock_message(0x0, &message[0], 8);
     read_eval(&input_datagram, &output_datagram, &config, commands, 1);
 
-    can_mock_message(0x0, &message[8], 4);
+    can_mock_message(0x0, &message[8], 5);
     read_eval(&input_datagram, &output_datagram, &config, commands, 1);
 
     // Check that the data lenght is correct

@@ -1,5 +1,7 @@
 from msgpack import Packer
 
+COMMAND_SET_VERSION = 1
+
 class CommandType:
     JumpToMain = 1
     CRCReginon = 2
@@ -15,7 +17,7 @@ def encode_command(command_code, *arguments):
     """
     p = Packer(use_bin_type=True)
     obj = list(arguments)
-    return p.pack(command_code) +  p.pack(obj)
+    return p.pack(COMMAND_SET_VERSION) + p.pack(command_code) +  p.pack(obj)
 
 def encode_crc_region(address, length):
     """

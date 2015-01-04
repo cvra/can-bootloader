@@ -28,5 +28,5 @@ class IntegrationTesting(unittest.TestCase):
         data = [c for f in frames for c in f]
 
         # Pseudo-check that encoding went well
-        self.assertEqual(len(data), 86)
+        self.assertEqual(len(data), 88)
 

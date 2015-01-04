@@ -2,6 +2,22 @@ import unittest
 from commands import *
 from msgpack import Unpacker
 
+class ProtocolVersionTestCase(unittest.TestCase):
+    """
+    This testcase checks that the command set version is correctly handled.
+    """
+    def test_has_correct_protocol_version(self):
+        """
+        Checks that the command encoding function works corectly.
+        """
+        raw_packet = encode_command(command_code=10)
+
+        unpacker = Unpacker()
+        unpacker.feed(raw_packet)
+
+        version, *_ = list(unpacker)
+        self.assertEqual(1, version)
+
 class WriteCommandTestCase(unittest.TestCase):
     """
     This testcase checks if the command used to write to a page functions correctly.
@@ -18,7 +34,8 @@ class WriteCommandTestCase(unittest.TestCase):
 
         unpacker = Unpacker()
         unpacker.feed(raw_packet)
-        self.command = list(unpacker)
+        # Discards command set version
+        self.command = list(unpacker)[1:]
 
     def test_command_has_correct_index(self):
         """
@@ -75,7 +92,7 @@ class EraseCommandTestCase(unittest.TestCase):
 
         unpacker = Unpacker()
         unpacker.feed(raw_packet)
-        self.command = list(unpacker)
+        self.command = list(unpacker)[1:]
 
     def test_erase_command_index(self):
         """
@@ -103,7 +120,7 @@ class JumpToApplicationMainTestCase(unittest.TestCase):
         raw_packet = encode_jump_to_main()
         unpacker = Unpacker()
         unpacker.feed(raw_packet)
-        self.command = list(unpacker)
+        self.command = list(unpacker)[1:]
 
     def test_jump_cmd_index(self):
         """
