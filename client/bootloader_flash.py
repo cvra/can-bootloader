@@ -33,6 +33,7 @@ def parse_commandline_args(args=None):
                         metavar='DEVICE')
 
     parser.add_argument('-c', '--device-class', dest='device_class', help='Device class to flash', required=True)
+    parser.add_argument('-r', '--run', help='Run application after flashing', action='store_true')
     parser.add_argument("ids", metavar='DEVICEID', nargs='+', type=int, help="Device IDs to flash")
 
     return parser.parse_args(args)
@@ -127,6 +128,13 @@ def crc_region(fdesc, base_address, length, destination):
 
     return msgpack.unpackb(answer)
 
+def run_application(fdesc, destinations):
+    """
+    Asks the given node to run the application.
+    """
+    command = commands.encode_jump_to_main()
+    write_command(fdesc, command, destinations)
+
 def verification_failed(failed_nodes):
     """
     Prints a message about the verification failing and exits
@@ -156,6 +164,9 @@ def main():
         print("OK")
     else:
         verification_failed(nodes_set - valid_nodes_set)
+
+    if args.run:
+        run_application(serial_port, args.ids)
 
 
 

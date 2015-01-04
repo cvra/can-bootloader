@@ -228,7 +228,16 @@ class CrcRegionTestCase(unittest.TestCase):
 
         self.assertEqual([2], valid_nodes)
 
-from unittest import skip
+class RunApplicationTestCase(unittest.TestCase):
+    fd = 'port'
+
+    @patch('bootloader_flash.write_command')
+    def test_run_application(self, write):
+        run_application(self.fd, [1])
+
+        command = commands.encode_jump_to_main()
+        write.assert_any_call(self.fd, command, [1])
+
 class MainTestCase(unittest.TestCase):
     """
     Tests for the main function of the program.
@@ -253,6 +262,7 @@ class MainTestCase(unittest.TestCase):
 
         self.flash = mock('bootloader_flash.flash_binary')
         self.check = mock('bootloader_flash.check_binary')
+        self.run = mock('bootloader_flash.run_application')
 
         # Prepare binary file argument
         self.binary_data = bytes([0] * 10)
@@ -299,6 +309,7 @@ class MainTestCase(unittest.TestCase):
         main()
         self.check.assert_any_call(self.serial_device, self.binary_data, 0x1000, [1,2,3])
 
+
     def test_check_failed(self):
         """
         Checks that the program behaves correctly when verification fails.
@@ -307,6 +318,24 @@ class MainTestCase(unittest.TestCase):
         with patch('bootloader_flash.verification_failed') as failed:
             main()
             failed.assert_any_call(set((2,3)))
+
+    def test_do_not_run_by_default(self):
+        """
+        Checks that by default no run command are ran.
+        """
+        main()
+        self.assertFalse(self.run.called)
+
+    def test_run_if_asked(self):
+        """
+        Checks if we can can ask the board to run.
+        """
+        sys.argv += ["--run"]
+        main()
+        self.run.assert_any_call(self.serial_device, [1,2,3])
+
+
+
 
     def test_verification_failed(self):
         """
@@ -326,10 +355,11 @@ class ArgumentParsingTestCase(unittest.TestCase):
         """
         Tests the most simple case.
         """
-        commandline = "-b test.bin -a 0x1000 -p /dev/ttyUSB0 -c dummy 1 2 3"
+        commandline = "-b test.bin -a 0x1000 -p /dev/ttyUSB0 --run -c dummy 1 2 3"
         args = parse_commandline_args(commandline.split())
         self.assertEqual('test.bin', args.binary_file)
         self.assertEqual(0x1000, args.base_address)
         self.assertEqual('/dev/ttyUSB0', args.serial_device)
         self.assertEqual('dummy', args.device_class)
         self.assertEqual([1,2,3], args.ids)
+        self.assertTrue(args.run)
