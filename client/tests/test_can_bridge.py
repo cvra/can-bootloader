@@ -50,7 +50,7 @@ class CanFrameEncodingTestCase(unittest.TestCase):
         msg = encode_decode_frame(frame)
         self.assertEqual(42, msg[2])
 
-    def test_frame_encode_id(self):
+    def test_frame_encode_data(self):
         """
         Checks if encoding of data works properly.
         """

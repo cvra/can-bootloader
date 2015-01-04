@@ -131,3 +131,58 @@ class CanDatagramTestCase(unittest.TestCase):
 
         self.assertEqual(recomposed_data, list(dt))
 
+
+    def test_receive_datagram(self):
+        """
+        Checks that we can correctly decode data of a received datagram.
+        """
+        dt = encode_datagram(bytes([1,2,3]), [1])
+        data, dst = decode_datagram(dt)
+        self.assertEqual(dst, [1])
+        self.assertEqual(data, bytes([1,2,3]))
+
+    def test_receive_incomplete_datagram(self):
+        """
+        Checks that we get None if the datagram is incomplete.
+        """
+        dt = encode_datagram(bytes([1,2,3]), [1])
+        dt = dt[:4] # remove end of datagram
+        self.assertIsNone(decode_datagram(dt))
+
+    def test_receive_incomplete_datagram_data(self):
+        """
+        Checks that we return None if the datagram data are incomplete
+        """
+        dt = encode_datagram(bytes([1,2,3]), [1])
+        dt = dt[:-1] # remove end of datagram
+        self.assertIsNone(decode_datagram(dt))
+
+    def test_wrong_version_raise_exception(self):
+        """
+        Checks that receiving a datagram with wrong version raises an exception.
+        """
+        dt = encode_datagram(bytes([1,2,3]), [1])
+        dt = bytes([0]) + dt[1:] # set version field to zero
+
+        with self.assertRaises(VersionMismatchError):
+            decode_datagram(dt)
+
+    def test_wrong_crc_raise_exception(self):
+        """
+        Checks that decoding a datagram with the wrong CRC raises an exception.
+        """
+        dt = encode_datagram(bytes([1,2,3]), [1])
+
+        # Change last byte, invalidating CRC
+        dt = dt[:-1] + bytes([42])
+
+        with self.assertRaises(CRCMismatchError):
+            decode_datagram(dt)
+
+    def test_that_datagram_start_is_detected_correctly(self):
+        """
+        This test checks that the start of datagram marker on a frame is
+        detected correctly.
+        """
+        self.assertFalse(is_start_of_datagram(Frame(id=2)))
+        self.assertTrue(is_start_of_datagram(Frame(id=2 + (1 << 7))))

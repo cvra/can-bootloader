@@ -10,11 +10,11 @@ class WriteCommandTestCase(unittest.TestCase):
     """
 
     def setUp(self):
-        adress = 0xdeadbeef
+        address = 0xdeadbeef
         data = bytes(range(4))
         device = "dummy"
 
-        raw_packet = encode_write_flash(data, adress, device)
+        raw_packet = encode_write_flash(data, address, device)
 
         unpacker = Unpacker()
         unpacker.feed(raw_packet)
@@ -27,12 +27,12 @@ class WriteCommandTestCase(unittest.TestCase):
         index = self.command[0]
         self.assertEqual(CommandType.Write, index)
 
-    def test_command_has_correct_adress(self):
+    def test_command_has_correct_address(self):
         """
-        Checks that the adress is put at the correct place in the command.
+        Checks that the address is put at the correct place in the command.
         """
-        adress = self.command[1][0]
-        self.assertEqual(0xdeadbeef, adress)
+        address = self.command[1][0]
+        self.assertEqual(0xdeadbeef, address)
 
     def test_device_class(self):
         """
@@ -52,7 +52,7 @@ class WriteCommandTestCase(unittest.TestCase):
         """
         Checks that the write command uses bin type.
         """
-        raw_packet = encode_write_flash(bytes([12]), adress=1, device_class="dummy")
+        raw_packet = encode_write_flash(bytes([12]), address=1, device_class="dummy")
 
         # 0xc4 is binary type marker
         self.assertEqual(raw_packet[-3], 0xc4)

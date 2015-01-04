@@ -23,24 +23,24 @@ def encode_crc_region(address, length):
     """
     return encode_command(CommandType.CRCReginon, address, length)
 
-def encode_erase_flash_page(adress, device_class):
+def encode_erase_flash_page(address, device_class):
     """
     Encodes the command to erase the flash page at given address.
     """
-    return encode_command(CommandType.Erase, adress, device_class)
+    return encode_command(CommandType.Erase, address, device_class)
 
-def encode_write_flash(data, adress, device_class):
+def encode_write_flash(data, address, device_class):
     """
-    Encodes the command to write the given data at the given adress in a
+    Encodes the command to write the given data at the given address in a
     messagepack byte object.
     """
-    return encode_command(CommandType.Write, adress, device_class, data)
+    return encode_command(CommandType.Write, address, device_class, data)
 
 def encode_read_flash(aderess, length):
     """
     Encodes the command to read the flash at given address.
     """
-    return encode_command(CommandType.Read, adress, length)
+    return encode_command(CommandType.Read, address, length)
 
 def encode_update_config(data):
     """

@@ -49,3 +49,21 @@ def datagram_decode(data):
         raise CRCMismatchError
 
     return data[:-4]
+
+def read_datagram(fd):
+    """
+    Reads a datagram from fd (which is supposed to have one file-like read()
+    method).
+
+    Returns None if the read timed out.
+    """
+    buf = bytes()
+    while True:
+        b = fd.read(1)
+        buf += b
+
+        if b == b'': # timeout
+            return None
+
+        if b == END:
+            return datagram_decode(buf)
