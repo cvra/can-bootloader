@@ -104,15 +104,15 @@ def read_can_datagram(fdesc):
     Reads a full CAN datagram from the CAN <-> serial bridge.
     """
     buf = bytes()
-    dt = None
+    datagram = None
 
-    while dt is None:
+    while datagram is None:
         frame = serial_datagrams.read_datagram(fdesc)
         frame = can_bridge.decode_frame(frame)
         buf += frame.data
-        dt = can.decode_datagram(buf)
+        datagram = can.decode_datagram(buf)
 
-    return dt
+    return datagram
 
 def crc_region(fdesc, base_address, length, destination):
     """
@@ -137,16 +137,16 @@ def main():
     Entry point of the application.
     """
     args = parse_commandline_args()
-    with open(args.binary_file, 'rb') as f:
-        binary = f.read()
+    with open(args.binary_file, 'rb') as input_file:
+        binary = input_file.read()
 
-    fd = serial.Serial(args.serial_device, baudrate=115200, timeout=0.2)
+    serial_port = serial.Serial(args.serial_device, baudrate=115200, timeout=0.2)
 
     print("Flashing firmware (size: {} bytes)".format(len(binary)))
-    flash_binary(fd, binary, args.base_address, args.device_class, args.ids)
+    flash_binary(serial_port, binary, args.base_address, args.device_class, args.ids)
 
     print("Verifying firmware...")
-    valid_nodes_set = set(check_binary(fd, binary, args.base_address, args.ids))
+    valid_nodes_set = set(check_binary(serial_port, binary, args.base_address, args.ids))
     nodes_set = set(args.ids)
 
     if valid_nodes_set == nodes_set:
