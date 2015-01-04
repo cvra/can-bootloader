@@ -232,3 +232,27 @@ TEST(ReadFlashTestGroup, CanReadData)
     read_data[read_size] = '\0';
     STRCMP_EQUAL(page, read_data);
 }
+
+TEST_GROUP(PingTestGroup)
+{
+    serializer_t output_serializer;
+    cmp_ctx_t output_builder;
+    char output_data[1024];
+
+    void setup(void)
+    {
+        serializer_init(&output_serializer, output_data, sizeof output_data);
+        serializer_cmp_ctx_factory(&output_builder, &output_serializer);
+        memset(output_data, 0, sizeof output_data);
+    }
+};
+
+TEST(PingTestGroup, PingCommand)
+{
+    bool result, success;
+    command_ping(0, NULL, &output_builder, NULL);
+    success = cmp_read_bool(&output_builder, &result);
+
+    CHECK_TRUE(success);
+    CHECK_TRUE(result);
+}
