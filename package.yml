@@ -22,6 +22,7 @@ source:
 
 target.armv7-m:
     - platform/mcu/armv7-m/boot_arg.c
+    - platform/mcu/armv7-m/vector_table.c
     - platform/mcu/armv7-m/boot.s
     - platform/mcu/armv7-m/timeout_timer.c
 
