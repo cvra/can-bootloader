@@ -115,6 +115,11 @@ void command_config_update(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader
     config_update_from_serialized(config, args);
 }
 
+void command_ping(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config)
+{
+    cmp_write_bool(out, 1);
+}
+
 void command_config_write_to_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config)
 {
     config->update_count += 1;
