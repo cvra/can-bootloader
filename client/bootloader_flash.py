@@ -42,7 +42,7 @@ def write_command(fdesc, command, destinations, source=0):
     """
     datagram = can.encode_datagram(command, destinations)
     frames = can.datagram_to_frames(datagram, source)
-    for f in frames:
+    for frame in frames:
         bridge_frame = can_bridge.encode_frame_command(frame)
         datagram = serial_datagrams.datagram_encode(bridge_frame)
         fdesc.write(datagram)
