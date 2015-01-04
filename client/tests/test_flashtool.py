@@ -26,13 +26,13 @@ class FlashBinaryTestCase(unittest.TestCase):
         Checks that a single page is erased before writing.
         """
         data = bytes(range(20))
-        adress = 0x1000
+        address = 0x1000
         device_class = 'dummy'
         destinations = [1]
 
-        flash_binary(self.fd, data, adress, "dummy", destinations)
+        flash_binary(self.fd, data, address, "dummy", destinations)
 
-        erase_command = encode_erase_flash_page(adress, device_class)
+        erase_command = encode_erase_flash_page(address, device_class)
         write.assert_any_call(self.fd, erase_command, destinations)
 
     def test_write_single_chunk(self, write):
@@ -40,13 +40,13 @@ class FlashBinaryTestCase(unittest.TestCase):
         Tests that a single chunk can be written.
         """
         data = bytes(range(20))
-        adress = 0x1000
+        address = 0x1000
         device_class = 'dummy'
         destinations = [1]
 
-        flash_binary(self.fd, data, adress, "dummy", [1])
+        flash_binary(self.fd, data, address, "dummy", [1])
 
-        write_command = encode_write_flash(data, adress, device_class)
+        write_command = encode_write_flash(data, address, device_class)
 
         write.assert_any_call(self.fd, write_command, destinations)
 
@@ -55,16 +55,16 @@ class FlashBinaryTestCase(unittest.TestCase):
         Checks that we can write many chunks, but still in one page
         """
         data = bytes([0] * 4096)
-        adress = 0x1000
+        address = 0x1000
         device_class = 'dummy'
         destinations = [1]
 
-        flash_binary(self.fd, data, adress, "dummy", [1])
+        flash_binary(self.fd, data, address, "dummy", [1])
 
-        write_command = encode_write_flash(bytes([0] * 2048), adress, device_class)
+        write_command = encode_write_flash(bytes([0] * 2048), address, device_class)
         write.assert_any_call(self.fd, write_command, destinations)
 
-        write_command = encode_write_flash(bytes([0] * 2048), adress + 2048, device_class)
+        write_command = encode_write_flash(bytes([0] * 2048), address + 2048, device_class)
         write.assert_any_call(self.fd, write_command, destinations)
 
     def test_erase_multiple_pages(self, write):

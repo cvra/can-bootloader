@@ -7,7 +7,7 @@ class IntelHexParserTestCase(unittest.TestCase):
         line = ":10002000000000000000000000000000C10300000C"
         line = intel_hex.parse_line(line)
         self.assertEqual(0x10, line.length)
-        self.assertEqual(0x20, line.adress)
+        self.assertEqual(0x20, line.address)
         self.assertEqual(0, line.type)
         data = [0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0xC1,0x03,0x00,0x00]
         self.assertEqual(line.data, data)

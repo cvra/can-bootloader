@@ -11,7 +11,7 @@ This implies that there is a few different level of encapsulations:
 
 1. At the top sits the bootloader protocol (`commands.py`)
 2. Immediately below is the CAN datagram layers.
-    Its role is to encapsulate a stream of bytes, adding a CRC and adressing system.
+    Its role is to encapsulate a stream of bytes, adding a CRC and addressing system.
 3. The CAN datagram is then cut into chunks small enough to fit in a single CAN frame.
     The id of each frame is also added at this step.
 4. Each CAN frame is converted into a command for the CAN-serial bridge protocol (`can_uart.py`).
@@ -27,7 +27,7 @@ import can, commands, serial_datagrams, can_bridge
 data = "Hello, world!".encode('ascii')
 
 # Generates the command
-data = commands.encode_write_flash(data, adress=0x00, device_class="dummy")
+data = commands.encode_write_flash(data, address=0x00, device_class="dummy")
 
 # Encapsulates it in a CAN datagram
 data = can.encode_datagram(data, destinations=[1])

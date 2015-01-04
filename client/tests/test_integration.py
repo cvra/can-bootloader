@@ -10,7 +10,7 @@ class IntegrationTesting(unittest.TestCase):
         data = 'Hello, world!'.encode('ascii')
 
         # Generates the command
-        data = commands.encode_write_flash(data, adress=0x00, device_class="dummy")
+        data = commands.encode_write_flash(data, address=0x00, device_class="dummy")
 
         # Encapsulates it in a CAN datagram
         data = can.encode_datagram(data, destinations=[1])

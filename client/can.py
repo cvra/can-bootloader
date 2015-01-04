@@ -46,11 +46,11 @@ def encode_datagram(data, destinations):
     """
 
     version = struct.pack('B', DATAGRAM_VERSION)
-    adresses = bytes([len(destinations)] + destinations)
+    addresses = bytes([len(destinations)] + destinations)
     dt = struct.pack('>I', len(data)) + data
-    crc = struct.pack('>I', crc32(adresses + dt))
+    crc = struct.pack('>I', crc32(addresses + dt))
 
-    return version + crc + adresses + dt
+    return version + crc + addresses + dt
 
 def decode_datagram(data):
     """
@@ -83,10 +83,10 @@ def decode_datagram(data):
         if data_len != len(data):
             return None
 
-        adresses = bytes([len(destinations)] + destinations)
+        addresses = bytes([len(destinations)] + destinations)
         dt = struct.pack('>I', len(data)) + data
 
-        if crc32(adresses + dt) != crc:
+        if crc32(addresses + dt) != crc:
             raise CRCMismatchError
 
     except struct.error:

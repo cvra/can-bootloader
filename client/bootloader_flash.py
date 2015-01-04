@@ -21,8 +21,8 @@ def parse_commandline_args(args=None):
                         metavar='FILE')
 
     parser.add_argument('-a', '--base-address', dest='base_address',
-                        help='Base adress of the firmware (binary files only)',
-                        metavar='ADRESS',
+                        help='Base address of the firmware (binary files only)',
+                        metavar='ADDRESS',
                         required=True,
                         type=lambda s: int(s, 16)) # automatically convert value to hex
 
@@ -47,23 +47,23 @@ def write_command(fdesc, command, destinations, source=0):
         datagram = serial_datagrams.datagram_encode(bridge_frame)
         fdesc.write(datagram)
 
-def flash_binary(fdesc, binary, base_adress, device_class, destinations, page_size=2048):
+def flash_binary(fdesc, binary, base_address, device_class, destinations, page_size=2048):
     """
     Writes a full binary to the flash using the given file descriptor.
 
-    It also takes the binary image, the base adress and the device class as
+    It also takes the binary image, the base address and the device class as
     parameters.
     """
 
     # First erase all pages
     for offset in range(0, len(binary), page_size):
-        erase_command = commands.encode_erase_flash_page(base_adress + offset, device_class)
+        erase_command = commands.encode_erase_flash_page(base_address + offset, device_class)
         write_command(fdesc, erase_command, destinations)
 
     # Then write all pages in chunks
     for offset, chunk in enumerate(page.slice_into_pages(binary, CHUNK_SIZE)):
         offset *= CHUNK_SIZE
-        command = commands.encode_write_flash(chunk, base_adress + offset, device_class)
+        command = commands.encode_write_flash(chunk, base_address + offset, device_class)
         write_command(fdesc, command, destinations)
 
     # Finally update application CRC and size in config
