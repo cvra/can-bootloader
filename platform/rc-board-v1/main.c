@@ -43,9 +43,9 @@ void can_interface_init(void)
     gpio_set_af(GPIOA, GPIO_AF9, GPIO11 | GPIO12);
 
     /*
-    STM32F3 CAN on 32MHz configured APB1 peripheral clock
-    32MHz / 2 -> 16MHz
-    16MHz / (1tq + 9tq + 6tq) = 1MHz => 1Mbit
+    STM32F3 CAN on 36MHz configured APB1 peripheral clock
+    36MHz / 2 -> 18MHz
+    18MHz / (1tq + 10tq + 7tq) = 1MHz => 1Mbit
     */
     can_init(CAN,             // Interface
              false,           // Time triggered communication mode.
@@ -55,8 +55,8 @@ void can_interface_init(void)
              false,           // Receive FIFO locked mode.
              true,            // Transmit FIFO priority.
              CAN_BTR_SJW_1TQ, // Resynchronization time quanta jump width
-             CAN_BTR_TS1_9TQ, // Time segment 1 time quanta width
-             CAN_BTR_TS2_6TQ, // Time segment 2 time quanta width
+             CAN_BTR_TS1_10TQ,// Time segment 1 time quanta width
+             CAN_BTR_TS2_7TQ, // Time segment 2 time quanta width
              2,               // Prescaler
              false,           // Loopback
              false);          // Silent
