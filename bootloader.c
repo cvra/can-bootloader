@@ -12,8 +12,6 @@
 // should be defined somewhere else
 #define PAGE_SIZE   2048
 
-#define START_OF_DATAGRAM_MASK  (1<<7)
-
 #define CAN_SEND_RETRIES    100
 #define CAN_RECEIVE_TIMEOUT 1000
 #define DEFAULT_ID   0x01
@@ -23,7 +21,7 @@ uint8_t output_buf[PAGE_SIZE + 512];
 uint8_t data_buf[PAGE_SIZE + 512];
 uint8_t addr_buf[128];
 
-command_t commands[] = {
+const command_t commands[] = {
     {.index = 1, .callback = command_jump_to_application},
     {.index = 2, .callback = command_crc_region},
     {.index = 3, .callback = command_erase_flash_page},
@@ -57,8 +55,8 @@ static void return_datagram(uint8_t source_id, uint8_t dest_id, uint8_t *data, s
         }
 
         if (start_of_datagram) {
-            if (!can_interface_send_message(source_id | START_OF_DATAGRAM_MASK,
-                                            buf, dlc, CAN_SEND_RETRIES)) {
+            if (!can_interface_send_message(source_id | ID_START_MASK, buf, dlc,
+                                            CAN_SEND_RETRIES)) {
                 break;  // failed
             }
             start_of_datagram = false;
@@ -102,7 +100,7 @@ void bootloader_main(int arg)
             continue;
         }
 
-        if ((id & START_OF_DATAGRAM_MASK) != 0) {
+        if ((id & ID_START_MASK) != 0) {
             can_datagram_start(&dt);
         }
 
@@ -128,7 +126,7 @@ void bootloader_main(int arg)
                         (char *)output_buf, sizeof(output_buf), &config);
 
                     if (len > 0) {
-                        uint8_t return_id = id & ~START_OF_DATAGRAM_MASK;
+                        uint8_t return_id = id & ~ID_START_MASK;
                         return_datagram(config.ID, return_id, output_buf, (size_t) len);
                     }
                 }
