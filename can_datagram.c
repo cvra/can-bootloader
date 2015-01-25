@@ -3,8 +3,6 @@
 #include "can_datagram.h"
 #include <crc/crc32.h>
 
-#define ID_START_MASK (1 << 7)
-
 enum {
     STATE_PROTOCOL_VERSION,
     STATE_CRC,
