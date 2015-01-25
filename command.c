@@ -14,7 +14,7 @@ void command_erase_flash_page(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloa
     char device_class[64];
 
     cmp_read_uinteger(args, &tmp);
-    address = (void *)tmp;
+    address = (void *)(uintptr_t)tmp;
 
     // refuse to overwrite bootloader or config pages
     if (address < memory_get_app_addr()) {
@@ -44,7 +44,7 @@ void command_write_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_c
     char device_class[64];
 
     cmp_read_uinteger(args, &tmp);
-    address = (void *)tmp;
+    address = (void *)(uintptr_t)tmp;
 
     // refuse to overwrite bootloader or config pages
     if (address < memory_get_app_addr()) {
@@ -79,7 +79,7 @@ void command_read_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_co
     uint32_t size;
 
     cmp_read_uinteger(args, &tmp);
-    address = (void *)tmp;
+    address = (void *)(uintptr_t)tmp;
 
     cmp_read_u32(args, &size);
 
@@ -103,7 +103,7 @@ void command_crc_region(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_co
     uint64_t tmp;
 
     cmp_read_uinteger(args, &tmp);
-    address = (void *)tmp;
+    address = (void *)(uintptr_t)tmp;
     cmp_read_uint(args, &size);
 
     crc = crc32(0, address, size);
