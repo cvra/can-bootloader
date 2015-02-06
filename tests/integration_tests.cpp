@@ -12,9 +12,10 @@ void read_eval(can_datagram_t *input, can_datagram_t *output, bootloader_config_
 {
     uint32_t message_id;
     uint8_t message[8];
-    int len, i;
+    uint8_t len;
+    int i;
 
-    len = can_interface_read_message(&message_id, message);
+    can_interface_read_message(&message_id, message, &len, 1);
 
     for (i = 0; i < len; ++i) {
         can_datagram_input_byte(input, message[i]);

@@ -47,7 +47,7 @@ typedef struct {
  * @returns The amount of bytes written to output_buffer on successful command completion.
  * @returns A negative error code if the command execution encountered an error.
  */
-int protocol_execute_command(char *data, size_t data_len, command_t *commands, int command_len, char *out_buf, size_t out_len, bootloader_config_t *config);
+int protocol_execute_command(char *data, size_t data_len, const command_t *commands, int command_len, char *out_buf, size_t out_len, bootloader_config_t *config);
 
 /** Command used to erase a flash page.
  *

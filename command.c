@@ -14,7 +14,7 @@ void command_erase_flash_page(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloa
     char device_class[64];
 
     cmp_read_uinteger(args, &tmp);
-    address = (void *)tmp;
+    address = (void *)(uintptr_t)tmp;
 
     // refuse to overwrite bootloader or config pages
     if (address < memory_get_app_addr()) {
@@ -44,7 +44,7 @@ void command_write_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_c
     char device_class[64];
 
     cmp_read_uinteger(args, &tmp);
-    address = (void *)tmp;
+    address = (void *)(uintptr_t)tmp;
 
     // refuse to overwrite bootloader or config pages
     if (address < memory_get_app_addr()) {
@@ -79,7 +79,7 @@ void command_read_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_co
     uint32_t size;
 
     cmp_read_uinteger(args, &tmp);
-    address = (void *)tmp;
+    address = (void *)(uintptr_t)tmp;
 
     cmp_read_u32(args, &size);
 
@@ -103,7 +103,7 @@ void command_crc_region(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_co
     uint64_t tmp;
 
     cmp_read_uinteger(args, &tmp);
-    address = (void *)tmp;
+    address = (void *)(uintptr_t)tmp;
     cmp_read_uint(args, &size);
 
     crc = crc32(0, address, size);
@@ -120,6 +120,15 @@ void command_ping(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t
     cmp_write_bool(out, 1);
 }
 
+static bool flash_write_and_verify(void *addr, void *data, size_t len)
+{
+    flash_writer_unlock();
+    flash_writer_page_erase(addr);
+    flash_writer_page_write(addr, data, len);
+    flash_writer_lock();
+    return block_crc_verify(addr, len);
+}
+
 void command_config_write_to_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config)
 {
     config->update_count += 1;
@@ -130,22 +139,24 @@ void command_config_write_to_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bo
     block_crc_update(config_page_buffer, config_page_size);
 
     void *config1 = memory_get_config1_addr();
+    void *config2 = memory_get_config2_addr();
 
-    flash_writer_unlock();
-    flash_writer_page_erase(config1);
-    flash_writer_page_write(config1, config_page_buffer, config_page_size);
-    flash_writer_lock();
+    if (block_crc_verify(config2, config_page_size)) {
+        if (flash_write_and_verify(config1, config_page_buffer, config_page_size)) {
+            flash_write_and_verify(config2, config_page_buffer, config_page_size);
+        }
+        return;
+    }
 
     if (block_crc_verify(config1, config_page_size)) {
-        void *config2 = memory_get_config2_addr();
-        flash_writer_unlock();
-        flash_writer_page_erase(config2);
-        flash_writer_page_write(config2, config_page_buffer, config_page_size);
-        flash_writer_lock();
+        if (flash_write_and_verify(config2, config_page_buffer, config_page_size)) {
+            flash_write_and_verify(config1, config_page_buffer, config_page_size);
+        }
+        return;
     }
 }
 
-int protocol_execute_command(char *data, size_t data_len, command_t *commands, int command_len, char *out_buf, size_t out_len, bootloader_config_t *config)
+int protocol_execute_command(char *data, size_t data_len, const command_t *commands, int command_len, char *out_buf, size_t out_len, bootloader_config_t *config)
 {
     serializer_t serializer;
     cmp_ctx_t command_reader;

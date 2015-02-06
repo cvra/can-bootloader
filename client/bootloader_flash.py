@@ -7,6 +7,7 @@ import msgpack
 from zlib import crc32
 import serial
 from sys import exit
+import time
 
 CHUNK_SIZE = 2048
 
@@ -48,6 +49,7 @@ def write_command(fdesc, command, destinations, source=0):
         bridge_frame = can_bridge.encode_frame_command(frame)
         datagram = serial_datagrams.datagram_encode(bridge_frame)
         fdesc.write(datagram)
+    time.sleep(0.3)
 
 def flash_binary(fdesc, binary, base_address, device_class, destinations, page_size=2048):
     """

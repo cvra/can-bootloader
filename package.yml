@@ -14,13 +14,23 @@ tests:
     - tests/datagrams_command_tests.cpp
     - tests/integration_tests.cpp
     - tests/mocks/memory_mock.c
+    - tests/mocks/timeout_mock.c
 
 source:
     - can_datagram.c
     - command.c
     - config.c
+    - bootloader.c
 
-target.arm:
-    - flash_writer_stm32f3.c
-    - boot_arg.c
-    - boot.s
+target.armv7-m:
+    - platform/mcu/armv7-m/boot_arg.c
+    - platform/mcu/armv7-m/vector_table.c
+    - platform/mcu/armv7-m/boot.s
+    - platform/mcu/armv7-m/timeout_timer.c
+
+target.stm32f3:
+    - platform/mcu/stm32f3/flash_writer.c
+    - platform/mcu/stm32f3/can_interface.c
+
+templates:
+    platform/rc-board-v1/include.jinja: 'platform/rc-board-v1/include.mk'

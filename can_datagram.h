@@ -11,6 +11,8 @@ extern "C" {
 
 #define CAN_DATAGRAM_VERSION 1
 
+#define ID_START_MASK (1 << 7)
+
 typedef struct {
     int protocol_version;
     uint32_t crc;

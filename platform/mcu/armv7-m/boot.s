@@ -8,7 +8,7 @@
 @   3 : internal ST bootloader from system memeory
 @
 @ This is has several purposes:
-@ - Start the bootloader with an arbument (such as disable the timeout)
+@ - Start the bootloader with an argument (such as disable the timeout)
 @ - Start the application from the bootloader itself without having to manually
 @   reset every peripheral that was used.
 @ - The application can omit the bootloader after a software reset to preserve
