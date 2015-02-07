@@ -3,7 +3,7 @@
 #include <CppUTestExt/MockSupport.h>
 #include <serializer/serialization.h>
 #include <crc/crc32.h>
-#include "mocks/memory_mock.h"
+#include "mocks/platform_mock.h"
 #include "../flash_writer.h"
 #include "../command.h"
 #include "../boot_arg.h"

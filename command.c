@@ -1,11 +1,11 @@
 #include <string.h>
 #include <crc/crc32.h>
 #include <serializer/checksum_block.h>
+#include <platform.h>
 #include "flash_writer.h"
 #include "boot_arg.h"
 #include "config.h"
 #include "command.h"
-#include "memory.h"
 
 void command_erase_flash_page(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config)
 {
@@ -133,24 +133,24 @@ void command_config_write_to_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bo
 {
     config->update_count += 1;
 
-    memset(config_page_buffer, 0, config_page_size);
+    memset(config_page_buffer, 0, CONFIG_PAGE_SIZE);
 
-    config_write(config_page_buffer, config, config_page_size);
-    block_crc_update(config_page_buffer, config_page_size);
+    config_write(config_page_buffer, config, CONFIG_PAGE_SIZE);
+    block_crc_update(config_page_buffer, CONFIG_PAGE_SIZE);
 
     void *config1 = memory_get_config1_addr();
     void *config2 = memory_get_config2_addr();
 
-    if (block_crc_verify(config2, config_page_size)) {
-        if (flash_write_and_verify(config1, config_page_buffer, config_page_size)) {
-            flash_write_and_verify(config2, config_page_buffer, config_page_size);
+    if (block_crc_verify(config2, CONFIG_PAGE_SIZE)) {
+        if (flash_write_and_verify(config1, config_page_buffer, CONFIG_PAGE_SIZE)) {
+            flash_write_and_verify(config2, config_page_buffer, CONFIG_PAGE_SIZE);
         }
         return;
     }
 
-    if (block_crc_verify(config1, config_page_size)) {
-        if (flash_write_and_verify(config2, config_page_buffer, config_page_size)) {
-            flash_write_and_verify(config1, config_page_buffer, config_page_size);
+    if (block_crc_verify(config1, CONFIG_PAGE_SIZE)) {
+        if (flash_write_and_verify(config2, config_page_buffer, CONFIG_PAGE_SIZE)) {
+            flash_write_and_verify(config1, config_page_buffer, CONFIG_PAGE_SIZE);
         }
         return;
     }

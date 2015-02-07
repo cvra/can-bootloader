@@ -1,24 +1,21 @@
 #include <stdint.h>
 #include <string.h>
 
+#include <platform.h>
 #include "command.h"
 #include "can_datagram.h"
 #include "config.h"
 #include "boot_arg.h"
 #include "timeout.h"
-#include "memory.h"
 #include "can_interface.h"
 
-// should be defined somewhere else
-#define PAGE_SIZE   2048
-
+#define BUFFER_SIZE         FLASH_PAGE_SIZE + 128
+#define DEFAULT_ID          0x01
 #define CAN_SEND_RETRIES    100
 #define CAN_RECEIVE_TIMEOUT 1000
-#define DEFAULT_ID   0x01
 
-// rough sizes
-uint8_t output_buf[PAGE_SIZE + 512];
-uint8_t data_buf[PAGE_SIZE + 512];
+uint8_t output_buf[BUFFER_SIZE];
+uint8_t data_buf[BUFFER_SIZE];
 uint8_t addr_buf[128];
 
 const command_t commands[] = {
@@ -73,13 +70,16 @@ void bootloader_main(int arg)
     bool timeout_active = !(arg == BOOT_ARG_START_BOOTLOADER_NO_TIMEOUT);
 
     bootloader_config_t config;
-    if (config_is_valid(memory_get_config1_addr(), config_page_size)) {
-        config = config_read(memory_get_config1_addr(), config_page_size);
-    } else if (config_is_valid(memory_get_config2_addr(), config_page_size)) {
-        config = config_read(memory_get_config2_addr(), config_page_size);
+    if (config_is_valid(memory_get_config1_addr(), CONFIG_PAGE_SIZE)) {
+        config = config_read(memory_get_config1_addr(), CONFIG_PAGE_SIZE);
+    } else if (config_is_valid(memory_get_config2_addr(), CONFIG_PAGE_SIZE)) {
+        config = config_read(memory_get_config2_addr(), CONFIG_PAGE_SIZE);
     } else {
-        // behaviour at invalid config not yet defined.
-        while(1);
+        // exact behaviour at invalid config is not yet defined.
+        strcpy(config.device_class, PLATFORM_DEVICE_CLASS);
+        config.ID = DEFAULT_ID;
+        config.application_crc = 0xDEADC0DE;
+        config.application_size = 0;
     }
 
     can_datagram_t dt;
