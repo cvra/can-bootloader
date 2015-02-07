@@ -2,13 +2,16 @@
 # settings
 ################################################################################
 
-
 PROJNAME = bootloader
 
 # where to place the build files
 BUILD_DIR = build
 
+# platform specific source files
+PLATFORM_CSRC = main.c
+
 PROJ_ROOT = ../..
+PLATFORM_PATH = platform/rc-board-v1/
 
 # dont show compiler calls
 QUIET = 1
@@ -19,15 +22,13 @@ QUIET = 1
 
 include include.mk
 
-LOCAL_CSRC += main.c
-
-CSRC     += $(addprefix platform/rc-board-v1/, $(LOCAL_CSRC))
-
-INCDIR   = $(addprefix $(PROJ_ROOT)/, $(PACKAGER_INCDIR))
+CSRC     += $(addprefix $(PLATFORM_PATH), $(PLATFORM_CSRC))
 
 # libraries & includes
-INCDIR   += $(PROJ_ROOT)/libopencm3/include $(PROJ_ROOT)/ ./
-LIBS     += -lc -lnosys
+INCDIR   = ./ $(PROJ_ROOT)/libopencm3/include $(PROJ_ROOT)/
+INCDIR   += $(addprefix $(PROJ_ROOT)/, $(PACKAGER_INCDIR))
+
+LIBS     = -lc -lnosys
 LIBS     += -L$(PROJ_ROOT)/libopencm3/lib
 LIBS     += -lopencm3_stm32f3
 
