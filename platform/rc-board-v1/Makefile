@@ -8,7 +8,7 @@ PROJNAME = bootloader
 BUILD_DIR = build
 
 # platform specific source files
-PLATFORM_CSRC = main.c
+PLATFORM_CSRC = platform.c
 
 PROJ_ROOT = ../..
 PLATFORM_PATH = platform/rc-board-v1/

@@ -6,28 +6,10 @@
 #include <bootloader.h>
 #include <boot_arg.h>
 #include <platform/mcu/armv7-m/timeout_timer.h>
+#include "platform.h"
 
-// must be large enought to contain the packed config, 2048 bytes max
-#define CONFIG_SIZE 256
-
-extern int app_start, config_page1, config_page2; // defined by linkerscript
-const size_t config_page_size = CONFIG_SIZE;
-uint8_t config_page_buffer[CONFIG_SIZE];
-
-void *memory_get_app_addr(void)
-{
-    return &app_start;
-}
-
-void *memory_get_config1_addr(void)
-{
-    return &config_page1;
-}
-
-void *memory_get_config2_addr(void)
-{
-    return &config_page2;
-}
+// page buffer used by config commands.
+uint8_t config_page_buffer[CONFIG_PAGE_SIZE];
 
 void can_interface_init(void)
 {
@@ -161,7 +143,7 @@ void platform_main(int arg)
     gpio_set(GPIOC, GPIO13);
 
     // configure timeout of 3000 milliseconds
-    timeout_timer_init(64000000, 3000);
+    timeout_timer_init(72000000, 3000);
 
     can_interface_init();
 

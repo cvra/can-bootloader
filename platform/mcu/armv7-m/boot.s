@@ -16,7 +16,7 @@
 @ - Start the internal bootloader from ST to flash via UART/CAN/USB_DFU...
 
 .extern bootloader_startup
-.extern app_start
+.extern application_address
 
 .equ RAM_START,         0x20000000
 .equ SCB_VTOR,          0xE000ED08
@@ -60,7 +60,7 @@ reset_handler:
     b       bootloader_startup
 
 _app_jmp:
-    ldr     r0, =app_start
+    ldr     r0, =application_address
     ldr     r1, =SCB_VTOR
     str     r0, [r1]        @ relocate vector table
     dsb

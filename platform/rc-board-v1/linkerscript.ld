@@ -29,7 +29,7 @@ SECTIONS
     config_page2 = ORIGIN(FLASH_CONFIG2);
 
     /* application in flash */
-    app_start = ORIGIN(FLASH_APP);
+    application_address = ORIGIN(FLASH_APP);
 
     .text :
     {
