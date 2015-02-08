@@ -293,7 +293,7 @@ class MainTestCase(unittest.TestCase):
         Checks that we open the correct serial port to the bridge.
         """
         main()
-        self.serial.assert_any_call('/dev/ttyUSB0', baudrate=115200, timeout=0.2)
+        self.serial.assert_any_call(port='/dev/ttyUSB0', baudrate=115200, timeout=0.2)
 
     def test_flash_binary(self):
         """
@@ -396,3 +396,19 @@ class ArgumentParsingTestCase(unittest.TestCase):
 
             # Checked that we printed some kind of error
             error.assert_any_call(unittest.mock.ANY)
+
+class OpenConnectionTestCase(unittest.TestCase):
+    DEFAULT_COMMANDLINE = " -b test.bin -a 0x1000 -c dummy 1 2"
+    def test_open_serial(self):
+        """
+        Checks that if we provide a serial port the serial port is
+        """
+        commandline = "-p /dev/ttyUSB0" + self.DEFAULT_COMMANDLINE
+        args = parse_commandline_args(commandline.split())
+
+        with patch('serial.Serial') as serial:
+            serial.return_value = object()
+            port = open_connection(args)
+
+            self.assertEqual(port, serial.return_value)
+            serial.assert_any_call(port="/dev/ttyUSB0", baudrate=ANY, timeout=ANY)

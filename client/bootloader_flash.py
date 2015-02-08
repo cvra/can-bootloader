@@ -156,6 +156,14 @@ def verification_failed(failed_nodes):
     print(error_msg)
     exit(1)
 
+def open_connection(args):
+    """
+    Open a connection based on commandline arguments.
+
+    Returns a file like object which will be the connection handle.
+    """
+    return serial.Serial(port=args.serial_device, timeout=0.2, baudrate=115200,)
+
 def main():
     """
     Entry point of the application.
@@ -164,7 +172,7 @@ def main():
     with open(args.binary_file, 'rb') as input_file:
         binary = input_file.read()
 
-    serial_port = serial.Serial(args.serial_device, baudrate=115200, timeout=0.2)
+    serial_port = open_connection(args)
 
     print("Flashing firmware (size: {} bytes)".format(len(binary)))
     flash_binary(serial_port, binary, args.base_address, args.device_class, args.ids)
