@@ -44,6 +44,9 @@ def parse_commandline_args(args=None):
     if args.hostname is None and args.serial_device is None:
         parser.error("You must specify one of --tcp or --port")
 
+    if args.hostname and args.serial_device:
+        parser.error("Can only use one of--tcp and --port")
+
     return args
 
 

@@ -384,3 +384,15 @@ class ArgumentParsingTestCase(unittest.TestCase):
 
             # Checked that we printed some kind of error
             error.assert_any_call(unittest.mock.ANY)
+
+    def test_network_hostname_or_serial_are_exclusive(self):
+        """
+        Checks that the serial device and the TCP/IP host are mutually exclusive.
+        """
+        commandline = "-b test.bin -a 0x1000 -p /dev/ttyUSB0 --tcp 10.0.0.10 --run -c dummy 1 2 3"
+
+        with patch('argparse.ArgumentParser.error') as error:
+            parse_commandline_args(commandline.split())
+
+            # Checked that we printed some kind of error
+            error.assert_any_call(unittest.mock.ANY)
