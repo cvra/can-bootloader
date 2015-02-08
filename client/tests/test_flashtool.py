@@ -363,3 +363,24 @@ class ArgumentParsingTestCase(unittest.TestCase):
         self.assertEqual('dummy', args.device_class)
         self.assertEqual([1,2,3], args.ids)
         self.assertTrue(args.run)
+
+    def test_network_hostname(self):
+        """
+        Checks that we can pass a hostname
+        """
+        commandline = "-b test.bin -a 0x1000 --tcp 10.0.0.10 --run -c dummy 1 2 3"
+        args = parse_commandline_args(commandline.split())
+        self.assertEqual(None, args.serial_device)
+        self.assertEqual("10.0.0.10", args.hostname)
+
+    def test_network_hostname_or_serial_is_required(self):
+        """
+        Checks that we have either a serial device or a TCP/IP host to use.
+        """
+        commandline = "-b test.bin -a 0x1000 --run -c dummy 1 2 3"
+
+        with patch('argparse.ArgumentParser.error') as error:
+            parse_commandline_args(commandline.split())
+
+            # Checked that we printed some kind of error
+            error.assert_any_call(unittest.mock.ANY)

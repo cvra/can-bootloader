@@ -29,15 +29,23 @@ def parse_commandline_args(args=None):
                         type=lambda s: int(s, 16)) # automatically convert value to hex
 
     parser.add_argument('-p', '--port', dest='serial_device',
-                        required=True,
                         help='Serial port to which the CAN port is connected to.',
                         metavar='DEVICE')
+
+    parser.add_argument('--tcp', dest='hostname', help="Use TCP/IP instead of serial port (host:port format).", metavar="HOST")
 
     parser.add_argument('-c', '--device-class', dest='device_class', help='Device class to flash', required=True)
     parser.add_argument('-r', '--run', help='Run application after flashing', action='store_true')
     parser.add_argument("ids", metavar='DEVICEID', nargs='+', type=int, help="Device IDs to flash")
 
-    return parser.parse_args(args)
+
+    args = parser.parse_args(args)
+
+    if args.hostname is None and args.serial_device is None:
+        parser.error("You must specify one of --tcp or --port")
+
+    return args
+
 
 def write_command(fdesc, command, destinations, source=0):
     """
