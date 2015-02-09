@@ -10,6 +10,7 @@ from zlib import crc32
 
 from bootloader_flash import *
 from commands import *
+from collections import namedtuple
 import msgpack
 
 from io import BytesIO
@@ -398,13 +399,16 @@ class ArgumentParsingTestCase(unittest.TestCase):
             error.assert_any_call(unittest.mock.ANY)
 
 class OpenConnectionTestCase(unittest.TestCase):
-    DEFAULT_COMMANDLINE = " -b test.bin -a 0x1000 -c dummy 1 2"
+    Args = namedtuple("Args", ["hostname", "serial_device"])
+
+    def make_args(self, hostname=None, serial_device=None):
+        return self.Args(hostname=hostname, serial_device=serial_device)
+
     def test_open_serial(self):
         """
         Checks that if we provide a serial port the serial port is
         """
-        commandline = "-p /dev/ttyUSB0" + self.DEFAULT_COMMANDLINE
-        args = parse_commandline_args(commandline.split())
+        args = self.make_args(serial_device='/dev/ttyUSB0')
 
         with patch('serial.Serial') as serial:
             serial.return_value = object()
