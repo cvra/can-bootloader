@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import argparse
+import socket
 import page
 import commands
 import serial_datagrams, can, can_bridge
@@ -162,7 +163,19 @@ def open_connection(args):
 
     Returns a file like object which will be the connection handle.
     """
-    return serial.Serial(port=args.serial_device, timeout=0.2, baudrate=115200,)
+    if args.serial_device:
+        return serial.Serial(port=args.serial_device, timeout=0.2, baudrate=115200)
+
+    elif args.hostname:
+        try:
+            host, port = args.hostname.split(":")
+        except ValueError:
+            host, port = args.hostname, 1337
+
+        port = int(port)
+
+        connection = socket.create_connection((host, port))
+        return connection.makefile('w+b')
 
 def main():
     """

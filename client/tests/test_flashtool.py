@@ -416,3 +416,32 @@ class OpenConnectionTestCase(unittest.TestCase):
 
             self.assertEqual(port, serial.return_value)
             serial.assert_any_call(port="/dev/ttyUSB0", baudrate=ANY, timeout=ANY)
+
+    def test_open_hostname_default_port(self):
+        """
+        Checks that we can open a connection to a hostname with the default port.
+        """
+        args = self.make_args(hostname="10.0.0.10")
+
+        with patch('socket.create_connection') as create_connection:
+            socket = Mock()
+            socket.makefile = Mock(return_value=object())
+
+            create_connection.return_value = socket
+            port = open_connection(args)
+
+            create_connection.assert_any_call(('10.0.0.10', 1337))
+
+            # Check that we converted the socket to a read-write binary file object
+            socket.makefile.assert_any_call('w+b')
+
+            self.assertEqual(port, socket.makefile.return_value)
+
+    def test_open_hostname_custom_port(self):
+        """
+        Checks if we can open a connection to a hostname on a different port.
+        """
+        args = self.make_args(hostname="10.0.0.10:42")
+        with patch('socket.create_connection') as create_connection:
+            port = open_connection(args)
+            create_connection.assert_any_call(('10.0.0.10', 42))
