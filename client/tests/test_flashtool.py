@@ -384,7 +384,7 @@ class ArgumentParsingTestCase(unittest.TestCase):
             parse_commandline_args(commandline.split())
 
             # Checked that we printed some kind of error
-            error.assert_any_call(unittest.mock.ANY)
+            error.assert_any_call(ANY)
 
     def test_network_hostname_or_serial_are_exclusive(self):
         """
@@ -396,7 +396,7 @@ class ArgumentParsingTestCase(unittest.TestCase):
             parse_commandline_args(commandline.split())
 
             # Checked that we printed some kind of error
-            error.assert_any_call(unittest.mock.ANY)
+            error.assert_any_call(ANY)
 
 class OpenConnectionTestCase(unittest.TestCase):
     Args = namedtuple("Args", ["hostname", "serial_device"])
