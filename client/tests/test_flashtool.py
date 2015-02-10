@@ -10,6 +10,7 @@ from zlib import crc32
 
 from bootloader_flash import *
 from commands import *
+from collections import namedtuple
 import msgpack
 
 from io import BytesIO
@@ -293,7 +294,7 @@ class MainTestCase(unittest.TestCase):
         Checks that we open the correct serial port to the bridge.
         """
         main()
-        self.serial.assert_any_call('/dev/ttyUSB0', baudrate=115200, timeout=0.2)
+        self.serial.assert_any_call(port='/dev/ttyUSB0', baudrate=115200, timeout=0.2)
 
     def test_flash_binary(self):
         """
@@ -363,3 +364,84 @@ class ArgumentParsingTestCase(unittest.TestCase):
         self.assertEqual('dummy', args.device_class)
         self.assertEqual([1,2,3], args.ids)
         self.assertTrue(args.run)
+
+    def test_network_hostname(self):
+        """
+        Checks that we can pass a hostname
+        """
+        commandline = "-b test.bin -a 0x1000 --tcp 10.0.0.10 --run -c dummy 1 2 3"
+        args = parse_commandline_args(commandline.split())
+        self.assertEqual(None, args.serial_device)
+        self.assertEqual("10.0.0.10", args.hostname)
+
+    def test_network_hostname_or_serial_is_required(self):
+        """
+        Checks that we have either a serial device or a TCP/IP host to use.
+        """
+        commandline = "-b test.bin -a 0x1000 --run -c dummy 1 2 3"
+
+        with patch('argparse.ArgumentParser.error') as error:
+            parse_commandline_args(commandline.split())
+
+            # Checked that we printed some kind of error
+            error.assert_any_call(ANY)
+
+    def test_network_hostname_or_serial_are_exclusive(self):
+        """
+        Checks that the serial device and the TCP/IP host are mutually exclusive.
+        """
+        commandline = "-b test.bin -a 0x1000 -p /dev/ttyUSB0 --tcp 10.0.0.10 --run -c dummy 1 2 3"
+
+        with patch('argparse.ArgumentParser.error') as error:
+            parse_commandline_args(commandline.split())
+
+            # Checked that we printed some kind of error
+            error.assert_any_call(ANY)
+
+class OpenConnectionTestCase(unittest.TestCase):
+    Args = namedtuple("Args", ["hostname", "serial_device"])
+
+    def make_args(self, hostname=None, serial_device=None):
+        return self.Args(hostname=hostname, serial_device=serial_device)
+
+    def test_open_serial(self):
+        """
+        Checks that if we provide a serial port the serial port is
+        """
+        args = self.make_args(serial_device='/dev/ttyUSB0')
+
+        with patch('serial.Serial') as serial:
+            serial.return_value = object()
+            port = open_connection(args)
+
+            self.assertEqual(port, serial.return_value)
+            serial.assert_any_call(port="/dev/ttyUSB0", baudrate=ANY, timeout=ANY)
+
+    def test_open_hostname_default_port(self):
+        """
+        Checks that we can open a connection to a hostname with the default port.
+        """
+        args = self.make_args(hostname="10.0.0.10")
+
+        with patch('socket.create_connection') as create_connection:
+            socket = Mock()
+            socket.makefile = Mock(return_value=object())
+
+            create_connection.return_value = socket
+            port = open_connection(args)
+
+            create_connection.assert_any_call(('10.0.0.10', 1337))
+
+            # Check that we converted the socket to a read-write binary file object
+            socket.makefile.assert_any_call('w+b')
+
+            self.assertEqual(port, socket.makefile.return_value)
+
+    def test_open_hostname_custom_port(self):
+        """
+        Checks if we can open a connection to a hostname on a different port.
+        """
+        args = self.make_args(hostname="10.0.0.10:42")
+        with patch('socket.create_connection') as create_connection:
+            port = open_connection(args)
+            create_connection.assert_any_call(('10.0.0.10', 42))

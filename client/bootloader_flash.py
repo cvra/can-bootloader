@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import argparse
+import socket
 import page
 import commands
 import serial_datagrams, can, can_bridge
@@ -29,15 +30,26 @@ def parse_commandline_args(args=None):
                         type=lambda s: int(s, 16)) # automatically convert value to hex
 
     parser.add_argument('-p', '--port', dest='serial_device',
-                        required=True,
                         help='Serial port to which the CAN port is connected to.',
                         metavar='DEVICE')
+
+    parser.add_argument('--tcp', dest='hostname', help="Use TCP/IP instead of serial port (host:port format).", metavar="HOST")
 
     parser.add_argument('-c', '--device-class', dest='device_class', help='Device class to flash', required=True)
     parser.add_argument('-r', '--run', help='Run application after flashing', action='store_true')
     parser.add_argument("ids", metavar='DEVICEID', nargs='+', type=int, help="Device IDs to flash")
 
-    return parser.parse_args(args)
+
+    args = parser.parse_args(args)
+
+    if args.hostname is None and args.serial_device is None:
+        parser.error("You must specify one of --tcp or --port")
+
+    if args.hostname and args.serial_device:
+        parser.error("Can only use one of--tcp and --port")
+
+    return args
+
 
 def write_command(fdesc, command, destinations, source=0):
     """
@@ -145,6 +157,26 @@ def verification_failed(failed_nodes):
     print(error_msg)
     exit(1)
 
+def open_connection(args):
+    """
+    Open a connection based on commandline arguments.
+
+    Returns a file like object which will be the connection handle.
+    """
+    if args.serial_device:
+        return serial.Serial(port=args.serial_device, timeout=0.2, baudrate=115200)
+
+    elif args.hostname:
+        try:
+            host, port = args.hostname.split(":")
+        except ValueError:
+            host, port = args.hostname, 1337
+
+        port = int(port)
+
+        connection = socket.create_connection((host, port))
+        return connection.makefile('w+b')
+
 def main():
     """
     Entry point of the application.
@@ -153,7 +185,7 @@ def main():
     with open(args.binary_file, 'rb') as input_file:
         binary = input_file.read()
 
-    serial_port = serial.Serial(args.serial_device, baudrate=115200, timeout=0.2)
+    serial_port = open_connection(args)
 
     print("Flashing firmware (size: {} bytes)".format(len(binary)))
     flash_binary(serial_port, binary, args.base_address, args.device_class, args.ids)
