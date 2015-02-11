@@ -8,7 +8,7 @@ extern "C" {
 #include <stdint.h>
 #include <stddef.h>
 
-#define PLATFORM_DEVICE_CLASS "rc-baord-v1"
+#define PLATFORM_DEVICE_CLASS "motor-board-v1"
 #define FLASH_PAGE_SIZE 2048
 #define CONFIG_PAGE_SIZE FLASH_PAGE_SIZE
 
