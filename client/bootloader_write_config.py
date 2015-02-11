@@ -21,7 +21,7 @@ def parse_commandline_args():
 def main():
     args = parse_commandline_args()
     connection = utils.open_connection(args)
-    config = json.loads(args.file.read().decode())
+    config = json.loads(args.file.read())
     utils.config_update_and_save(connection, config, args.ids)
 
 if __name__ == "__main__":
