@@ -146,13 +146,14 @@ void command_config_write_to_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bo
             flash_write_and_verify(config2, config_page_buffer, CONFIG_PAGE_SIZE);
         }
         return;
-    }
-
-    if (block_crc_verify(config1, CONFIG_PAGE_SIZE)) {
+    } else if (block_crc_verify(config1, CONFIG_PAGE_SIZE)) {
         if (flash_write_and_verify(config2, config_page_buffer, CONFIG_PAGE_SIZE)) {
             flash_write_and_verify(config1, config_page_buffer, CONFIG_PAGE_SIZE);
         }
         return;
+    } else {
+            flash_write_and_verify(config1, config_page_buffer, CONFIG_PAGE_SIZE);
+            flash_write_and_verify(config2, config_page_buffer, CONFIG_PAGE_SIZE);
     }
 }
 
