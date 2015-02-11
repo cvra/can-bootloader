@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 import argparse
-import socket
 import page
 import commands
 import serial_datagrams, can, can_bridge
 import msgpack
 from zlib import crc32
-import serial
 from sys import exit
 import time
+
+from utils import *
 
 CHUNK_SIZE = 2048
 
@@ -49,19 +49,6 @@ def parse_commandline_args(args=None):
         parser.error("Can only use one of--tcp and --port")
 
     return args
-
-
-def write_command(fdesc, command, destinations, source=0):
-    """
-    Writes the given encoded command to the CAN bridge.
-    """
-    datagram = can.encode_datagram(command, destinations)
-    frames = can.datagram_to_frames(datagram, source)
-    for frame in frames:
-        bridge_frame = can_bridge.encode_frame_command(frame)
-        datagram = serial_datagrams.datagram_encode(bridge_frame)
-        fdesc.write(datagram)
-    time.sleep(0.3)
 
 def flash_binary(fdesc, binary, base_address, device_class, destinations, page_size=2048):
     """
@@ -157,25 +144,6 @@ def verification_failed(failed_nodes):
     print(error_msg)
     exit(1)
 
-def open_connection(args):
-    """
-    Open a connection based on commandline arguments.
-
-    Returns a file like object which will be the connection handle.
-    """
-    if args.serial_device:
-        return serial.Serial(port=args.serial_device, timeout=0.2, baudrate=115200)
-
-    elif args.hostname:
-        try:
-            host, port = args.hostname.split(":")
-        except ValueError:
-            host, port = args.hostname, 1337
-
-        port = int(port)
-
-        connection = socket.create_connection((host, port))
-        return connection.makefile('w+b')
 
 def main():
     """
