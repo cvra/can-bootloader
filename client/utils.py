@@ -53,7 +53,7 @@ def open_connection(args):
         port = int(port)
 
         connection = socket.create_connection((host, port))
-        return connection.makefile('w+b')
+        return connection.makefile('wrb')
 
 def write_command(fdesc, command, destinations, source=0):
     """
@@ -65,6 +65,7 @@ def write_command(fdesc, command, destinations, source=0):
         bridge_frame = can_bridge.encode_frame_command(frame)
         datagram = serial_datagrams.datagram_encode(bridge_frame)
         fdesc.write(datagram)
+        fdesc.flush()
     time.sleep(0.3)
 
 
