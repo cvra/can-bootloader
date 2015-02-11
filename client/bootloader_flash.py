@@ -8,7 +8,7 @@ from zlib import crc32
 from sys import exit
 import time
 
-from utils import *
+import utils
 
 CHUNK_SIZE = 2048
 
@@ -17,7 +17,7 @@ def parse_commandline_args(args=None):
     Parses the program commandline arguments.
     Args must be an array containing all arguments.
     """
-    parser = ConnectionArgumentParser(description='Update firmware using CVRA bootloading protocol.')
+    parser = utils.ConnectionArgumentParser(description='Update firmware using CVRA bootloading protocol.')
     parser.add_argument('-b', '--binary', dest='binary_file',
                         help='Path to the binary file to upload',
                         required=True,
@@ -51,19 +51,19 @@ def flash_binary(fdesc, binary, base_address, device_class, destinations, page_s
     # First erase all pages
     for offset in range(0, len(binary), page_size):
         erase_command = commands.encode_erase_flash_page(base_address + offset, device_class)
-        write_command(fdesc, erase_command, destinations)
+        utils.write_command(fdesc, erase_command, destinations)
 
     # Then write all pages in chunks
     for offset, chunk in enumerate(page.slice_into_pages(binary, CHUNK_SIZE)):
         offset *= CHUNK_SIZE
         command = commands.encode_write_flash(chunk, base_address + offset, device_class)
-        write_command(fdesc, command, destinations)
+        utils.write_command(fdesc, command, destinations)
 
     # Finally update application CRC and size in config
     config = dict()
     config['application_size'] = len(binary)
     config['application_crc'] = crc32(binary)
-    config_update_and_save(fdesc, config, destinations)
+    utils.config_update_and_save(fdesc, config, destinations)
 
 def check_binary(fdesc, binary, base_address, destinations):
     """
@@ -79,18 +79,6 @@ def check_binary(fdesc, binary, base_address, destinations):
 
     return valid_nodes
 
-
-def config_update_and_save(fdesc, config, destinations):
-    """
-    Updates the config of the given destinations.
-    Keys not in the given config are left unchanged.
-    """
-    # First send the updated config
-    command = commands.encode_update_config(config)
-    write_command(fdesc, command, destinations)
-
-    # Then save the config to flash
-    write_command(fdesc, commands.encode_save_config(), destinations)
 
 def read_can_datagram(fdesc):
     """
@@ -114,7 +102,7 @@ def crc_region(fdesc, base_address, length, destination):
     Asks a single board for the CRC of a region.
     """
     command = commands.encode_crc_region(base_address, length)
-    write_command(fdesc, command, [destination])
+    utils.write_command(fdesc, command, [destination])
     answer, _ = read_can_datagram(fdesc)
 
     return msgpack.unpackb(answer)
@@ -124,7 +112,7 @@ def run_application(fdesc, destinations):
     Asks the given node to run the application.
     """
     command = commands.encode_jump_to_main()
-    write_command(fdesc, command, destinations)
+    utils.write_command(fdesc, command, destinations)
 
 def verification_failed(failed_nodes):
     """
@@ -143,7 +131,7 @@ def main():
     with open(args.binary_file, 'rb') as input_file:
         binary = input_file.read()
 
-    serial_port = open_connection(args)
+    serial_port = utils.open_connection(args)
 
     print("Flashing firmware (size: {} bytes)".format(len(binary)))
     flash_binary(serial_port, binary, args.base_address, args.device_class, args.ids)

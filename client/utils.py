@@ -2,6 +2,11 @@ import serial
 import socket
 import argparse
 
+import commands
+import can
+import can_bridge
+import serial_datagrams
+
 class ConnectionArgumentParser(argparse.ArgumentParser):
     """
     Subclass of ArgumentParser with default arguments for connection handling (TCP and serial).
@@ -60,4 +65,17 @@ def write_command(fdesc, command, destinations, source=0):
         datagram = serial_datagrams.datagram_encode(bridge_frame)
         fdesc.write(datagram)
     time.sleep(0.3)
+
+
+def config_update_and_save(fdesc, config, destinations):
+    """
+    Updates the config of the given destinations.
+    Keys not in the given config are left unchanged.
+    """
+    # First send the updated config
+    command = commands.encode_update_config(config)
+    write_command(fdesc, command, destinations)
+
+    # Then save the config to flash
+    write_command(fdesc, commands.encode_save_config(), destinations)
 

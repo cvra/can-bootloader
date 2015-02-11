@@ -10,6 +10,7 @@ from zlib import crc32
 
 from bootloader_flash import *
 from commands import *
+from utils import *
 from collections import namedtuple
 import msgpack
 
@@ -18,7 +19,7 @@ from io import BytesIO
 import can, serial_datagrams, can_bridge
 import sys
 
-@patch('bootloader_flash.write_command')
+@patch('utils.write_command')
 class FlashBinaryTestCase(unittest.TestCase):
     fd = "port"
 
@@ -83,7 +84,7 @@ class FlashBinaryTestCase(unittest.TestCase):
             erase_command = encode_erase_flash_page(addr, device_class)
             write.assert_any_call(self.fd, erase_command, destinations)
 
-    @patch('bootloader_flash.config_update_and_save')
+    @patch('utils.config_update_and_save')
     def test_crc_is_updated(self, conf, write):
         """
         Tests that the CRC is updated after flashing a binary.
@@ -155,7 +156,7 @@ class CANDatagramReadTestCase(unittest.TestCase):
 class ConfigTestCase(unittest.TestCase):
     fd = "port"
 
-    @patch('bootloader_flash.write_command')
+    @patch('utils.write_command')
     def test_config_is_updated_and_saved(self, write):
         """
         Checks that the config is correctly sent encoded to the board.
@@ -174,7 +175,7 @@ class ConfigTestCase(unittest.TestCase):
 class CrcRegionTestCase(unittest.TestCase):
     fd = 'port'
 
-    @patch('bootloader_flash.write_command')
+    @patch('utils.write_command')
     @patch('bootloader_flash.read_can_datagram')
     def test_read_crc_sends_command(self, read, write):
         """
@@ -186,7 +187,7 @@ class CrcRegionTestCase(unittest.TestCase):
         command = commands.encode_crc_region(0x1000, 100)
         write.assert_any_call(self.fd, command, [42])
 
-    @patch('bootloader_flash.write_command')
+    @patch('utils.write_command')
     @patch('bootloader_flash.read_can_datagram')
     def test_read_crc_answer(self, read, write):
         """
@@ -232,7 +233,7 @@ class CrcRegionTestCase(unittest.TestCase):
 class RunApplicationTestCase(unittest.TestCase):
     fd = 'port'
 
-    @patch('bootloader_flash.write_command')
+    @patch('utils.write_command')
     def test_run_application(self, write):
         run_application(self.fd, [1])
 
