@@ -17,7 +17,7 @@ def parse_commandline_args(args=None):
     Parses the program commandline arguments.
     Args must be an array containing all arguments.
     """
-    parser = argparse.ArgumentParser(description='Update firmware using CVRA bootloading protocol.')
+    parser = ConnectionArgumentParser(description='Update firmware using CVRA bootloading protocol.')
     parser.add_argument('-b', '--binary', dest='binary_file',
                         help='Path to the binary file to upload',
                         required=True,
@@ -29,11 +29,6 @@ def parse_commandline_args(args=None):
                         required=True,
                         type=lambda s: int(s, 16)) # automatically convert value to hex
 
-    parser.add_argument('-p', '--port', dest='serial_device',
-                        help='Serial port to which the CAN port is connected to.',
-                        metavar='DEVICE')
-
-    parser.add_argument('--tcp', dest='hostname', help="Use TCP/IP instead of serial port (host:port format).", metavar="HOST")
 
     parser.add_argument('-c', '--device-class', dest='device_class', help='Device class to flash', required=True)
     parser.add_argument('-r', '--run', help='Run application after flashing', action='store_true')
@@ -42,11 +37,6 @@ def parse_commandline_args(args=None):
 
     args = parser.parse_args(args)
 
-    if args.hostname is None and args.serial_device is None:
-        parser.error("You must specify one of --tcp or --port")
-
-    if args.hostname and args.serial_device:
-        parser.error("Can only use one of--tcp and --port")
 
     return args
 

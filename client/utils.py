@@ -1,5 +1,33 @@
 import serial
 import socket
+import argparse
+
+class ConnectionArgumentParser(argparse.ArgumentParser):
+    """
+    Subclass of ArgumentParser with default arguments for connection handling (TCP and serial).
+
+    It also checks that the user provides at least one connection method (--tcp or --port).
+    """
+
+    def __init__(self, *args, **kwargs):
+        super(ConnectionArgumentParser, self).__init__(*args, **kwargs)
+
+        self.add_argument('--tcp', dest='hostname', help="Use TCP/IP instead of serial port (host:port format).", metavar="HOST")
+        self.add_argument('-p', '--port', dest='serial_device',
+                          help='Serial port to which the CAN bridge is connected to.',
+                          metavar='DEVICE')
+
+    def parse_args(self, *args, **kwargs):
+        args = super(ConnectionArgumentParser, self).parse_args(*args, **kwargs)
+
+        if args.hostname is None and args.serial_device is None:
+            self.error("You must specify one of --tcp or --port")
+
+        if args.hostname and args.serial_device:
+            self.error("Can only use one of--tcp and --port")
+
+        return args
+
 
 def open_connection(args):
     """
@@ -32,3 +60,4 @@ def write_command(fdesc, command, destinations, source=0):
         datagram = serial_datagrams.datagram_encode(bridge_frame)
         fdesc.write(datagram)
     time.sleep(0.3)
+
