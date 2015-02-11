@@ -1,6 +1,7 @@
 import serial
 import socket
 import argparse
+import time
 
 import commands
 import can
