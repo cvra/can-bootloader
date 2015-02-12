@@ -10,7 +10,12 @@ def parse_commandline_args():
     Parses the program commandline arguments.
     Args must be an array containing all arguments.
     """
-    parser = utils.ConnectionArgumentParser(description='Update config (key/value pairs) on a board')
+
+    epilog = '''
+    The configuration file must contained a JSON-encoded map. Example: "{"name":"foo"}".
+    '''
+
+    parser = utils.ConnectionArgumentParser(description='Update config (key/value pairs) on a board', epilog=epilog)
     parser.add_argument("-c", "--config", help="JSON file to load config from (default stdin)", type=open, default=sys.stdin, dest='file')
     parser.add_argument("ids", metavar='DEVICEID', nargs='+', type=int, help="Device IDs to flash")
 
