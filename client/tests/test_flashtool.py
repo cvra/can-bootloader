@@ -434,7 +434,7 @@ class OpenConnectionTestCase(unittest.TestCase):
             create_connection.assert_any_call(('10.0.0.10', 1337))
 
             # Check that we converted the socket to a read-write binary file object
-            socket.makefile.assert_any_call('w+b')
+            socket.makefile.assert_any_call('wrb')
 
             self.assertEqual(port, socket.makefile.return_value)
 
