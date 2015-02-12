@@ -53,7 +53,6 @@ void can_interface_init(void)
 
 void fault_handler(void)
 {
-    gpio_set(GPIOC, GPIO15);
 
     while(1); // debug
 
