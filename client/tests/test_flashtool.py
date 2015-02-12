@@ -23,6 +23,14 @@ import sys
 class FlashBinaryTestCase(unittest.TestCase):
     fd = "port"
 
+    def setUp(self):
+        mock = lambda m: patch(m).start()
+        self.progressbar = mock('progressbar.ProgressBar')
+        self.print = mock('builtins.print')
+
+    def teardown(self):
+        patch.stopall()
+
     def test_single_page_erase(self, write):
         """
         Checks that a single page is erased before writing.

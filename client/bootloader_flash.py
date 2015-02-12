@@ -9,6 +9,7 @@ from sys import exit
 import time
 
 import utils
+import progressbar
 
 CHUNK_SIZE = 2048
 
@@ -48,16 +49,27 @@ def flash_binary(fdesc, binary, base_address, device_class, destinations, page_s
     parameters.
     """
 
+    print("Erasing pages...")
+    pbar = progressbar.ProgressBar(maxval=len(binary)).start()
+
     # First erase all pages
     for offset in range(0, len(binary), page_size):
         erase_command = commands.encode_erase_flash_page(base_address + offset, device_class)
         utils.write_command(fdesc, erase_command, destinations)
+        pbar.update(offset)
+
+    pbar.finish()
+
+    print("Writing pages...")
+    pbar = progressbar.ProgressBar(maxval=len(binary)).start()
 
     # Then write all pages in chunks
     for offset, chunk in enumerate(page.slice_into_pages(binary, CHUNK_SIZE)):
         offset *= CHUNK_SIZE
         command = commands.encode_write_flash(chunk, base_address + offset, device_class)
         utils.write_command(fdesc, command, destinations)
+        pbar.update(offset)
+    pbar.finish()
 
     # Finally update application CRC and size in config
     config = dict()
