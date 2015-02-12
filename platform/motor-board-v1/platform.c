@@ -53,9 +53,7 @@ void can_interface_init(void)
 
 void fault_handler(void)
 {
-
-    while(1); // debug
-
+    // while(1); // debug
     reboot(BOOT_ARG_START_BOOTLOADER_NO_TIMEOUT);
 }
 
