@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import utils
 import commands
 import msgpack
