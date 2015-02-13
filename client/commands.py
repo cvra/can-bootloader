@@ -62,3 +62,9 @@ def encode_jump_to_main():
     Encodes the command to jump to application using MessagePack.
     """
     return encode_command(CommandType.JumpToMain)
+
+def encode_read_config():
+    """
+    Encodes the read config command.
+    """
+    return encode_command(CommandType.ReadConfig)
