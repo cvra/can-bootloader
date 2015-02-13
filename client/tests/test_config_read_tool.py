@@ -35,4 +35,4 @@ class WriteConfigToolTestCase(unittest.TestCase):
 
         all_configs = {i:configs[i] for i in range(3)}
 
-        print_mock.assert_any_call(json.dumps(all_configs, indent=4))
+        print_mock.assert_any_call(json.dumps(all_configs, indent=4, sort_keys=True))

@@ -28,7 +28,7 @@ def main():
         answer, _ = utils.read_can_datagram(connection)
         configs[id] = msgpack.unpackb(answer, encoding='ascii')
 
-    print(json.dumps(configs, indent=4))
+    print(json.dumps(configs, indent=4, sort_keys=True))
 
 if __name__ == "__main__":
     main()
