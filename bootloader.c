@@ -78,9 +78,11 @@ void bootloader_main(int arg)
     } else {
         // exact behaviour at invalid config is not yet defined.
         strcpy(config.device_class, PLATFORM_DEVICE_CLASS);
+        strcpy(config.board_name, "foobar2000");
         config.ID = DEFAULT_ID;
         config.application_crc = 0xDEADC0DE;
         config.application_size = 0;
+        config.update_count = 1;
     }
 
     can_datagram_t dt;
