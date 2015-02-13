@@ -30,6 +30,7 @@ They can all run with `-h/--help`, so use that to know how arguments works.
 
 * `bootloader_flash.py`: Used to program target boards.
 * `bootloader_write_config.py`: Used to change board config, such as device class, ID and so on. *Use it carefully.*
+* `bootloader_read_config.py`: Used to read the config from a bunch of boards and dump it as JSON.
 
 # Code organization
 

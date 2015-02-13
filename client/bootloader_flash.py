@@ -92,30 +92,13 @@ def check_binary(fdesc, binary, base_address, destinations):
     return valid_nodes
 
 
-def read_can_datagram(fdesc):
-    """
-    Reads a full CAN datagram from the CAN <-> serial bridge.
-    """
-    buf = bytes()
-    datagram = None
-
-    while datagram is None:
-        frame = serial_datagrams.read_datagram(fdesc)
-        if frame is None: # Timeout, retry
-            continue
-        frame = can_bridge.decode_frame(frame)
-        buf += frame.data
-        datagram = can.decode_datagram(buf)
-
-    return datagram
-
 def crc_region(fdesc, base_address, length, destination):
     """
     Asks a single board for the CRC of a region.
     """
     command = commands.encode_crc_region(base_address, length)
     utils.write_command(fdesc, command, [destination])
-    answer, _ = read_can_datagram(fdesc)
+    answer, _ = utils.read_can_datagram(fdesc)
 
     return msgpack.unpackb(answer)
 

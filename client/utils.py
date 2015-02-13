@@ -55,6 +55,25 @@ def open_connection(args):
         connection = socket.create_connection((host, port))
         return connection.makefile('wrb')
 
+
+def read_can_datagram(fdesc):
+    """
+    Reads a full CAN datagram from the CAN <-> serial bridge.
+    """
+    buf = bytes()
+    datagram = None
+
+    while datagram is None:
+        frame = serial_datagrams.read_datagram(fdesc)
+        if frame is None: # Timeout, retry
+            continue
+        frame = can_bridge.decode_frame(frame)
+        buf += frame.data
+        datagram = can.decode_datagram(buf)
+
+    return datagram
+
+
 def write_command(fdesc, command, destinations, source=0):
     """
     Writes the given encoded command to the CAN bridge.

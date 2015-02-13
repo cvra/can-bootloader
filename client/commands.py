@@ -10,6 +10,7 @@ class CommandType:
     Read = 6
     UpdateConfig = 7
     SaveConfig = 8
+    ReadConfig = 9
 
 def encode_command(command_code, *arguments):
     """
@@ -61,3 +62,9 @@ def encode_jump_to_main():
     Encodes the command to jump to application using MessagePack.
     """
     return encode_command(CommandType.JumpToMain)
+
+def encode_read_config():
+    """
+    Encodes the read config command.
+    """
+    return encode_command(CommandType.ReadConfig)
