@@ -52,6 +52,29 @@ void config_write(void *buffer, bootloader_config_t *config, size_t buffer_size)
     cmp_write_uint(&context, config->update_count);
 }
 
+void config_write_messagepack(cmp_ctx_t *context, bootloader_config_t *config)
+{
+    cmp_write_map(context, 6);
+
+    cmp_write_str(context, "ID", 2);
+    cmp_write_u8(context, config->ID);
+
+    cmp_write_str(context, "name", 4);
+    cmp_write_str(context, config->board_name, strlen(config->board_name));
+
+    cmp_write_str(context, "device_class", 12);
+    cmp_write_str(context, config->device_class, strlen(config->device_class));
+
+    cmp_write_str(context, "application_crc", 15);
+    cmp_write_uint(context, config->application_crc);
+
+    cmp_write_str(context, "application_size", 16);
+    cmp_write_uint(context, config->application_size);
+
+    cmp_write_str(context, "update_count", 12);
+    cmp_write_uint(context, config->update_count);
+}
+
 bootloader_config_t config_read(void *buffer, size_t buffer_size)
 {
     bootloader_config_t result;

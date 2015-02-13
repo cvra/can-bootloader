@@ -90,6 +90,7 @@ They should simply send the MessagePack encoded response on the bus.
 6. Read flash (0x06). Parameters : Start adress and length. Returns sequence of read bytes
 7. Update config (0x07). The only parameters is a MessagePack map containing the configuration values to update. If a config value is not in its parameters, it will not be changed.
 8. Save config to flash.
+9. Read current config (0x09). No parameters. Writes back a messagepack map containing the bootloader config.
 
 *Note:* Adresses (pointers) in the arguments are represented as 64 bits integers.
 64 bits was chosen to allow tests to run on 64 bits platforms too.
