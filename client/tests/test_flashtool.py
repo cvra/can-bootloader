@@ -184,7 +184,7 @@ class CrcRegionTestCase(unittest.TestCase):
     fd = 'port'
 
     @patch('utils.write_command')
-    @patch('bootloader_flash.read_can_datagram')
+    @patch('utils.read_can_datagram')
     def test_read_crc_sends_command(self, read, write):
         """
         Checks that a CRC read sends the correct command.
@@ -196,7 +196,7 @@ class CrcRegionTestCase(unittest.TestCase):
         write.assert_any_call(self.fd, command, [42])
 
     @patch('utils.write_command')
-    @patch('bootloader_flash.read_can_datagram')
+    @patch('utils.read_can_datagram')
     def test_read_crc_answer(self, read, write):
         """
         Checks that we can read back the CRC answer.
