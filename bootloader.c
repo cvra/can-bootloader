@@ -26,7 +26,8 @@ const command_t commands[] = {
     {.index = 5, .callback = command_ping},
     {.index = 6, .callback = command_read_flash},
     {.index = 7, .callback = command_config_update},
-    {.index = 8, .callback = command_config_write_to_flash}
+    {.index = 8, .callback = command_config_write_to_flash},
+    {.index = 9, .callback = command_config_read}
 };
 
 static void return_datagram(uint8_t source_id, uint8_t dest_id, uint8_t *data, size_t len)

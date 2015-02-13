@@ -10,6 +10,7 @@ class CommandType:
     Read = 6
     UpdateConfig = 7
     SaveConfig = 8
+    ReadConfig = 9
 
 def encode_command(command_code, *arguments):
     """
