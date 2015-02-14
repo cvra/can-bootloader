@@ -26,9 +26,16 @@ class WriteConfigToolTestCase(unittest.TestCase):
         serial.assert_any_call(port='/dev/ttyUSB0', timeout=ANY, baudrate=ANY)
         config_save.assert_any_call(serial.return_value, {'foo':12}, [1, 2, 3])
 
+    @patch('builtins.open')
+    @patch('builtins.print')
+    def test_fails_on_ID_change(self, print_mock, open_mock):
+        """
+        Checks that this tool refuses to change a Node ID.
+        """
+        sys.argv = "test.py -c nonexisting.json -p /dev/ttyUSB0 1 2 3".split()
+        config_file = '{"ID":11}'
 
+        open_mock.return_value = StringIO(config_file)
 
-
-
-
-
+        with self.assertRaises(SystemExit):
+            bootloader_write_config.main()

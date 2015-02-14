@@ -25,8 +25,14 @@ def parse_commandline_args():
 
 def main():
     args = parse_commandline_args()
-    connection = utils.open_connection(args)
     config = json.loads(args.file.read())
+
+    if "ID" in config.keys():
+        print("This tool cannot be used to change node IDs.")
+        print("Use bootloader_change_id.py instead.")
+        sys.exit(1)
+
+    connection = utils.open_connection(args)
     utils.config_update_and_save(connection, config, args.ids)
 
 if __name__ == "__main__":
