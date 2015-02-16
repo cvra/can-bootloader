@@ -17,11 +17,19 @@ TEST_GROUP(FlashCommandTestGroup)
     char page[1024];
     bootloader_config_t config;
 
+    char out_data[32];
+    serializer_t out_serializer;
+    cmp_ctx_t out;
+
     void setup()
     {
         serializer_init(&serializer, command_data, sizeof command_data);
         serializer_cmp_ctx_factory(&command_builder, &serializer);
         memset(command_data, 0, sizeof command_data);
+
+        serializer_init(&out_serializer, out_data, sizeof out_data);
+        serializer_cmp_ctx_factory(&out, &out_serializer);
+        memset(out_data, 0, sizeof out_data);
 
         // Creates a dummy device class for testing
         strcpy(config.device_class, "test.dummy");
@@ -53,18 +61,28 @@ TEST(FlashCommandTestGroup, CanFlashSinglePage)
                  .withPointerParameter("page_adress", page)
                  .withIntParameter("size", strlen(data));
 
-    command_write_flash(1, &command_builder, NULL, &config);
+    command_write_flash(1, &command_builder, &out, &config);
 
     mock().checkExpectations();
     STRCMP_EQUAL(data, page);
+
+    // check return value
+    bool ret = false;
+    cmp_read_bool(&out, &ret);
+    CHECK_TRUE(ret);
 }
 
 TEST(FlashCommandTestGroup, CheckErrorHandlingWithIllFormatedArguments)
 {
     // We simply check that no mock flash operation occurs
-    command_write_flash(1, &command_builder, NULL, &config);
+    command_write_flash(1, &command_builder, &out, &config);
 
     mock().checkExpectations();
+
+    // check return value
+    bool ret = true;
+    cmp_read_bool(&out, &ret);
+    CHECK_FALSE(ret);
 }
 
 TEST(FlashCommandTestGroup, CheckThatDeviceClassIsRespected)
@@ -81,9 +99,14 @@ TEST(FlashCommandTestGroup, CheckThatDeviceClassIsRespected)
 
     // Executes the command. Since the device class mismatch it should not make
     // any write
-    command_write_flash(1, &command_builder, NULL, &config);
+    command_write_flash(1, &command_builder, &out, &config);
 
     mock().checkExpectations();
+
+    // check return value
+    bool ret = true;
+    cmp_read_bool(&out, &ret);
+    CHECK_FALSE(ret);
 }
 
 TEST(FlashCommandTestGroup, CanErasePage)
@@ -101,9 +124,14 @@ TEST(FlashCommandTestGroup, CanErasePage)
 
     mock("flash").expectOneCall("page_erase").withPointerParameter("adress", &page);
 
-    command_erase_flash_page(1, &command_builder, NULL, &config);
+    command_erase_flash_page(1, &command_builder, &out, &config);
 
     mock().checkExpectations();
+
+    // check return value
+    bool ret = false;
+    cmp_read_bool(&out, &ret);
+    CHECK_TRUE(ret);
 }
 
 TEST(FlashCommandTestGroup, DeviceClassIsRespectedForErasePage)
@@ -111,19 +139,29 @@ TEST(FlashCommandTestGroup, DeviceClassIsRespectedForErasePage)
     // Writes the adress of the page
     cmp_write_u64(&command_builder, (size_t)&page);
 
-    // Writes the correct device class
+    // Writes the wrong device class
     cmp_write_str(&command_builder, "fail", 4);
 
-    command_erase_flash_page(1, &command_builder, NULL, &config);
+    command_erase_flash_page(1, &command_builder, &out, &config);
 
     mock().checkExpectations();
+
+    // check return value
+    bool ret = true;
+    cmp_read_bool(&out, &ret);
+    CHECK_FALSE(ret);
 }
 
 TEST(FlashCommandTestGroup, CheckIllFormatedArgumentsForErasePage)
 {
-    command_erase_flash_page(1, &command_builder, NULL, &config);
+    command_erase_flash_page(1, &command_builder, &out, &config);
 
     mock().checkExpectations();
+
+    // check return value
+    bool ret = true;
+    cmp_read_bool(&out, &ret);
+    CHECK_FALSE(ret);
 }
 
 TEST_GROUP(JumpToApplicationCodetestGroup)
