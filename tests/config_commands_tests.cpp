@@ -5,6 +5,7 @@
 
 #include "../flash_writer.h"
 #include "../command.h"
+#include "mocks/platform_mock.h"
 
 
 TEST_GROUP(ConfigCommandTestGroup)
@@ -32,9 +33,14 @@ TEST(ConfigCommandTestGroup, CanChangeNodeID)
     cmp_write_str(&write_ctx, "ID", 2);
     cmp_write_u8(&write_ctx, 42);
 
-    command_config_update(1, &read_ctx, NULL, &config);
+    command_config_update(1, &write_ctx, &read_ctx, &config);
 
     CHECK_EQUAL(42, config.ID);
+
+    // check return value
+    bool ret = false;
+    cmp_read_bool(&read_ctx, &ret);
+    CHECK_TRUE(ret);
 }
 
 TEST(ConfigCommandTestGroup, CanReadConfig)
@@ -44,7 +50,7 @@ TEST(ConfigCommandTestGroup, CanReadConfig)
 
     config.ID = 42;
     command_config_read(0, NULL, &write_ctx, &config);
-    config_update_from_serialized(&read_config, &read_ctx);
+    config_update_from_serialized(&read_config, &write_ctx);
 
     // Just check that the first field matches.
     // The rest is tested in ConfigSerializationTest
