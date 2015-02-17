@@ -7,6 +7,7 @@ class CommandType:
     CRCReginon = 2
     Erase = 3
     Write = 4
+    Ping = 5
     Read = 6
     UpdateConfig = 7
     SaveConfig = 8
@@ -68,3 +69,9 @@ def encode_read_config():
     Encodes the read config command.
     """
     return encode_command(CommandType.ReadConfig)
+
+def encode_ping():
+    """
+    Encodes a ping command.
+    """
+    return encode_command(CommandType.Ping)

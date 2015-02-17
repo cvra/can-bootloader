@@ -128,3 +128,17 @@ class JumpToApplicationMainTestCase(unittest.TestCase):
         """
         self.assertEqual(self.command[0], CommandType.JumpToMain)
 
+class PingTestCase(unittest.TestCase):
+    """
+    Checks that the ping command is properly encoded.
+    """
+
+    def setUp(self):
+        raw_packet = encode_ping()
+        unpacker = Unpacker()
+        unpacker.feed(raw_packet)
+        self.command = list(unpacker)[1:]
+
+    def test_ping(self):
+        self.assertEqual(self.command[0], 5)
+
