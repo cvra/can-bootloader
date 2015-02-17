@@ -38,3 +38,23 @@ class ReadConfigToolTestCase(unittest.TestCase):
         all_configs = {i:configs[i] for i in range(3)}
 
         print_mock.assert_any_call(json.dumps(all_configs, indent=4, sort_keys=True))
+
+    @patch('utils.open_connection')
+    @patch('utils.write_command')
+    @patch('utils.CANDatagramReader.read_datagram')
+    @patch('utils.ping_board')
+    @patch('builtins.print')
+    def test_network_discovery(self, print_mock, ping, read_can_datagram, write_command, open_conn):
+        """
+        Checks if we can perform a whole network discovery.
+        """
+        sys.argv = "test.py -p /dev/ttyUSB0 --all".split()
+
+        ping.side_effect = [True, True] + (127 - 2) * [False]
+        read_can_datagram.side_effect = [(packb({'foo':i}), 0, i) for i in range(2)]
+
+        bootloader_read_config.main()
+
+        write_command.assert_any_call(ANY, encode_read_config(), [1, 2])
+
+
