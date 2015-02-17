@@ -96,12 +96,11 @@ class CANDatagramReader:
         while datagram is None:
             frame = serial_datagrams.read_datagram(self.fdesc)
             if frame is None: # Timeout, retry
-                continue
+                return None
 
             frame = can_bridge.decode_frame(frame)
 
             src = frame.id & (0x7f)
-
             self.buf[src] += frame.data
 
             datagram = can.decode_datagram(self.buf[src])
