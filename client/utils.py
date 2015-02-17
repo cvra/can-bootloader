@@ -110,6 +110,24 @@ class CANDatagramReader:
 
         return data, dst, src
 
+
+def ping_board(fdesc, destination):
+    """
+    Checks if a board is up.
+
+    Returns True if it is online, false otherwise.
+    """
+    write_command(fdesc, commands.encode_ping(), [destination])
+
+    reader = CANDatagramReader(fdesc)
+    answer = reader.read_datagram()
+
+    # Timeout
+    if answer is None:
+        return False
+
+    return True
+
 def write_command(fdesc, command, destinations, source=0):
     """
     Writes the given encoded command to the CAN bridge.
