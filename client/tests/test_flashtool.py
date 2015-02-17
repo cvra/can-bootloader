@@ -467,18 +467,14 @@ class OpenConnectionTestCase(unittest.TestCase):
         args = self.make_args(hostname="10.0.0.10")
 
         with patch('socket.create_connection') as create_connection:
-            socket = Mock()
-            socket.makefile = Mock(return_value=object())
+            socket = Mock(return_value=object())
 
-            create_connection.return_value = socket
+            create_connection.return_value = Mock()
             port = open_connection(args)
 
             create_connection.assert_any_call(('10.0.0.10', 1337))
 
-            # Check that we converted the socket to a read-write binary file object
-            socket.makefile.assert_any_call('wrb')
-
-            self.assertEqual(port, socket.makefile.return_value)
+            self.assertEqual(port.socket, create_connection.return_value)
 
     def test_open_hostname_custom_port(self):
         """

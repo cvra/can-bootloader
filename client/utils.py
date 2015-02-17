@@ -35,6 +35,26 @@ class ConnectionArgumentParser(argparse.ArgumentParser):
 
         return args
 
+class SocketSerialAdapter:
+    """
+    This class wraps a socket in an API compatible with PySerial's one.
+    """
+    def __init__(self, socket):
+        self.socket = socket
+
+    def read(self, n):
+        try:
+            return self.socket.recv(n)
+        except socket.timeout:
+            return bytes()
+
+
+    def write(self, data):
+        return self.socket.send(data)
+
+    def flush(self):
+        pass
+
 
 def open_connection(args):
     """
@@ -54,7 +74,8 @@ def open_connection(args):
         port = int(port)
 
         connection = socket.create_connection((host, port))
-        return connection.makefile('wrb')
+        connection.settimeout(0.2)
+        return SocketSerialAdapter(connection)
 
 class CANDatagramReader:
     """
