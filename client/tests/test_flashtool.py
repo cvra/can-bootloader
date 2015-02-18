@@ -135,6 +135,38 @@ class CANDatagramReadTestCase(unittest.TestCase):
         self.assertEqual(dt.decode('ascii'), 'Hello world')
         self.assertEqual(dst, [1])
 
+    def test_read_can_interleaved_datagrams(self):
+        """
+        Tests reading two interleaved CAN datagrams together.
+        """
+
+        data = 'Hello world'.encode('ascii')
+        # Encapsulates it in a CAN datagram
+        data = can.encode_datagram(data, destinations=[1])
+
+        # Slice the datagram in frames
+        frames = [can.datagram_to_frames(data, source=i) for i in range(2)]
+
+        # Interleave frames
+        frames = [x for t in zip(*frames) for x in t]
+
+
+        # Serializes CAN frames for the bridge
+        frames = [can_bridge.encode_frame(f) for f in frames]
+
+        # Packs each frame in a serial datagram
+        frames = bytes(c for i in [serial_datagrams.datagram_encode(f) for f in frames] for c in i)
+
+        # Put all data in a pseudofile
+        fdesc = BytesIO(frames)
+
+        decode = CANDatagramReader(fdesc)
+
+        # Read a CAN datagram from that pseudofile
+        dt, dst, src = decode.read_datagram()
+
+
+
     def test_read_can_datagram_timeout(self):
         """
         Tests reading a datagram with a timeout (read_datagram returns None).
