@@ -28,7 +28,7 @@ class FlashBinaryTestCase(unittest.TestCase):
         self.progressbar = mock('progressbar.ProgressBar')
         self.print = mock('builtins.print')
 
-    def teardown(self):
+    def tearDown(self):
         patch.stopall()
 
     def test_single_page_erase(self, write):
@@ -175,28 +175,14 @@ class CANDatagramReadTestCase(unittest.TestCase):
         Tests reading a datagram with a timeout (read_datagram returns None).
         """
         data = 'Hello world'.encode('ascii')
-        # Encapsulates it in a CAN datagram
-        data = can.encode_datagram(data, destinations=[1])
-
-        # Slice the datagram in frames
-        frames = can.datagram_to_frames(data, source=0)
-
-        # Serializes CAN frames for the bridge
-        frames = [can_bridge.encode_frame(f) for f in frames]
-
-        # Packs each frame in a serial datagram
-        frames = [serial_datagrams.datagram_encode(f) for f in frames]
 
         reader = CANDatagramReader(None)
 
         with patch('serial_datagrams.read_datagram') as read:
-            read.side_effect = [None] + frames
-            dt, dst, _ = reader.read_datagram()
+            read.return_value = None
+            a = reader.read_datagram()
 
-        self.assertEqual(dt.decode('ascii'), 'Hello world')
-        self.assertEqual(dst, [1])
-
-
+        self.assertIsNone(a)
 
 class ConfigTestCase(unittest.TestCase):
     fd = "port"
@@ -217,60 +203,25 @@ class ConfigTestCase(unittest.TestCase):
         # Checks that the calls were made, and in the correct order
         write.assert_has_calls([update_call, save_command])
 
-class CrcRegionTestCase(unittest.TestCase):
-    fd = 'port'
-
-    @patch('utils.write_command')
     @patch('utils.CANDatagramReader.read_datagram')
-    def test_read_crc_sends_command(self, read, write):
-        """
-        Checks that a CRC read sends the correct command.
-        """
-        read.return_value = (msgpack.packb(0xdeadbeef), [1], 0)
-
-        crc_region(fdesc=self.fd, base_address=0x1000, length=100, destination=42)
-        command = commands.encode_crc_region(0x1000, 100)
-        write.assert_any_call(self.fd, command, [42])
-
     @patch('utils.write_command')
-    @patch('utils.CANDatagramReader.read_datagram')
-    def test_read_crc_answer(self, read, write):
-        """
-        Checks that we can read back the CRC answer.
-        """
-        read.return_value = (msgpack.packb(0xdeadbeef), [1], 0)
-        crc = crc_region(fdesc=self.fd, base_address=0x1000, length=100, destination=42)
-
-        # Checks that the CRC value matches the expected one
-        self.assertEqual(0xdeadbeef, crc)
-
-    @patch('bootloader_flash.crc_region')
-    def test_single_crc(self, crc_region):
-        """
-        Tries to check the crc of a single node and it is valid.
-        """
-        binary = bytes([0] * 10)
-        crc_region.return_value = crc32(binary)
-
-        valid_nodes = check_binary(self.fd, binary, 0x1000, [1])
-        self.assertEqual([1], valid_nodes)
-
-        crc_region.assert_any_call(self.fd, 0x1000, 10, 1)
-
-    @patch('bootloader_flash.crc_region')
-    def test_check_single_valid_checksum(self, crc_region):
+    def test_check_single_valid_checksum(self, write, read_datagram):
         """
         Checks what happens if there are invalid checksums.
         """
         binary = bytes([0] * 10)
-        crc_region.side_effect = [0xbad, crc32(binary)]
+        crc = crc32(binary)
+
+        side_effect  = [(msgpack.packb(crc), [0], 1)]
+        side_effect += [(msgpack.packb(0xdead), [0], 2)]
+        side_effect += [None] # timeout
+
+        read_datagram.side_effect = side_effect
+
 
         valid_nodes = check_binary(self.fd, binary, 0x1000, [1, 2])
 
-        crc_region.assert_any_call(self.fd, 0x1000, 10, 1)
-        crc_region.assert_any_call(self.fd, 0x1000, 10, 2)
-
-        self.assertEqual([2], valid_nodes)
+        self.assertEqual([1], valid_nodes)
 
 class RunApplicationTestCase(unittest.TestCase):
     fd = 'port'
@@ -308,6 +259,9 @@ class MainTestCase(unittest.TestCase):
         self.check = mock('bootloader_flash.check_binary')
         self.run = mock('bootloader_flash.run_application')
 
+        self.check_online_boards = mock('bootloader_flash.check_online_boards')
+        self.check_online_boards.side_effect = lambda f, b: set([1,2,3])
+
         # Prepare binary file argument
         self.binary_data = bytes([0] * 10)
         self.open.return_value = BytesIO(self.binary_data)
@@ -338,6 +292,17 @@ class MainTestCase(unittest.TestCase):
         """
         main()
         self.serial.assert_any_call(port='/dev/ttyUSB0', baudrate=115200, timeout=0.2)
+
+    def test_failing_ping(self):
+        """
+        Checks what happens if a board doesn't pingback.
+        """
+        # No board answers
+        self.check_online_boards.side_effect = lambda f, b: set()
+
+        with self.assertRaises(SystemExit):
+            main()
+
 
     def test_flash_binary(self):
         """
@@ -467,18 +432,14 @@ class OpenConnectionTestCase(unittest.TestCase):
         args = self.make_args(hostname="10.0.0.10")
 
         with patch('socket.create_connection') as create_connection:
-            socket = Mock()
-            socket.makefile = Mock(return_value=object())
+            socket = Mock(return_value=object())
 
-            create_connection.return_value = socket
+            create_connection.return_value = Mock()
             port = open_connection(args)
 
             create_connection.assert_any_call(('10.0.0.10', 1337))
 
-            # Check that we converted the socket to a read-write binary file object
-            socket.makefile.assert_any_call('wrb')
-
-            self.assertEqual(port, socket.makefile.return_value)
+            self.assertEqual(port.socket, create_connection.return_value)
 
     def test_open_hostname_custom_port(self):
         """

@@ -35,6 +35,26 @@ class ConnectionArgumentParser(argparse.ArgumentParser):
 
         return args
 
+class SocketSerialAdapter:
+    """
+    This class wraps a socket in an API compatible with PySerial's one.
+    """
+    def __init__(self, socket):
+        self.socket = socket
+
+    def read(self, n):
+        try:
+            return self.socket.recv(n)
+        except socket.timeout:
+            return bytes()
+
+
+    def write(self, data):
+        return self.socket.send(data)
+
+    def flush(self):
+        pass
+
 
 def open_connection(args):
     """
@@ -54,7 +74,8 @@ def open_connection(args):
         port = int(port)
 
         connection = socket.create_connection((host, port))
-        return connection.makefile('wrb')
+        connection.settimeout(0.2)
+        return SocketSerialAdapter(connection)
 
 class CANDatagramReader:
     """
@@ -75,12 +96,11 @@ class CANDatagramReader:
         while datagram is None:
             frame = serial_datagrams.read_datagram(self.fdesc)
             if frame is None: # Timeout, retry
-                continue
+                return None
 
             frame = can_bridge.decode_frame(frame)
 
             src = frame.id & (0x7f)
-
             self.buf[src] += frame.data
 
             datagram = can.decode_datagram(self.buf[src])
@@ -89,6 +109,24 @@ class CANDatagramReader:
                 data, dst = datagram
 
         return data, dst, src
+
+
+def ping_board(fdesc, destination):
+    """
+    Checks if a board is up.
+
+    Returns True if it is online, false otherwise.
+    """
+    write_command(fdesc, commands.encode_ping(), [destination])
+
+    reader = CANDatagramReader(fdesc)
+    answer = reader.read_datagram()
+
+    # Timeout
+    if answer is None:
+        return False
+
+    return True
 
 def write_command(fdesc, command, destinations, source=0):
     """

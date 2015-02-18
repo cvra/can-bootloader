@@ -84,25 +84,28 @@ def check_binary(fdesc, binary, base_address, destinations):
     Returns a list of all nodes which are passing the test.
     """
     valid_nodes = []
-    for node in destinations:
-        crc = crc_region(fdesc, base_address, len(binary), node)
-        if crc == crc32(binary):
-            valid_nodes.append(node)
 
-    return valid_nodes
+    expected_crc = crc32(binary)
 
-
-def crc_region(fdesc, base_address, length, destination):
-    """
-    Asks a single board for the CRC of a region.
-    """
-    command = commands.encode_crc_region(base_address, length)
-    utils.write_command(fdesc, command, [destination])
+    command = commands.encode_crc_region(base_address, len(binary))
+    utils.write_command(fdesc, command, destinations)
 
     reader = utils.CANDatagramReader(fdesc)
-    answer, _, _ = reader.read_datagram()
 
-    return msgpack.unpackb(answer)
+    while True:
+        dt = reader.read_datagram()
+
+        if dt is None:
+            break
+
+        answer, _, src = dt
+
+        crc = msgpack.unpackb(answer)
+
+        if crc == expected_crc:
+            valid_nodes.append(src)
+
+    return valid_nodes
 
 def run_application(fdesc, destinations):
     """
@@ -120,6 +123,26 @@ def verification_failed(failed_nodes):
     exit(1)
 
 
+def check_online_boards(fdesc, boards):
+    """
+    Returns a set containing the online boards.
+    """
+    online_boards = set()
+
+    utils.write_command(fdesc, commands.encode_ping(), boards)
+    reader = utils.CANDatagramReader(fdesc)
+
+    while True:
+        dt = reader.read_datagram()
+
+        if dt is None: # Timeout
+            break
+
+        _, _, src = dt
+        online_boards.add(src)
+
+    return online_boards
+
 def main():
     """
     Entry point of the application.
@@ -129,6 +152,13 @@ def main():
         binary = input_file.read()
 
     serial_port = utils.open_connection(args)
+
+    online_boards = check_online_boards(serial_port, args.ids)
+
+    if online_boards != set(args.ids):
+        offline_boards = [str(i) for i in set(args.ids) - online_boards]
+        print("Boards {} are offline, aborting...".format(", ".join(offline_boards)))
+        exit(2)
 
     print("Flashing firmware (size: {} bytes)".format(len(binary)))
     flash_binary(serial_port, binary, args.base_address, args.device_class, args.ids)
