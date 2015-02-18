@@ -12,8 +12,8 @@ from commands import *
 import sys
 import json
 
-class WriteConfigToolTestCase(unittest.TestCase):
-    @patch('utils.read_can_datagram')
+class ReadConfigToolTestCase(unittest.TestCase):
+    @patch('utils.CANDatagramReader.read_datagram')
     @patch('utils.write_command')
     @patch('serial.Serial')
     @patch('builtins.print')
@@ -21,7 +21,7 @@ class WriteConfigToolTestCase(unittest.TestCase):
         sys.argv = "test.py -p /dev/ttyUSB0 0 1 2".split()
         configs = [{'id':i} for i in range(3)]
 
-        read_can_datagram.side_effect = [(packb(c), 0) for c in configs]
+        read_can_datagram.side_effect = [(packb(c), 0, 0) for c in configs]
 
         serial.return_value = object()
 
@@ -31,7 +31,7 @@ class WriteConfigToolTestCase(unittest.TestCase):
 
         for i in range(3):
             write_command.assert_any_call(serial.return_value, encode_read_config(), [i])
-            read_can_datagram.assert_any_call(serial.return_value)
+            read_can_datagram.assert_any_call()
 
         all_configs = {i:configs[i] for i in range(3)}
 
