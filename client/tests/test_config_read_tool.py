@@ -50,8 +50,11 @@ class ReadConfigToolTestCase(unittest.TestCase):
         """
         sys.argv = "test.py -p /dev/ttyUSB0 --all".split()
 
-        ping.side_effect = [True, True] + (127 - 2) * [False]
-        read_can_datagram.side_effect = [(packb({'foo':i}), 0, i) for i in range(2)]
+        # The first two board answers
+        board_answers = [(b'', [0], i) for i in range(1, 3)] + [None]
+        board_answers += [(packb({'foo':i}), 0, i) for i in range(2)]
+
+        read_can_datagram.side_effect = board_answers
 
         bootloader_read_config.main()
 

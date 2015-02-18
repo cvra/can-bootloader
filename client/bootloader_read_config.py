@@ -26,9 +26,19 @@ def main():
 
     if args.all:
         scan_queue = list()
-        for i in range(1, 128):
-            if utils.ping_board(connection, i):
-                scan_queue.append(i)
+
+        # Broadcast ping
+        utils.write_command(connection, commands.encode_ping(), list(range(1, 128)))
+        reader = utils.CANDatagramReader(connection)
+        while True:
+            dt = reader.read_datagram()
+
+            if dt is None: # Timeout
+                break
+
+            _, _, src = dt
+            scan_queue.append(src)
+
     else:
         scan_queue = args.ids
 
