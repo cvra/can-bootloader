@@ -7,6 +7,7 @@ import commands
 import can
 import can_bridge
 import serial_datagrams
+from collections import defaultdict
 
 class ConnectionArgumentParser(argparse.ArgumentParser):
     """
@@ -55,24 +56,39 @@ def open_connection(args):
         connection = socket.create_connection((host, port))
         return connection.makefile('wrb')
 
-
-def read_can_datagram(fdesc):
+class CANDatagramReader:
     """
-    Reads a full CAN datagram from the CAN <-> serial bridge.
+    This class implements CAN datagram reading.
+
+    It supports reading interleaved datagrams through internal buffering.
     """
-    buf = bytes()
-    datagram = None
+    def __init__(self, fdesc):
+        self.fdesc = fdesc
+        self.buf = defaultdict(lambda: bytes())
 
-    while datagram is None:
-        frame = serial_datagrams.read_datagram(fdesc)
-        if frame is None: # Timeout, retry
-            continue
-        frame = can_bridge.decode_frame(frame)
-        buf += frame.data
-        datagram = can.decode_datagram(buf)
+    def read_datagram(self):
+        """
+        Reads a single datagram.
+        """
+        datagram = None
 
-    return datagram
+        while datagram is None:
+            frame = serial_datagrams.read_datagram(self.fdesc)
+            if frame is None: # Timeout, retry
+                continue
 
+            frame = can_bridge.decode_frame(frame)
+
+            src = frame.id & (0x7f)
+
+            self.buf[src] += frame.data
+
+            datagram = can.decode_datagram(self.buf[src])
+
+            if datagram is not None:
+                data, dst = datagram
+
+        return data, dst, src
 
 def write_command(fdesc, command, destinations, source=0):
     """

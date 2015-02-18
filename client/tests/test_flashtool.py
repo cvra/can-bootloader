@@ -118,7 +118,7 @@ class CANDatagramReadTestCase(unittest.TestCase):
         data = can.encode_datagram(data, destinations=[1])
 
         # Slice the datagram in frames
-        frames = can.datagram_to_frames(data, source=0)
+        frames = can.datagram_to_frames(data, source=42)
 
         # Serializes CAN frames for the bridge
         frames = [can_bridge.encode_frame(f) for f in frames]
@@ -129,11 +129,46 @@ class CANDatagramReadTestCase(unittest.TestCase):
         # Put all data in a pseudofile
         fdesc = BytesIO(frames)
 
+        reader = CANDatagramReader(fdesc)
+
         # Read a CAN datagram from that pseudofile
-        dt, dst = read_can_datagram(fdesc)
+        dt, dst, src = reader.read_datagram()
 
         self.assertEqual(dt.decode('ascii'), 'Hello world')
         self.assertEqual(dst, [1])
+        self.assertEqual(src, 42)
+
+    def test_read_can_interleaved_datagrams(self):
+        """
+        Tests reading two interleaved CAN datagrams together.
+        """
+
+        data = 'Hello world'.encode('ascii')
+        # Encapsulates it in a CAN datagram
+        data = can.encode_datagram(data, destinations=[1])
+
+        # Slice the datagram in frames
+        frames = [can.datagram_to_frames(data, source=i) for i in range(2)]
+
+        # Interleave frames
+        frames = [x for t in zip(*frames) for x in t]
+
+
+        # Serializes CAN frames for the bridge
+        frames = [can_bridge.encode_frame(f) for f in frames]
+
+        # Packs each frame in a serial datagram
+        frames = bytes(c for i in [serial_datagrams.datagram_encode(f) for f in frames] for c in i)
+
+        # Put all data in a pseudofile
+        fdesc = BytesIO(frames)
+
+        decode = CANDatagramReader(fdesc)
+
+        # Read a CAN datagram from that pseudofile
+        dt, dst, src = decode.read_datagram()
+
+
 
     def test_read_can_datagram_timeout(self):
         """
@@ -152,9 +187,11 @@ class CANDatagramReadTestCase(unittest.TestCase):
         # Packs each frame in a serial datagram
         frames = [serial_datagrams.datagram_encode(f) for f in frames]
 
+        reader = CANDatagramReader(None)
+
         with patch('serial_datagrams.read_datagram') as read:
             read.side_effect = [None] + frames
-            dt, dst = read_can_datagram(None)
+            dt, dst, _ = reader.read_datagram()
 
         self.assertEqual(dt.decode('ascii'), 'Hello world')
         self.assertEqual(dst, [1])
@@ -184,28 +221,25 @@ class CrcRegionTestCase(unittest.TestCase):
     fd = 'port'
 
     @patch('utils.write_command')
-    @patch('utils.read_can_datagram')
+    @patch('utils.CANDatagramReader.read_datagram')
     def test_read_crc_sends_command(self, read, write):
         """
         Checks that a CRC read sends the correct command.
         """
-        read.return_value = (msgpack.packb(0xdeadbeef), [1])
+        read.return_value = (msgpack.packb(0xdeadbeef), [1], 0)
 
         crc_region(fdesc=self.fd, base_address=0x1000, length=100, destination=42)
         command = commands.encode_crc_region(0x1000, 100)
         write.assert_any_call(self.fd, command, [42])
 
     @patch('utils.write_command')
-    @patch('utils.read_can_datagram')
+    @patch('utils.CANDatagramReader.read_datagram')
     def test_read_crc_answer(self, read, write):
         """
         Checks that we can read back the CRC answer.
         """
-        read.return_value = (msgpack.packb(0xdeadbeef), [1])
+        read.return_value = (msgpack.packb(0xdeadbeef), [1], 0)
         crc = crc_region(fdesc=self.fd, base_address=0x1000, length=100, destination=42)
-
-        # Checks that the port was given correctly
-        read.assert_any_call(self.fd)
 
         # Checks that the CRC value matches the expected one
         self.assertEqual(0xdeadbeef, crc)
