@@ -25,10 +25,12 @@ def main():
 
     reader = utils.CANDatagramReader(connection)
 
+    # Broadcast ask for config
+    utils.write_command(connection, commands.encode_read_config(), args.ids)
+
     for id in args.ids:
-        utils.write_command(connection, commands.encode_read_config(), [id])
-        answer, _, _ = reader.read_datagram()
-        configs[id] = msgpack.unpackb(answer, encoding='ascii')
+        answer, _, src = reader.read_datagram()
+        configs[src] = msgpack.unpackb(answer, encoding='ascii')
 
     print(json.dumps(configs, indent=4, sort_keys=True))
 
