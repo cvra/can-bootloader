@@ -55,6 +55,6 @@ class ReadConfigToolTestCase(unittest.TestCase):
 
         bootloader_read_config.main()
 
-        write_command.assert_any_call(ANY, encode_read_config(), [1, 2])
+        write_command.assert_any_call(open_conn.return_value, encode_read_config(), [1, 2])
 
 
