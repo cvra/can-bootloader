@@ -28,7 +28,7 @@ class FlashBinaryTestCase(unittest.TestCase):
         self.progressbar = mock('progressbar.ProgressBar')
         self.print = mock('builtins.print')
 
-    def teardown(self):
+    def tearDown(self):
         patch.stopall()
 
     def test_single_page_erase(self, write):
@@ -259,6 +259,9 @@ class MainTestCase(unittest.TestCase):
         self.check = mock('bootloader_flash.check_binary')
         self.run = mock('bootloader_flash.run_application')
 
+        self.check_online_boards = mock('bootloader_flash.check_online_boards')
+        self.check_online_boards.side_effect = lambda f, b: set([1,2,3])
+
         # Prepare binary file argument
         self.binary_data = bytes([0] * 10)
         self.open.return_value = BytesIO(self.binary_data)
@@ -289,6 +292,17 @@ class MainTestCase(unittest.TestCase):
         """
         main()
         self.serial.assert_any_call(port='/dev/ttyUSB0', baudrate=115200, timeout=0.2)
+
+    def test_failing_ping(self):
+        """
+        Checks what happens if a board doesn't pingback.
+        """
+        # No board answers
+        self.check_online_boards.side_effect = lambda f, b: set()
+
+        with self.assertRaises(SystemExit):
+            main()
+
 
     def test_flash_binary(self):
         """
