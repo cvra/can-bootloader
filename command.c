@@ -18,16 +18,14 @@ void command_erase_flash_page(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloa
 
     // refuse to overwrite bootloader or config pages
     if (address < memory_get_app_addr()) {
-        cmp_write_bool(out, 0);
-        return;
+        goto command_fail;
     }
 
     uint32_t size = 64;
     cmp_read_str(args, device_class, &size);
 
     if (strcmp(device_class, config->device_class) != 0) {
-        cmp_write_bool(out, 0);
-        return;
+        goto command_fail;
     }
 
     flash_writer_unlock();
@@ -37,6 +35,11 @@ void command_erase_flash_page(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloa
     flash_writer_lock();
 
     cmp_write_bool(out, 1);
+    return;
+
+command_fail:
+    cmp_write_bool(out, 0);
+    return;
 }
 
 void command_write_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config)
@@ -52,20 +55,18 @@ void command_write_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_c
 
     // refuse to overwrite bootloader or config pages
     if (address < memory_get_app_addr()) {
-        cmp_write_bool(out, 0);
-        return;
+        goto command_fail;
     }
 
     size = 64;
     cmp_read_str(args, device_class, &size);
 
     if (strcmp(device_class, config->device_class) != 0) {
-        cmp_write_bool(out, 0);
-        return;
+        goto command_fail;
     }
 
     if (!cmp_read_bin_size(args, &size)) {
-        return;
+        goto command_fail;
     }
 
     /* This is ugly, yet required to achieve zero copy. */
@@ -79,6 +80,11 @@ void command_write_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_c
     flash_writer_lock();
 
     cmp_write_bool(out, 1);
+    return;
+
+command_fail:
+    cmp_write_bool(out, 0);
+    return;
 }
 
 void command_read_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config)
