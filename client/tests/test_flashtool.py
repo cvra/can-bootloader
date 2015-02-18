@@ -203,60 +203,25 @@ class ConfigTestCase(unittest.TestCase):
         # Checks that the calls were made, and in the correct order
         write.assert_has_calls([update_call, save_command])
 
-class CrcRegionTestCase(unittest.TestCase):
-    fd = 'port'
-
-    @patch('utils.write_command')
     @patch('utils.CANDatagramReader.read_datagram')
-    def test_read_crc_sends_command(self, read, write):
-        """
-        Checks that a CRC read sends the correct command.
-        """
-        read.return_value = (msgpack.packb(0xdeadbeef), [1], 0)
-
-        crc_region(fdesc=self.fd, base_address=0x1000, length=100, destination=42)
-        command = commands.encode_crc_region(0x1000, 100)
-        write.assert_any_call(self.fd, command, [42])
-
     @patch('utils.write_command')
-    @patch('utils.CANDatagramReader.read_datagram')
-    def test_read_crc_answer(self, read, write):
-        """
-        Checks that we can read back the CRC answer.
-        """
-        read.return_value = (msgpack.packb(0xdeadbeef), [1], 0)
-        crc = crc_region(fdesc=self.fd, base_address=0x1000, length=100, destination=42)
-
-        # Checks that the CRC value matches the expected one
-        self.assertEqual(0xdeadbeef, crc)
-
-    @patch('bootloader_flash.crc_region')
-    def test_single_crc(self, crc_region):
-        """
-        Tries to check the crc of a single node and it is valid.
-        """
-        binary = bytes([0] * 10)
-        crc_region.return_value = crc32(binary)
-
-        valid_nodes = check_binary(self.fd, binary, 0x1000, [1])
-        self.assertEqual([1], valid_nodes)
-
-        crc_region.assert_any_call(self.fd, 0x1000, 10, 1)
-
-    @patch('bootloader_flash.crc_region')
-    def test_check_single_valid_checksum(self, crc_region):
+    def test_check_single_valid_checksum(self, write, read_datagram):
         """
         Checks what happens if there are invalid checksums.
         """
         binary = bytes([0] * 10)
-        crc_region.side_effect = [0xbad, crc32(binary)]
+        crc = crc32(binary)
+
+        side_effect  = [(msgpack.packb(crc), [0], 1)]
+        side_effect += [(msgpack.packb(0xdead), [0], 2)]
+        side_effect += [None] # timeout
+
+        read_datagram.side_effect = side_effect
+
 
         valid_nodes = check_binary(self.fd, binary, 0x1000, [1, 2])
 
-        crc_region.assert_any_call(self.fd, 0x1000, 10, 1)
-        crc_region.assert_any_call(self.fd, 0x1000, 10, 2)
-
-        self.assertEqual([2], valid_nodes)
+        self.assertEqual([1], valid_nodes)
 
 class RunApplicationTestCase(unittest.TestCase):
     fd = 'port'
