@@ -10,7 +10,7 @@
 void command_erase_flash_page(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config)
 {
     void *address;
-    uint64_t tmp;
+    uint64_t tmp = 0;
     char device_class[64];
 
     cmp_read_uinteger(args, &tmp);
@@ -46,7 +46,7 @@ void command_write_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_c
 {
     void *address;
     void *src;
-    uint64_t tmp;
+    uint64_t tmp = 0;
     uint32_t size;
     char device_class[64];
 

@@ -73,7 +73,7 @@ bootloader_config_t config_read(void *buffer, size_t buffer_size)
 
 void config_update_from_serialized(bootloader_config_t *config, cmp_ctx_t *context)
 {
-    uint32_t key_count;
+    uint32_t key_count = 0;
     char key[64];
     uint32_t key_len;
 
