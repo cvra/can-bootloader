@@ -24,6 +24,12 @@
 *.i*86
 *.x86_64
 *.hex
+*.bin
+
+# Aux output
+*.lst
+*.map
+*.size.txt
 
 # Build scripts and directories
 CMakeLists.txt
