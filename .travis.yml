@@ -20,8 +20,6 @@ before_install:
     - python3 --version
 
 before_script:    
-    - git submodule update --init --recursive
-
     # packager requirements
     - sudo pip install -r packager/requirements.txt
 
