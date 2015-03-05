@@ -13,3 +13,6 @@
 [submodule "dependencies/test-runner"]
 	path = dependencies/test-runner
 	url = https://github.com/cvra/test-runner.git
+[submodule "dependencies/cmp"]
+	path = dependencies/cmp
+	url = https://github.com/cvra/cmp
