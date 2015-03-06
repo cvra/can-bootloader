@@ -5,6 +5,7 @@
 
 #include "../flash_writer.h"
 #include "../command.h"
+#include "mocks/platform_mock.h"
 
 
 TEST_GROUP(ConfigCommandTestGroup)
@@ -39,9 +40,14 @@ TEST(ConfigCommandTestGroup, CanChangeNodeID)
     cmp_write_str(&command_builder, "ID", 2);
     cmp_write_u8(&command_builder, 42);
 
-    command_config_update(1, &command_builder, NULL, &config);
+    command_config_update(1, &command_builder, &output_ctx, &config);
 
     CHECK_EQUAL(42, config.ID);
+
+    // check return value
+    bool ret = false;
+    cmp_read_bool(&output_ctx, &ret);
+    CHECK_TRUE(ret);
 }
 
 TEST(ConfigCommandTestGroup, CanReadConfig)

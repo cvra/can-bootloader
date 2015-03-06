@@ -84,12 +84,12 @@ They should simply send the MessagePack encoded response on the bus.
 
 1. Jump to application (0x01). No parameters. Simply starts the application code.
 2. CRC flash region (0x02). 2 parameters : start adress and length of the region we want to check. Returns the CRC32 of this region.
-3. Erase flash page (0x03). Parameters : Page address, device class (string). Returns nothing.
-4. Write flash (0x04). Parameters : Start adress, device class (string) and sequence of bytes to write. Returns nothing.
+3. Erase flash page (0x03). Parameters : Page address, device class (string). Returns: True if successful.
+4. Write flash (0x04). Parameters : Start adress, device class (string) and sequence of bytes to write. Returns: True if successful.
 5. Ping (0x05). Parameters: None. Returns: True if bootloader is ready to accept a command.
 6. Read flash (0x06). Parameters : Start adress and length. Returns sequence of read bytes
-7. Update config (0x07). The only parameters is a MessagePack map containing the configuration values to update. If a config value is not in its parameters, it will not be changed.
-8. Save config to flash.
+7. Update config (0x07). The only parameters is a MessagePack map containing the configuration values to update. If a config value is not in its parameters, it will not be changed. Returns: True if successful.
+8. Save config to flash (0x08). Returns: True if successful.
 9. Read current config (0x09). No parameters. Writes back a messagepack map containing the bootloader config.
 
 *Note:* Adresses (pointers) in the arguments are represented as 64 bits integers.
@@ -98,10 +98,11 @@ They should simply send the MessagePack encoded response on the bus.
 ## Multicast write
 When using multicast write the recommended way is the following :
 
-1. Write to all board using multicast write command (0x04).
-2. Wait for one board to reply with 'True'
-3. Poll every board write status, wait until every board has finished.
-4. Ask each board to compute the CRC of the page you just wrote. If a board is wrong, reflash just this one.
+1. Write to all boards using multicast write command.
+2. Wait with a timeout for the command to finish.
+3. Continue only with boards that successfully finished.
+4. Verify the written data via CRC command.
+5. Reflash the boards that failed during above process. (optional)
 
 # Flash layout
 The bootloader resides in the N flash pages.

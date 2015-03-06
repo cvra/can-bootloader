@@ -10,7 +10,7 @@
 void command_erase_flash_page(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config)
 {
     void *address;
-    uint64_t tmp;
+    uint64_t tmp = 0;
     char device_class[64];
 
     cmp_read_uinteger(args, &tmp);
@@ -18,14 +18,14 @@ void command_erase_flash_page(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloa
 
     // refuse to overwrite bootloader or config pages
     if (address < memory_get_app_addr()) {
-        return;
+        goto command_fail;
     }
 
     uint32_t size = 64;
     cmp_read_str(args, device_class, &size);
 
     if (strcmp(device_class, config->device_class) != 0) {
-        return;
+        goto command_fail;
     }
 
     flash_writer_unlock();
@@ -33,13 +33,20 @@ void command_erase_flash_page(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloa
     flash_writer_page_erase(address);
 
     flash_writer_lock();
+
+    cmp_write_bool(out, 1);
+    return;
+
+command_fail:
+    cmp_write_bool(out, 0);
+    return;
 }
 
 void command_write_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config)
 {
     void *address;
     void *src;
-    uint64_t tmp;
+    uint64_t tmp = 0;
     uint32_t size;
     char device_class[64];
 
@@ -48,18 +55,18 @@ void command_write_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_c
 
     // refuse to overwrite bootloader or config pages
     if (address < memory_get_app_addr()) {
-        return;
+        goto command_fail;
     }
 
     size = 64;
     cmp_read_str(args, device_class, &size);
 
     if (strcmp(device_class, config->device_class) != 0) {
-        return;
+        goto command_fail;
     }
 
     if (!cmp_read_bin_size(args, &size)) {
-        return;
+        goto command_fail;
     }
 
     /* This is ugly, yet required to achieve zero copy. */
@@ -70,6 +77,13 @@ void command_write_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_c
     flash_writer_page_write(address, src, size);
 
     flash_writer_lock();
+
+    cmp_write_bool(out, 1);
+    return;
+
+command_fail:
+    cmp_write_bool(out, 0);
+    return;
 }
 
 void command_read_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config)
@@ -113,6 +127,7 @@ void command_crc_region(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_co
 void command_config_update(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config)
 {
     config_update_from_serialized(config, args);
+    cmp_write_bool(out, 1);
 }
 
 void command_ping(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config)
@@ -141,19 +156,29 @@ void command_config_write_to_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bo
     void *config1 = memory_get_config1_addr();
     void *config2 = memory_get_config2_addr();
 
+    bool success = false;
+
     if (block_crc_verify(config2, CONFIG_PAGE_SIZE)) {
         if (flash_write_and_verify(config1, config_page_buffer, CONFIG_PAGE_SIZE)) {
-            flash_write_and_verify(config2, config_page_buffer, CONFIG_PAGE_SIZE);
+            if (flash_write_and_verify(config2, config_page_buffer, CONFIG_PAGE_SIZE)) {
+                success = true;
+            }
         }
-        return;
     } else if (block_crc_verify(config1, CONFIG_PAGE_SIZE)) {
         if (flash_write_and_verify(config2, config_page_buffer, CONFIG_PAGE_SIZE)) {
-            flash_write_and_verify(config1, config_page_buffer, CONFIG_PAGE_SIZE);
+            if (flash_write_and_verify(config1, config_page_buffer, CONFIG_PAGE_SIZE)) {
+                success = true;
+            }
         }
-        return;
     } else {
-            flash_write_and_verify(config1, config_page_buffer, CONFIG_PAGE_SIZE);
-            flash_write_and_verify(config2, config_page_buffer, CONFIG_PAGE_SIZE);
+        success = flash_write_and_verify(config1, config_page_buffer, CONFIG_PAGE_SIZE);
+        success &= flash_write_and_verify(config2, config_page_buffer, CONFIG_PAGE_SIZE);
+    }
+
+    if (success) {
+        cmp_write_bool(out, 1);
+    } else {
+        cmp_write_bool(out, 0);
     }
 }
 
