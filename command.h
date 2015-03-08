@@ -1,7 +1,8 @@
 #ifndef COMMAND_H_
 #define COMMAND_H_
 
-#include <serializer/serialization.h>
+#include <stdbool.h>
+#include <cmp/cmp.h>
 #include "config.h"
 
 #ifdef __cplusplus

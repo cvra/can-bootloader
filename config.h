@@ -6,7 +6,8 @@ extern "C" {
 #endif
 
 #include <stdlib.h>
-#include <serializer/serialization.h>
+#include <stdbool.h>
+#include <cmp/cmp.h>
 
 typedef struct {
     uint8_t ID; /**< Node ID */

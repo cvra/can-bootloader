@@ -1,6 +1,6 @@
-#include <serializer/checksum_block.h>
-#include <serializer/serialization.h>
 #include <string.h>
+#include <cmp_mem_access/cmp_mem_access.h>
+#include <crc/crc32.h>
 #include "flash_writer.h"
 #include "config.h"
 
@@ -17,21 +17,36 @@ void config_sync_pages(void *page1, void *page2, size_t page_size)
     }
 }
 
+uint32_t config_calculate_crc(void *page, size_t page_size)
+{
+    return crc32(0, (uint8_t *)page + 4, page_size - 4);
+}
+
 bool config_is_valid(void *page, size_t page_size)
 {
-    return block_crc_verify(page, page_size);
+    uint32_t crc = 0;
+    uint8_t *p = page;
+    crc |= p[0] << 24;
+    crc |= p[1] << 16;
+    crc |= p[2] << 8;
+    crc |= p[3] << 0;
+    return crc == config_calculate_crc(page, page_size);
 }
 
 void config_write(void *buffer, bootloader_config_t *config, size_t buffer_size)
 {
     cmp_ctx_t context;
-    serializer_t serializer;
+    cmp_mem_access_t cma;
+    uint8_t *p = buffer;
 
-    // Create a MessagePack instance in memory
-    serializer_init(&serializer, block_payload_get(buffer), buffer_size - 4);
-    serializer_cmp_ctx_factory(&context, &serializer);
-
+    cmp_mem_access_init(&context, &cma, &p[4], buffer_size - 4);
     config_write_messagepack(&context, config);
+
+    uint32_t crc = crc32(0, &p[4], buffer_size - 4);
+    p[0] = ((crc >> 24) & 0xff);
+    p[1] = ((crc >> 16) & 0xff);
+    p[2] = ((crc >> 8) & 0xff);
+    p[3] = (crc & 0xff);
 }
 
 void config_write_messagepack(cmp_ctx_t *context, bootloader_config_t *config)
@@ -62,13 +77,9 @@ bootloader_config_t config_read(void *buffer, size_t buffer_size)
     bootloader_config_t result;
 
     cmp_ctx_t context;
-    serializer_t serializer;
+    cmp_mem_access_t cma;
 
-
-    // Create a MessagePack instance in memory
-    serializer_init(&serializer, block_payload_get(buffer), buffer_size - 4);
-    serializer_cmp_ctx_factory(&context, &serializer);
-
+    cmp_mem_access_ro_init(&context, &cma, (uint8_t *)buffer + 4, buffer_size - 4);
     config_update_from_serialized(&result, &context);
 
     return result;
