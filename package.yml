@@ -1,6 +1,5 @@
 depends:
     - test-runner
-    - serializer
     - cmp_mem_access
     - crc
 
