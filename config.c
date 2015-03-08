@@ -3,7 +3,7 @@
 #include <crc/crc32.h>
 #include "config.h"
 
-uint32_t config_calculate_crc(void *page, size_t page_size)
+static uint32_t config_calculate_crc(void *page, size_t page_size)
 {
     return crc32(0, (uint8_t *)page + 4, page_size - 4);
 }
@@ -28,7 +28,7 @@ void config_write(void *buffer, bootloader_config_t *config, size_t buffer_size)
     cmp_mem_access_init(&context, &cma, &p[4], buffer_size - 4);
     config_write_messagepack(&context, config);
 
-    uint32_t crc = crc32(0, &p[4], buffer_size - 4);
+    uint32_t crc = config_calculate_crc(buffer, buffer_size);
     p[0] = ((crc >> 24) & 0xff);
     p[1] = ((crc >> 16) & 0xff);
     p[2] = ((crc >> 8) & 0xff);
