@@ -16,3 +16,6 @@
 [submodule "dependencies/cmp"]
 	path = dependencies/cmp
 	url = https://github.com/cvra/cmp
+[submodule "dependencies/cmp_mem_access"]
+	path = dependencies/cmp_mem_access
+	url = https://github.com/cvra/cmp_mem_access.git
