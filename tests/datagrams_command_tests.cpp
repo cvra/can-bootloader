@@ -2,7 +2,7 @@
 #include "CppUTestExt/MockSupport.h"
 #include <cstring>
 
-#include <serializer/serialization.h>
+#include <cmp_mem_access/cmp_mem_access.h>
 #include "../command.h"
 
 #define LEN(a) (sizeof(a) / sizeof(a[0]))
@@ -14,14 +14,13 @@ static void mock_command(int argc, cmp_ctx_t *arg_context, cmp_ctx_t *out_contex
 
 TEST_GROUP(ProtocolCommandTestGroup)
 {
-    serializer_t serializer;
+    cmp_mem_access_t command_cma;
     cmp_ctx_t command_builder;
     char command_data[30];
 
     void setup()
     {
-        serializer_init(&serializer, command_data, sizeof command_data);
-        serializer_cmp_ctx_factory(&command_builder, &serializer);
+        cmp_mem_access_init(&command_builder, &command_cma, command_data, sizeof command_data);
         memset(command_data, 0, sizeof command_data);
     }
 
@@ -225,8 +224,8 @@ TEST(ProtocolCommandTestGroup, WrongProtocolVersionHasCorrectErrorCode)
 
 TEST_GROUP(ProtocolOutputCommand)
 {
-    serializer_t serializer;
-    serializer_t out_serializer;
+    cmp_mem_access_t command_cma;
+    cmp_mem_access_t out_cma;
     cmp_ctx_t command_builder;
     cmp_ctx_t output_ctx;
     char command_data[30];
@@ -234,10 +233,8 @@ TEST_GROUP(ProtocolOutputCommand)
 
     void setup()
     {
-        serializer_init(&serializer, command_data, sizeof command_data);
-        serializer_init(&out_serializer, output_data, sizeof output_data);
-        serializer_cmp_ctx_factory(&command_builder, &serializer);
-        serializer_cmp_ctx_factory(&output_ctx, &out_serializer);
+        cmp_mem_access_init(&command_builder, &command_cma, command_data, sizeof command_data);
+        cmp_mem_access_init(&output_ctx, &out_cma, output_data, sizeof output_data);
         memset(command_data, 0, sizeof command_data);
         memset(output_data, 0, sizeof output_data);
     }

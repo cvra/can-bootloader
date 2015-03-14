@@ -1,76 +1,9 @@
 #include "CppUTest/TestHarness.h"
 #include "CppUTestExt/MockSupport.h"
-
 #include <cstring>
-
 #include "../config.h"
-#include <serializer/checksum_block.h>
 
-TEST_GROUP(ConfigPage)
-{
-    static const int page_size = 30;
-    char page1[page_size], page2[page_size];
-
-    void teardown(void)
-    {
-        mock().checkExpectations();
-        mock().clear();
-    }
-};
-
-TEST(ConfigPage, WhenConfigCRCMatchesNoWriteOccurs)
-{
-    // Makes two valid CRC blocks
-    block_crc_update(page1, page_size);
-    block_crc_update(page2, page_size);
-
-    // We don't expect any flash writes to occur
-
-    config_sync_pages(page1, page2, page_size);
-}
-
-TEST(ConfigPage, FirstPageIsCopiedIntoSecond)
-{
-    mock("flash").expectOneCall("page_write")
-                 .withPointerParameter("page_adress", page2)
-                 .withIntParameter("size", page_size);
-
-    mock("flash").expectOneCall("page_erase")
-                 .withPointerParameter("adress", page2);
-
-    // Mark first page as valid
-    block_crc_update(page1, page_size);
-
-    config_sync_pages(page1, page2, page_size);
-}
-
-TEST(ConfigPage, SecondPageIsCopiedIntoFirst)
-{
-    mock("flash").expectOneCall("page_write")
-                 .withPointerParameter("page_adress", page1)
-                 .withIntParameter("size", page_size);
-
-    mock("flash").expectOneCall("page_erase")
-                 .withPointerParameter("adress", page1);
-
-    // Mark second page as valid
-    block_crc_update(page2, page_size);
-
-    config_sync_pages(page1, page2, page_size);
-}
-
-TEST(ConfigPage, ConfigIsInvalid)
-{
-    CHECK_FALSE(config_is_valid(page1, page_size));
-}
-
-TEST(ConfigPage, ConfigIsValid)
-{
-    block_crc_update(page1, page_size);
-    CHECK_TRUE(config_is_valid(page1, page_size));
-}
-
-TEST_GROUP(ConfigSerializationTest)
+TEST_GROUP(ConfigTest)
 {
     char config_buffer[1024];
     bootloader_config_t config, result;
@@ -89,7 +22,27 @@ TEST_GROUP(ConfigSerializationTest)
     }
 };
 
-TEST(ConfigSerializationTest, CanSerializeNodeID)
+TEST(ConfigTest, WritesValidConfigCRC)
+{
+    config.ID = 0x42;
+
+    config_write(config_buffer, &config, sizeof config_buffer);
+
+    CHECK_TRUE(config_is_valid(config_buffer, sizeof(config_buffer)));
+}
+
+TEST(ConfigTest, DetectsCorruptedConfig)
+{
+    config.ID = 0x42;
+
+    config_write(config_buffer, &config, sizeof config_buffer);
+
+    config_buffer[42] ^= 0x2A;
+
+    CHECK_FALSE(config_is_valid(config_buffer, sizeof(config_buffer)));
+}
+
+TEST(ConfigTest, CanSerializeNodeID)
 {
     config.ID = 0x12;
 
@@ -98,7 +51,7 @@ TEST(ConfigSerializationTest, CanSerializeNodeID)
     CHECK_EQUAL(config.ID, result.ID);
 }
 
-TEST(ConfigSerializationTest, CanSerializeNodeName)
+TEST(ConfigTest, CanSerializeNodeName)
 {
     strncpy(config.board_name, "test.dummy", 64);
 
@@ -107,7 +60,7 @@ TEST(ConfigSerializationTest, CanSerializeNodeName)
     STRCMP_EQUAL(config.board_name, result.board_name);
 }
 
-TEST(ConfigSerializationTest, CanSerializeNodeDeviceClass)
+TEST(ConfigTest, CanSerializeNodeDeviceClass)
 {
     strncpy(config.device_class, "CVRA.dummy.v1", 64);
 
@@ -116,7 +69,7 @@ TEST(ConfigSerializationTest, CanSerializeNodeDeviceClass)
     STRCMP_EQUAL(config.device_class, result.device_class);
 }
 
-TEST(ConfigSerializationTest, CanSerializeApplicationCRC)
+TEST(ConfigTest, CanSerializeApplicationCRC)
 {
     config.application_crc = 0xdeadbeef;
 
@@ -125,7 +78,7 @@ TEST(ConfigSerializationTest, CanSerializeApplicationCRC)
     CHECK_EQUAL(0xdeadbeef, result.application_crc);
 }
 
-TEST(ConfigSerializationTest, CanSerializeApplicationSize)
+TEST(ConfigTest, CanSerializeApplicationSize)
 {
     config.application_size = 42;
 
@@ -134,7 +87,7 @@ TEST(ConfigSerializationTest, CanSerializeApplicationSize)
     CHECK_EQUAL(42, result.application_size);
 }
 
-TEST(ConfigSerializationTest, CanSerializeUpdateCount)
+TEST(ConfigTest, CanSerializeUpdateCount)
 {
     config.update_count = 23;
 

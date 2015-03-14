@@ -1,6 +1,6 @@
 #include <string.h>
 #include <crc/crc32.h>
-#include <serializer/checksum_block.h>
+#include <cmp_mem_access/cmp_mem_access.h>
 #include <platform.h>
 #include "flash_writer.h"
 #include "boot_arg.h"
@@ -63,7 +63,8 @@ void command_write_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_c
     }
 
     /* This is ugly, yet required to achieve zero copy. */
-    src = ((serializer_t *)(args->buf))->_read_cursor;
+    cmp_mem_access_t *cma = (cmp_mem_access_t *)(args->buf);
+    src = cmp_mem_access_get_ptr_at_pos(cma, cmp_mem_access_get_pos(cma));
 
     flash_writer_unlock();
 
@@ -126,7 +127,7 @@ static bool flash_write_and_verify(void *addr, void *data, size_t len)
     flash_writer_page_erase(addr);
     flash_writer_page_write(addr, data, len);
     flash_writer_lock();
-    return block_crc_verify(addr, len);
+    return config_is_valid(addr, len);
 }
 
 void command_config_write_to_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config)
@@ -136,17 +137,16 @@ void command_config_write_to_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bo
     memset(config_page_buffer, 0, CONFIG_PAGE_SIZE);
 
     config_write(config_page_buffer, config, CONFIG_PAGE_SIZE);
-    block_crc_update(config_page_buffer, CONFIG_PAGE_SIZE);
 
     void *config1 = memory_get_config1_addr();
     void *config2 = memory_get_config2_addr();
 
-    if (block_crc_verify(config2, CONFIG_PAGE_SIZE)) {
+    if (config_is_valid(config2, CONFIG_PAGE_SIZE)) {
         if (flash_write_and_verify(config1, config_page_buffer, CONFIG_PAGE_SIZE)) {
             flash_write_and_verify(config2, config_page_buffer, CONFIG_PAGE_SIZE);
         }
         return;
-    } else if (block_crc_verify(config1, CONFIG_PAGE_SIZE)) {
+    } else if (config_is_valid(config1, CONFIG_PAGE_SIZE)) {
         if (flash_write_and_verify(config2, config_page_buffer, CONFIG_PAGE_SIZE)) {
             flash_write_and_verify(config1, config_page_buffer, CONFIG_PAGE_SIZE);
         }
@@ -164,21 +164,19 @@ void command_config_read(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_c
 
 int protocol_execute_command(char *data, size_t data_len, const command_t *commands, int command_len, char *out_buf, size_t out_len, bootloader_config_t *config)
 {
-    serializer_t serializer;
+    cmp_mem_access_t command_cma;
     cmp_ctx_t command_reader;
     int32_t commmand_index, i;
     uint32_t argc;
     int32_t command_version;
     bool read_success;
 
-    serializer_t out_serializer;
+    cmp_mem_access_t out_cma;
     cmp_ctx_t out_writer;
 
-    serializer_init(&serializer, data, data_len);
-    serializer_cmp_ctx_factory(&command_reader, &serializer);
+    cmp_mem_access_ro_init(&command_reader, &command_cma, data, data_len);
 
-    serializer_init(&out_serializer, out_buf, out_len);
-    serializer_cmp_ctx_factory(&out_writer, &out_serializer);
+    cmp_mem_access_init(&out_writer, &out_cma, out_buf, out_len);
 
     cmp_read_int(&command_reader, &command_version);
 
@@ -203,7 +201,7 @@ int protocol_execute_command(char *data, size_t data_len, const command_t *comma
     for (i = 0; i < command_len; ++i) {
         if (commands[i].index == commmand_index) {
             commands[i].callback(argc, &command_reader, &out_writer, config);
-            return serializer_written_bytes_count(&out_serializer);
+            return cmp_mem_access_get_pos(&out_cma);
         }
     }
 

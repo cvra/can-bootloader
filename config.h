@@ -6,7 +6,8 @@ extern "C" {
 #endif
 
 #include <stdlib.h>
-#include <serializer/serialization.h>
+#include <stdbool.h>
+#include <cmp/cmp.h>
 
 typedef struct {
     uint8_t ID; /**< Node ID */
@@ -16,10 +17,6 @@ typedef struct {
     uint32_t application_size;
     uint32_t update_count;
 } bootloader_config_t;
-
-/** This function syncs the two given pages, copying the page with the wrong
- * CRC into the page with the correct one. */
-void config_sync_pages(void *page1, void *page2, size_t page_size);
 
 /** Returns true if the given config page is valid. */
 bool config_is_valid(void *page, size_t page_size);

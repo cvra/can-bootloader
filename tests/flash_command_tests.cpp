@@ -1,8 +1,8 @@
 #include <cstring>
 #include <CppUTest/TestHarness.h>
 #include <CppUTestExt/MockSupport.h>
-#include <serializer/serialization.h>
 #include <crc/crc32.h>
+#include <cmp_mem_access/cmp_mem_access.h>
 #include "mocks/platform_mock.h"
 #include "../flash_writer.h"
 #include "../command.h"
@@ -11,7 +11,7 @@
 
 TEST_GROUP(FlashCommandTestGroup)
 {
-    serializer_t serializer;
+    cmp_mem_access_t command_cma;
     cmp_ctx_t command_builder;
     char command_data[1024];
     char page[1024];
@@ -19,8 +19,7 @@ TEST_GROUP(FlashCommandTestGroup)
 
     void setup()
     {
-        serializer_init(&serializer, command_data, sizeof command_data);
-        serializer_cmp_ctx_factory(&command_builder, &serializer);
+        cmp_mem_access_init(&command_builder, &command_cma, command_data, sizeof command_data);
         memset(command_data, 0, sizeof command_data);
 
         // Creates a dummy device class for testing
@@ -53,6 +52,7 @@ TEST(FlashCommandTestGroup, CanFlashSinglePage)
                  .withPointerParameter("page_adress", page)
                  .withIntParameter("size", strlen(data));
 
+    cmp_mem_access_set_pos(&command_cma, 0);
     command_write_flash(1, &command_builder, NULL, &config);
 
     mock().checkExpectations();
@@ -79,6 +79,8 @@ TEST(FlashCommandTestGroup, CheckThatDeviceClassIsRespected)
 
     cmp_write_bin(&command_builder, data, strlen(data));
 
+    cmp_mem_access_set_pos(&command_cma, 0);
+
     // Executes the command. Since the device class mismatch it should not make
     // any write
     command_write_flash(1, &command_builder, NULL, &config);
@@ -101,6 +103,8 @@ TEST(FlashCommandTestGroup, CanErasePage)
 
     mock("flash").expectOneCall("page_erase").withPointerParameter("adress", &page);
 
+    cmp_mem_access_set_pos(&command_cma, 0);
+
     command_erase_flash_page(1, &command_builder, NULL, &config);
 
     mock().checkExpectations();
@@ -113,6 +117,8 @@ TEST(FlashCommandTestGroup, DeviceClassIsRespectedForErasePage)
 
     // Writes the correct device class
     cmp_write_str(&command_builder, "fail", 4);
+
+    cmp_mem_access_set_pos(&command_cma, 0);
 
     command_erase_flash_page(1, &command_builder, NULL, &config);
 
@@ -174,22 +180,20 @@ TEST(JumpToApplicationCodetestGroup, InvalidCRCReturnsToBootloader)
 
 TEST_GROUP(ReadFlashTestGroup)
 {
-    serializer_t command_serializer;
+    cmp_mem_access_t command_cma;
     cmp_ctx_t command_builder;
     char command_data[1024];
 
-    serializer_t output_serializer;
+    cmp_mem_access_t output_cma;
     cmp_ctx_t output_builder;
     char output_data[1024];
 
     void setup(void)
     {
-        serializer_init(&command_serializer, command_data, sizeof command_data);
-        serializer_cmp_ctx_factory(&command_builder, &command_serializer);
+        cmp_mem_access_init(&command_builder, &command_cma, command_data, sizeof command_data);
         memset(command_data, 0, sizeof command_data);
 
-        serializer_init(&output_serializer, output_data, sizeof output_data);
-        serializer_cmp_ctx_factory(&output_builder, &output_serializer);
+        cmp_mem_access_init(&output_builder, &output_cma, output_data, sizeof output_data);
         memset(output_data, 0, sizeof output_data);
     }
 };
@@ -208,7 +212,10 @@ TEST(ReadFlashTestGroup, CanGetCRCOfARegion)
     // Writes length
     cmp_write_uint(&command_builder, sizeof page);
 
+    cmp_mem_access_set_pos(&command_cma, 0);
     command_crc_region(0, &command_builder, &output_builder, NULL);
+
+    cmp_mem_access_set_pos(&output_cma, 0);
     success = cmp_read_uint(&output_builder, &crc);
     CHECK_TRUE(success);
     CHECK_EQUAL(0x190a55ad, crc);
@@ -223,7 +230,10 @@ TEST(ReadFlashTestGroup, CanReadData)
     cmp_write_u64(&command_builder, (size_t)page);
     cmp_write_u32(&command_builder, strlen(page));
 
+    cmp_mem_access_set_pos(&command_cma, 0);
     command_read_flash(2, &command_builder, &output_builder, NULL);
+
+    cmp_mem_access_set_pos(&output_cma, 0);
     cmp_read_bin(&output_builder, read_data, &read_size);
 
     CHECK_EQUAL(strlen(page), read_size);
@@ -235,14 +245,13 @@ TEST(ReadFlashTestGroup, CanReadData)
 
 TEST_GROUP(PingTestGroup)
 {
-    serializer_t output_serializer;
+    cmp_mem_access_t output_cma;
     cmp_ctx_t output_builder;
     char output_data[1024];
 
     void setup(void)
     {
-        serializer_init(&output_serializer, output_data, sizeof output_data);
-        serializer_cmp_ctx_factory(&output_builder, &output_serializer);
+        cmp_mem_access_init(&output_builder, &output_cma, output_data, sizeof output_data);
         memset(output_data, 0, sizeof output_data);
     }
 };
@@ -251,6 +260,7 @@ TEST(PingTestGroup, PingCommand)
 {
     bool result, success;
     command_ping(0, NULL, &output_builder, NULL);
+    cmp_mem_access_set_pos(&output_cma, 0);
     success = cmp_read_bool(&output_builder, &result);
 
     CHECK_TRUE(success);

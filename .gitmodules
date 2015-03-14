@@ -4,9 +4,6 @@
 [submodule "packager"]
 	path = packager
 	url = https://github.com/cvra/packager.git
-[submodule "dependencies/serializer"]
-	path = dependencies/serializer
-	url = https://github.com/cvra/serializer.git
 [submodule "dependencies/crc"]
 	path = dependencies/crc
 	url = https://github.com/cvra/CRC.git
@@ -16,3 +13,6 @@
 [submodule "dependencies/cmp"]
 	path = dependencies/cmp
 	url = https://github.com/cvra/cmp
+[submodule "dependencies/cmp_mem_access"]
+	path = dependencies/cmp_mem_access
+	url = https://github.com/cvra/cmp_mem_access.git
