@@ -1,12 +1,9 @@
 #!/usr/bin/env python
-import argparse
 import page
 import commands
-import serial_datagrams, can, can_bridge
 import msgpack
 from zlib import crc32
 from sys import exit
-import time
 
 import utils
 import progressbar
