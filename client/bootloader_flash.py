@@ -89,11 +89,13 @@ def check_binary(fdesc, binary, base_address, destinations):
 
     reader = utils.CANDatagramReader(fdesc)
 
-    while True:
+    boards_checked = 0
+
+    while boards_checked < len(destinations):
         dt = reader.read_datagram()
 
         if dt is None:
-            break
+            continue
 
         answer, _, src = dt
 
@@ -101,6 +103,8 @@ def check_binary(fdesc, binary, base_address, destinations):
 
         if crc == expected_crc:
             valid_nodes.append(src)
+
+        boards_checked += 1
 
     return valid_nodes
 

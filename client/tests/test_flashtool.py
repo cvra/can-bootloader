@@ -223,6 +223,26 @@ class ConfigTestCase(unittest.TestCase):
 
         self.assertEqual([1], valid_nodes)
 
+    @patch('utils.CANDatagramReader.read_datagram')
+    @patch('utils.write_command')
+    def test_verify_handles_timeout(self, write, read_datagram):
+        """
+        When working with large firmwares, the connection may timeout before
+        answering (issue #53).
+        """
+        binary = bytes([0] * 10)
+        crc = crc32(binary)
+
+        side_effect  = [None] # timeout
+        side_effect += [(msgpack.packb(0xdead), [0], 2)]
+        side_effect += [(msgpack.packb(crc), [0], 1)]
+
+        read_datagram.side_effect = side_effect
+
+        valid_nodes = check_binary(self.fd, binary, 0x1000, [1, 2])
+
+        self.assertEqual([1], valid_nodes)
+
 class RunApplicationTestCase(unittest.TestCase):
     fd = 'port'
 
