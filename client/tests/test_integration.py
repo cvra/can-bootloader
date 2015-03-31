@@ -19,7 +19,8 @@ class IntegrationTesting(unittest.TestCase):
         frames = can.datagram_to_frames(data, source=0)
 
         # Serializes CAN frames for the bridge
-        frames = [can_bridge.encode_frame(f) for f in frames]
+        frames = [can_bridge.frame.encode(f) for f in frames]
+
 
         # Packs each frame in a serial datagram
         frames = [serial_datagrams.datagram_encode(f) for f in frames]
@@ -28,5 +29,4 @@ class IntegrationTesting(unittest.TestCase):
         data = [c for f in frames for c in f]
 
         # Pseudo-check that encoding went well
-        self.assertEqual(len(data), 88)
-
+        self.assertEqual(len(data), 97)

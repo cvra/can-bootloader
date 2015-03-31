@@ -16,7 +16,8 @@ import msgpack
 
 from io import BytesIO
 
-import can, serial_datagrams, can_bridge
+import can, serial_datagrams
+import can_bridge.frame
 import sys
 
 @patch('utils.write_command')
@@ -121,7 +122,7 @@ class CANDatagramReadTestCase(unittest.TestCase):
         frames = can.datagram_to_frames(data, source=42)
 
         # Serializes CAN frames for the bridge
-        frames = [can_bridge.encode_frame(f) for f in frames]
+        frames = [can_bridge.frame.encode(f) for f in frames]
 
         # Packs each frame in a serial datagram
         frames = bytes(c for i in [serial_datagrams.datagram_encode(f) for f in frames] for c in i)
@@ -155,7 +156,7 @@ class CANDatagramReadTestCase(unittest.TestCase):
 
 
         # Serializes CAN frames for the bridge
-        frames = [can_bridge.encode_frame(f) for f in frames]
+        frames = [can_bridge.frame.encode(f) for f in frames]
 
         # Packs each frame in a serial datagram
         frames = bytes(c for i in [serial_datagrams.datagram_encode(f) for f in frames] for c in i)
