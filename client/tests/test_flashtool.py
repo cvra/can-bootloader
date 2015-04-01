@@ -154,7 +154,6 @@ class CANDatagramReadTestCase(unittest.TestCase):
         # Interleave frames
         frames = [x for t in zip(*frames) for x in t]
 
-
         # Serializes CAN frames for the bridge
         frames = [can_bridge.frame.encode(f) for f in frames]
 
@@ -168,6 +167,30 @@ class CANDatagramReadTestCase(unittest.TestCase):
 
         # Read a CAN datagram from that pseudofile
         dt, dst, src = decode.read_datagram()
+
+    def test_read_several_datagrams_from_src(self):
+        """
+        Checks if we can read several datagrams from the same source.
+        """
+        data = bytes()
+
+        for i in range(2):
+            # Encapsulates it in a CAN datagram
+            dt = can.encode_datagram(bytes(), destinations=[i])
+            frames = can.datagram_to_frames(dt, source=1)
+            frames = [can_bridge.frame.encode(f) for f in frames]
+            frames = bytes(c for i in [serial_datagrams.datagram_encode(f) for f in frames] for c in i)
+            data += frames
+
+        fdesc = BytesIO(data)
+        decode = CANDatagramReader(fdesc)
+
+        # Read a CAN datagram from that pseudofile
+        _, dst, _ = decode.read_datagram()
+        self.assertEqual([0], dst)
+
+        _, dst, _ = decode.read_datagram()
+        self.assertEqual([1], dst)
 
 
 

@@ -106,6 +106,7 @@ class CANDatagramReader:
             datagram = can.decode_datagram(self.buf[src])
 
             if datagram is not None:
+                del self.buf[src]
                 data, dst = datagram
 
         return data, dst, src
