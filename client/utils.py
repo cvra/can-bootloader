@@ -6,6 +6,8 @@ import time
 import commands
 import can
 import can_bridge
+import can_bridge.commands
+
 import serial_datagrams
 from collections import defaultdict
 
