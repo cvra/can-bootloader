@@ -139,6 +139,41 @@ class CANDatagramReadTestCase(unittest.TestCase):
         self.assertEqual(dst, [1])
         self.assertEqual(src, 42)
 
+    def test_drop_extended_frames(self):
+        """
+        Checks that we drop extended frames
+        """
+        data = 'Hello world'.encode('ascii')
+        # Encapsulates it in a CAN datagram
+        data = can.encode_datagram(data, destinations=[1])
+
+        # Slice the datagram in frames
+        frames = list(can.datagram_to_frames(data, source=42))
+
+        # Add an extended frame, with an annoying ID
+        id = frames[0].id
+        frames = [can_bridge.frame.Frame(extended=True, data=bytes([1, 2, 3]), id=id)] + frames
+
+        # Serializes CAN frames for the bridge
+        frames = [can_bridge.frame.encode(f) for f in frames]
+
+        # Packs each frame in a serial datagram
+        frames = bytes(c for i in [serial_datagrams.datagram_encode(f) for f in frames] for c in i)
+
+        # Put all data in a pseudofile
+        fdesc = BytesIO(frames)
+
+        reader = CANDatagramReader(fdesc)
+
+        # Read a CAN datagram from that pseudofile
+        dt, dst, src = reader.read_datagram()
+
+        self.assertEqual(dt.decode('ascii'), 'Hello world')
+        self.assertEqual(dst, [1])
+        self.assertEqual(src, 42)
+
+
+
     def test_read_can_interleaved_datagrams(self):
         """
         Tests reading two interleaved CAN datagrams together.

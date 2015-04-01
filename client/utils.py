@@ -102,6 +102,9 @@ class CANDatagramReader:
 
             frame = can_bridge.frame.decode(frame)
 
+            if frame.extended:
+                continue
+
             src = frame.id & (0x7f)
             self.buf[src] += frame.data
 
