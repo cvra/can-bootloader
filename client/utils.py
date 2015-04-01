@@ -6,6 +6,8 @@ import time
 import commands
 import can
 import can_bridge
+import can_bridge.commands
+
 import serial_datagrams
 from collections import defaultdict
 
@@ -98,7 +100,7 @@ class CANDatagramReader:
             if frame is None: # Timeout, retry
                 return None
 
-            frame = can_bridge.decode_frame(frame)
+            frame = can_bridge.frame.decode(frame)
 
             src = frame.id & (0x7f)
             self.buf[src] += frame.data
@@ -106,6 +108,7 @@ class CANDatagramReader:
             datagram = can.decode_datagram(self.buf[src])
 
             if datagram is not None:
+                del self.buf[src]
                 data, dst = datagram
 
         return data, dst, src
@@ -135,7 +138,7 @@ def write_command(fdesc, command, destinations, source=0):
     datagram = can.encode_datagram(command, destinations)
     frames = can.datagram_to_frames(datagram, source)
     for frame in frames:
-        bridge_frame = can_bridge.encode_frame_command(frame)
+        bridge_frame = can_bridge.commands.encode_frame_write(frame)
         datagram = serial_datagrams.datagram_encode(bridge_frame)
         fdesc.write(datagram)
         fdesc.flush()
