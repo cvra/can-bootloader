@@ -8,6 +8,9 @@ from utils import *
 
 import commands
 import msgpack
+import can_bridge.commands
+import serial_datagrams
+import io
 
 @patch('utils.CANDatagramReader.read_datagram')
 @patch('utils.write_command')
@@ -35,3 +38,12 @@ class BoardPingTestCase(unittest.TestCase):
         self.assertTrue(ping_board(port, 1))
 
 
+class BridgeConfigTestCase(unittest.TestCase):
+    def test_configures_bridge(self):
+        expected_data = can_bridge.commands.encode_id_filter_set(
+            extended_frame=False)
+        expected_data = serial_datagrams.datagram_encode(expected_data)
+
+        port = io.BytesIO()
+        setup_bridge(port)
+        self.assertEqual(port.getvalue(), expected_data)
