@@ -337,6 +337,7 @@ class MainTestCase(unittest.TestCase):
         self.flash = mock('bootloader_flash.flash_binary')
         self.check = mock('bootloader_flash.check_binary')
         self.run = mock('bootloader_flash.run_application')
+        self.setup_bridge = mock('utils.setup_bridge')
 
         self.check_online_boards = mock('bootloader_flash.check_online_boards')
         self.check_online_boards.side_effect = lambda f, b: set([1,2,3])
@@ -422,8 +423,12 @@ class MainTestCase(unittest.TestCase):
         main()
         self.run.assert_any_call(self.serial_device, [1,2,3])
 
-
-
+    def test_setup_bridge(self):
+        """
+        Checks that the bridge was setup.
+        """
+        main()
+        self.setup_bridge.assert_any_call(self.serial_device)
 
     def test_verification_failed(self):
         """
