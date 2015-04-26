@@ -147,6 +147,16 @@ def write_command(fdesc, command, destinations, source=0):
         fdesc.flush()
     time.sleep(0.3)
 
+def setup_bridge(fdesc):
+    """
+    Configures the bridge connected to the given serial port to only accept
+    bootloader frames.
+    """
+    data = can_bridge.commands.encode_id_filter_set(
+        extended_frame=False)
+    data = serial_datagrams.datagram_encode(data)
+    fdesc.write(data)
+
 
 def config_update_and_save(fdesc, config, destinations):
     """

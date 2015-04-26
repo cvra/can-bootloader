@@ -153,6 +153,8 @@ def main():
         binary = input_file.read()
 
     serial_port = utils.open_connection(args)
+    utils.setup_bridge(serial_port)
+
 
     online_boards = check_online_boards(serial_port, args.ids)
 
