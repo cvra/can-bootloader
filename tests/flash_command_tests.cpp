@@ -17,17 +17,17 @@ TEST_GROUP(FlashCommandTestGroup)
     char page[1024];
     bootloader_config_t config;
 
-    char out_data[32];
-    serializer_t out_serializer;
     cmp_ctx_t out;
+    char out_data[1024];
+    cmp_mem_access_t out_cma;
+
 
     void setup()
     {
         cmp_mem_access_init(&command_builder, &command_cma, command_data, sizeof command_data);
         memset(command_data, 0, sizeof command_data);
 
-        serializer_init(&out_serializer, out_data, sizeof out_data);
-        serializer_cmp_ctx_factory(&out, &out_serializer);
+        cmp_mem_access_init(&out, &out_cma, out_data, sizeof out_data);
         memset(out_data, 0, sizeof out_data);
 
         // Creates a dummy device class for testing
@@ -60,7 +60,7 @@ TEST(FlashCommandTestGroup, CanFlashSinglePage)
                  .withPointerParameter("page_adress", page)
                  .withIntParameter("size", strlen(data));
 
-    cmp_mem_access_set_pos(&command_builder, 0);
+    cmp_mem_access_set_pos(&command_cma, 0);
     command_write_flash(1, &command_builder, &out, &config);
 
     mock().checkExpectations();
@@ -126,7 +126,7 @@ TEST(FlashCommandTestGroup, CanErasePage)
 
     mock("flash").expectOneCall("page_erase").withPointerParameter("adress", &page);
 
-    cmp_mem_access_set_pos(&command_builder, 0);
+    cmp_mem_access_set_pos(&command_cma, 0);
     command_erase_flash_page(1, &command_builder, &out, &config);
 
     mock().checkExpectations();
@@ -145,7 +145,7 @@ TEST(FlashCommandTestGroup, DeviceClassIsRespectedForErasePage)
     // Writes the wrong device class
     cmp_write_str(&command_builder, "fail", 4);
 
-    cmp_mem_access_set_pos(&command_builder, 0);
+    cmp_mem_access_set_pos(&command_cma, 0);
     command_erase_flash_page(1, &command_builder, &out, &config);
 
     mock().checkExpectations();
