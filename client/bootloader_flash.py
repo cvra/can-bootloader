@@ -52,7 +52,7 @@ def flash_binary(fdesc, binary, base_address, device_class, destinations, page_s
     # First erase all pages
     for offset in range(0, len(binary), page_size):
         erase_command = commands.encode_erase_flash_page(base_address + offset, device_class)
-        utils.write_command(fdesc, erase_command, destinations)
+        utils.write_command_retry(fdesc, erase_command, destinations)
         pbar.update(offset)
 
     pbar.finish()
@@ -64,7 +64,7 @@ def flash_binary(fdesc, binary, base_address, device_class, destinations, page_s
     for offset, chunk in enumerate(page.slice_into_pages(binary, CHUNK_SIZE)):
         offset *= CHUNK_SIZE
         command = commands.encode_write_flash(chunk, base_address + offset, device_class)
-        utils.write_command(fdesc, command, destinations)
+        utils.write_command_retry(fdesc, command, destinations)
         pbar.update(offset)
     pbar.finish()
 

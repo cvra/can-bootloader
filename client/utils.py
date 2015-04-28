@@ -183,8 +183,8 @@ def config_update_and_save(fdesc, config, destinations):
     """
     # First send the updated config
     command = commands.encode_update_config(config)
-    write_command(fdesc, command, destinations)
+    write_command_retry(fdesc, command, destinations)
 
     # Then save the config to flash
-    write_command(fdesc, commands.encode_save_config(), destinations)
+    write_command_retry(fdesc, commands.encode_save_config(), destinations)
 

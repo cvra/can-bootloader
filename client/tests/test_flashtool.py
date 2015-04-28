@@ -20,7 +20,7 @@ import can, serial_datagrams
 import can_bridge.frame
 import sys
 
-@patch('utils.write_command')
+@patch('utils.write_command_retry')
 class FlashBinaryTestCase(unittest.TestCase):
     fd = "port"
 
@@ -246,7 +246,7 @@ class CANDatagramReadTestCase(unittest.TestCase):
 class ConfigTestCase(unittest.TestCase):
     fd = "port"
 
-    @patch('utils.write_command')
+    @patch('utils.write_command_retry')
     def test_config_is_updated_and_saved(self, write):
         """
         Checks that the config is correctly sent encoded to the board.
