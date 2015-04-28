@@ -42,16 +42,13 @@ def main():
     else:
         scan_queue = args.ids
 
-    configs = dict()
-
-    reader = utils.CANDatagramReader(connection)
-
     # Broadcast ask for config
-    utils.write_command(connection, commands.encode_read_config(), scan_queue)
+    configs = utils.write_command_retry(connection,
+                                        commands.encode_read_config(),
+                                        scan_queue)
 
-    for id in scan_queue:
-        answer, _, src = reader.read_datagram()
-        configs[src] = msgpack.unpackb(answer, encoding='ascii')
+    for id, raw_config in configs.items():
+        configs[id] = msgpack.unpackb(raw_config, encoding='ascii')
 
     print(json.dumps(configs, indent=4, sort_keys=True))
 
