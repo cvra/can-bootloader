@@ -148,6 +148,30 @@ def write_command(fdesc, command, destinations, source=0):
     time.sleep(0.3)
 
 
+def write_command_retry(fdesc, command, destinations, source=0):
+    """
+    Writes a command, retries as long as there is no answer and returns a dictionnary containing
+    a map of each board ID and its answer.
+    """
+    write_command(fdesc, command, destinations, source)
+    reader = CANDatagramReader(fdesc)
+    answers = dict()
+
+    while len(answers) < len(destinations):
+        dt = reader.read_datagram()
+
+        # If we have a timeout, retry on some boards
+        if dt is None:
+            timedout_boards = list(set(destinations) - set(answers))
+            write_command(fdesc, command, timedout_boards, source)
+            continue
+
+        data, _, src = dt
+        answers[src] = data
+
+    return answers
+
+
 def config_update_and_save(fdesc, config, destinations):
     """
     Updates the config of the given destinations.
