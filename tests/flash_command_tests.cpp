@@ -68,6 +68,7 @@ TEST(FlashCommandTestGroup, CanFlashSinglePage)
 
     // check return value
     bool ret = false;
+    cmp_mem_access_set_pos(&out_cma, 0);
     cmp_read_bool(&out, &ret);
     CHECK_TRUE(ret);
 }
@@ -81,6 +82,7 @@ TEST(FlashCommandTestGroup, CheckErrorHandlingWithIllFormatedArguments)
 
     // check return value
     bool ret = true;
+    cmp_mem_access_set_pos(&out_cma, 0);
     cmp_read_bool(&out, &ret);
     CHECK_FALSE(ret);
 }
@@ -107,6 +109,7 @@ TEST(FlashCommandTestGroup, CheckThatDeviceClassIsRespected)
 
     // check return value
     bool ret = true;
+    cmp_mem_access_set_pos(&out_cma, 0);
     cmp_read_bool(&out, &ret);
     CHECK_FALSE(ret);
 }
@@ -133,6 +136,7 @@ TEST(FlashCommandTestGroup, CanErasePage)
 
     // check return value
     bool ret = false;
+    cmp_mem_access_set_pos(&out_cma, 0);
     cmp_read_bool(&out, &ret);
     CHECK_TRUE(ret);
 }
@@ -152,6 +156,7 @@ TEST(FlashCommandTestGroup, DeviceClassIsRespectedForErasePage)
 
     // check return value
     bool ret = true;
+    cmp_mem_access_set_pos(&out_cma, 0);
     cmp_read_bool(&out, &ret);
     CHECK_FALSE(ret);
 }
@@ -164,6 +169,7 @@ TEST(FlashCommandTestGroup, CheckIllFormatedArgumentsForErasePage)
 
     // check return value
     bool ret = true;
+    cmp_mem_access_set_pos(&out_cma, 0);
     cmp_read_bool(&out, &ret);
     CHECK_FALSE(ret);
 }
