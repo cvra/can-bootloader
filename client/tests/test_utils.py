@@ -54,7 +54,10 @@ class CommandRetryTestCase(unittest.TestCase):
     def test_retry(self, write, read):
         data = "hello"
         read.side_effect = [(20, [10], 2), None, (10, [10], 1)]
-        res = write_command_retry(None, data, [1, 2])
+
+        with patch('logging.warning') as w:
+            res = write_command_retry(None, data, [1, 2])
+            w.assert_any_call(ANY)
 
         # Check that we retrued for the board who timed out
         write.assert_any_call(None, data, [1, 2], 0)

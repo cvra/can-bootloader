@@ -7,6 +7,7 @@ import commands
 import can
 import can_bridge
 import can_bridge.commands
+import logging
 
 import serial_datagrams
 from collections import defaultdict
@@ -164,6 +165,9 @@ def write_command_retry(fdesc, command, destinations, source=0):
         if dt is None:
             timedout_boards = list(set(destinations) - set(answers))
             write_command(fdesc, command, timedout_boards, source)
+            msg = "The following boards did not answer: {}, retrying..".format(
+                " ".join(str(t) for t in timedout_boards))
+            logging.warning(msg)
             continue
 
         data, _, src = dt
