@@ -106,6 +106,38 @@ class FlashBinaryTestCase(unittest.TestCase):
         expected_config = {'application_size': 10, 'application_crc': crc32(data)}
         conf.assert_any_call(self.fd, expected_config, dst)
 
+    @patch('logging.critical')
+    def test_bad_board_page_erase(self, c, write):
+        """
+        Checks that a board who replies with an error flag during page erase
+        leads to firmware upgrade halt.
+        """
+        write.return_value = {1: False, 2: False, 3: True}  # Board 1 fails
+        data = bytes([0] * 10)
+
+        with self.assertRaises(SystemExit):
+            flash_binary(None, data, 0x1000, '', [1, 2, 3])
+
+        c.assert_any_call("Boards 1, 2 failed during page erase, aborting...")
+
+    @patch('logging.critical')
+    def test_bad_board_page_write(self, c, write):
+        """
+        In this scenario we test what happens if the page erase is OK, but then
+        the page write fails.
+        """
+        side_effect = [{1: True, 2: True, 3: True}]
+        side_effect += [{1: False, 2: False, 3: True}]  # Board 1 fails
+        write.side_effect = side_effect
+
+        data = bytes([0] * 10)
+
+        with self.assertRaises(SystemExit):
+            flash_binary(None, data, 0x1000, '', [1, 2, 3])
+
+        c.assert_any_call("Boards 1, 2 failed during page write, aborting...")
+
+
 class CANDatagramReadTestCase(unittest.TestCase):
     """
     This testcase groups all tests related to reading a datagram from the bus.
