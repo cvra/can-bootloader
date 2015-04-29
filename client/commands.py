@@ -1,6 +1,6 @@
 from msgpack import Packer
 
-COMMAND_SET_VERSION = 1
+COMMAND_SET_VERSION = 2
 
 class CommandType:
     JumpToMain = 1

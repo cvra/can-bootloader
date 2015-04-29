@@ -16,7 +16,7 @@ class ProtocolVersionTestCase(unittest.TestCase):
         unpacker.feed(raw_packet)
 
         version, *_ = list(unpacker)
-        self.assertEqual(1, version)
+        self.assertEqual(2, version)
 
 class WriteCommandTestCase(unittest.TestCase):
     """
