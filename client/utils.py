@@ -149,7 +149,7 @@ def write_command(fdesc, command, destinations, source=0):
     time.sleep(0.3)
 
 
-def write_command_retry(fdesc, command, destinations, source=0):
+def write_command_retry(fdesc, command, destinations, source=0, retry_limit=3):
     """
     Writes a command, retries as long as there is no answer and returns a dictionnary containing
     a map of each board ID and its answer.
@@ -158,16 +158,25 @@ def write_command_retry(fdesc, command, destinations, source=0):
     reader = CANDatagramReader(fdesc)
     answers = dict()
 
+    retry_count = 0
+
     while len(answers) < len(destinations):
         dt = reader.read_datagram()
 
-        # If we have a timeout, retry on some boards
+        # If we have a timeout, retry on some boards
         if dt is None:
+            if retry_count == retry_limit:
+                logging.critical("No answer, aborting...")
+                raise IOError
+
             timedout_boards = list(set(destinations) - set(answers))
             write_command(fdesc, command, timedout_boards, source)
             msg = "The following boards did not answer: {}, retrying..".format(
                 " ".join(str(t) for t in timedout_boards))
+
             logging.warning(msg)
+            retry_count += 1
+
             continue
 
         data, _, src = dt

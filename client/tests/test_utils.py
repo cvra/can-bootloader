@@ -63,4 +63,18 @@ class CommandRetryTestCase(unittest.TestCase):
         write.assert_any_call(None, data, [1, 2], 0)
         write.assert_any_call(None, data, [1], 0)
 
-        self.assertEqual(res, {1: 10, 2: 20})
+    def test_retry_limit(self, write, read):
+        """
+        Check that the retry limit is enforced.
+        """
+        read.return_value = None  # Timeout forever
+        data = "hello"
+
+        with patch('logging.warning'),  patch('logging.critical') as critical:
+            with self.assertRaises(IOError):
+                write_command_retry(None, data, [1, 2], retry_limit=2)
+
+            # Check that we tried the correct number of time and showed a
+            # message
+            self.assertEqual(write.call_count, 2 + 1)
+            critical.assert_any_call(ANY)
