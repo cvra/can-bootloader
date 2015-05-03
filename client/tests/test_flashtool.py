@@ -20,7 +20,7 @@ import can, serial_datagrams
 import can_bridge.frame
 import sys
 
-@patch('utils.write_command')
+@patch('utils.write_command_retry')
 class FlashBinaryTestCase(unittest.TestCase):
     fd = "port"
 
@@ -40,6 +40,7 @@ class FlashBinaryTestCase(unittest.TestCase):
         address = 0x1000
         device_class = 'dummy'
         destinations = [1]
+        write.return_value = msgpack.packb({1: True})  # Board is OK
 
         flash_binary(self.fd, data, address, "dummy", destinations)
 
@@ -50,10 +51,12 @@ class FlashBinaryTestCase(unittest.TestCase):
         """
         Tests that a single chunk can be written.
         """
+
         data = bytes(range(20))
         address = 0x1000
         device_class = 'dummy'
         destinations = [1]
+        write.return_value = msgpack.packb({1: True})  # Board is OK
 
         flash_binary(self.fd, data, address, "dummy", [1])
 
@@ -65,6 +68,7 @@ class FlashBinaryTestCase(unittest.TestCase):
         """
         Checks that we can write many chunks, but still in one page
         """
+        write.return_value = msgpack.packb({1: True})
         data = bytes([0] * 4096)
         address = 0x1000
         device_class = 'dummy'
@@ -82,6 +86,7 @@ class FlashBinaryTestCase(unittest.TestCase):
         """
         Checks that all pages are erased before writing data to them.
         """
+        write.return_value = msgpack.packb({1: True})
         data = bytes([0] * 4096)
         device_class = 'dummy'
         destinations = [1]
@@ -98,13 +103,48 @@ class FlashBinaryTestCase(unittest.TestCase):
         """
         Tests that the CRC is updated after flashing a binary.
         """
+
         data = bytes([0] * 10)
         dst = [1]
+        write.return_value = msgpack.packb({1: True})
 
         flash_binary(self.fd, data, 0x1000, '', dst)
 
         expected_config = {'application_size': 10, 'application_crc': crc32(data)}
         conf.assert_any_call(self.fd, expected_config, dst)
+
+    @patch('logging.critical')
+    def test_bad_board_page_erase(self, c, write):
+        """
+        Checks that a board who replies with an error flag during page erase
+        leads to firmware upgrade halt.
+        """
+        #  Board 1 fails
+        write.return_value = msgpack.packb({1: False, 2: False, 3: True})
+        data = bytes([0] * 10)
+
+        with self.assertRaises(SystemExit):
+            flash_binary(None, data, 0x1000, '', [1, 2, 3])
+
+        c.assert_any_call("Boards 1, 2 failed during page erase, aborting...")
+
+    @patch('logging.critical')
+    def test_bad_board_page_write(self, c, write):
+        """
+        In this scenario we test what happens if the page erase is OK, but then
+        the page write fails.
+        """
+        side_effect = [{1: True, 2: True, 3: True}]
+        side_effect += [{1: False, 2: False, 3: True}]  # Board 1 fails
+        write.side_effect = [msgpack.packb(s) for s in side_effect]
+
+        data = bytes([0] * 10)
+
+        with self.assertRaises(SystemExit):
+            flash_binary(None, data, 0x1000, '', [1, 2, 3])
+
+        c.assert_any_call("Boards 1, 2 failed during page write, aborting...")
+
 
 class CANDatagramReadTestCase(unittest.TestCase):
     """
@@ -246,7 +286,7 @@ class CANDatagramReadTestCase(unittest.TestCase):
 class ConfigTestCase(unittest.TestCase):
     fd = "port"
 
-    @patch('utils.write_command')
+    @patch('utils.write_command_retry')
     def test_config_is_updated_and_saved(self, write):
         """
         Checks that the config is correctly sent encoded to the board.

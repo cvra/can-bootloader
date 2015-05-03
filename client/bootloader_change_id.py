@@ -2,6 +2,7 @@
 import utils
 import commands
 
+
 def parse_commandline_args():
     parser = utils.ConnectionArgumentParser(description='Change a single node ID.')
     parser.add_argument("old", type=int, help="Old device ID")
@@ -9,13 +10,18 @@ def parse_commandline_args():
 
     return parser.parse_args()
 
+
 def main():
     args = parse_commandline_args()
     connection = utils.open_connection(args)
 
     config = {"ID": args.new}
-    utils.write_command(connection, commands.encode_update_config(config), [args.old])
-    utils.write_command(connection, commands.encode_save_config(), [args.new])
+    utils.write_command_retry(connection,
+                              commands.encode_update_config(config),
+                              [args.old])
+    utils.write_command_retry(connection,
+                              commands.encode_save_config(),
+                              [args.new])
 
 if __name__ == "__main__":
     main()

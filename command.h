@@ -22,7 +22,7 @@ extern "C" {
 #define ERR_INVALID_COMMAND_SET_VERSION 3
 
 /** Version of the protocol command set. */
-#define COMMAND_SET_VERSION 1
+#define COMMAND_SET_VERSION 2
 
 typedef struct {
     /** Command ID */

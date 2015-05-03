@@ -7,6 +7,7 @@ import commands
 import can
 import can_bridge
 import can_bridge.commands
+import logging
 
 import serial_datagrams
 from collections import defaultdict
@@ -148,6 +149,42 @@ def write_command(fdesc, command, destinations, source=0):
     time.sleep(0.3)
 
 
+def write_command_retry(fdesc, command, destinations, source=0, retry_limit=3):
+    """
+    Writes a command, retries as long as there is no answer and returns a dictionnary containing
+    a map of each board ID and its answer.
+    """
+    write_command(fdesc, command, destinations, source)
+    reader = CANDatagramReader(fdesc)
+    answers = dict()
+
+    retry_count = 0
+
+    while len(answers) < len(destinations):
+        dt = reader.read_datagram()
+
+        # If we have a timeout, retry on some boards
+        if dt is None:
+            if retry_count == retry_limit:
+                logging.critical("No answer, aborting...")
+                raise IOError
+
+            timedout_boards = list(set(destinations) - set(answers))
+            write_command(fdesc, command, timedout_boards, source)
+            msg = "The following boards did not answer: {}, retrying..".format(
+                " ".join(str(t) for t in timedout_boards))
+
+            logging.warning(msg)
+            retry_count += 1
+
+            continue
+
+        data, _, src = dt
+        answers[src] = data
+
+    return answers
+
+
 def config_update_and_save(fdesc, config, destinations):
     """
     Updates the config of the given destinations.
@@ -155,8 +192,8 @@ def config_update_and_save(fdesc, config, destinations):
     """
     # First send the updated config
     command = commands.encode_update_config(config)
-    write_command(fdesc, command, destinations)
+    write_command_retry(fdesc, command, destinations)
 
     # Then save the config to flash
-    write_command(fdesc, commands.encode_save_config(), destinations)
+    write_command_retry(fdesc, commands.encode_save_config(), destinations)
 

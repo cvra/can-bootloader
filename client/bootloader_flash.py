@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import page
+import logging
 import commands
 import msgpack
 from zlib import crc32
@@ -7,6 +8,7 @@ from sys import exit
 
 import utils
 import progressbar
+import sys
 
 CHUNK_SIZE = 2048
 
@@ -52,7 +54,16 @@ def flash_binary(fdesc, binary, base_address, device_class, destinations, page_s
     # First erase all pages
     for offset in range(0, len(binary), page_size):
         erase_command = commands.encode_erase_flash_page(base_address + offset, device_class)
-        utils.write_command(fdesc, erase_command, destinations)
+        res = utils.write_command_retry(fdesc, erase_command, destinations)
+        res = msgpack.unpackb(res)
+
+        failed_boards = [str(id) for id, success in res.items() if not success]
+        if failed_boards:
+            msg = ", ".join(failed_boards)
+            msg = "Boards {} failed during page erase, aborting...".format(msg)
+            logging.critical(msg)
+            sys.exit(2)
+
         pbar.update(offset)
 
     pbar.finish()
@@ -64,7 +75,17 @@ def flash_binary(fdesc, binary, base_address, device_class, destinations, page_s
     for offset, chunk in enumerate(page.slice_into_pages(binary, CHUNK_SIZE)):
         offset *= CHUNK_SIZE
         command = commands.encode_write_flash(chunk, base_address + offset, device_class)
-        utils.write_command(fdesc, command, destinations)
+
+        res = utils.write_command_retry(fdesc, command, destinations)
+        res = msgpack.unpackb(res)
+        failed_boards = [str(id) for id, success in res.items() if not success]
+
+        if failed_boards:
+            msg = ", ".join(failed_boards)
+            msg = "Boards {} failed during page write, aborting...".format(msg)
+            logging.critical(msg)
+            sys.exit(2)
+
         pbar.update(offset)
     pbar.finish()
 

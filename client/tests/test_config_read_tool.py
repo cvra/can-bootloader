@@ -12,17 +12,20 @@ from commands import *
 import sys
 import json
 
+
 class ReadConfigToolTestCase(unittest.TestCase):
-    @patch('utils.CANDatagramReader.read_datagram')
+    @patch('utils.write_command_retry')
     @patch('utils.write_command')
     @patch('serial.Serial')
     @patch('builtins.print')
-    def test_integration(self, print_mock, serial, write_command, read_can_datagram):
+    def test_integration(self, print_mock, serial, write_command,
+                         write_command_retry):
         sys.argv = "test.py -p /dev/ttyUSB0 0 1 2".split()
-        configs = [{'id':i} for i in range(3)]
+        configs = [{'id': i} for i in range(3)]
 
-        # Config arrive out of order, because of reason
-        read_can_datagram.side_effect = [(packb(configs[i]), 0, i) for i in [2, 0, 1]]
+        write_command_retry.return_value = {
+            i: packb(configs[i]) for i in range(3)
+        }
 
         serial.return_value = object()
 
@@ -30,34 +33,37 @@ class ReadConfigToolTestCase(unittest.TestCase):
 
         serial.assert_any_call(port='/dev/ttyUSB0', timeout=ANY, baudrate=ANY)
 
-        write_command.assert_any_call(serial.return_value, encode_read_config(), [0, 1, 2])
+        write_command_retry.assert_any_call(serial.return_value,
+                                            encode_read_config(), [0, 1, 2])
 
-        for i in range(3):
-            read_can_datagram.assert_any_call()
+        all_configs = {i: configs[i] for i in range(3)}
 
-        all_configs = {i:configs[i] for i in range(3)}
-
-        print_mock.assert_any_call(json.dumps(all_configs, indent=4, sort_keys=True))
+        print_mock.assert_any_call(json.dumps(all_configs, indent=4,
+                                              sort_keys=True))
 
     @patch('utils.open_connection')
+    @patch('utils.write_command_retry')
     @patch('utils.write_command')
     @patch('utils.CANDatagramReader.read_datagram')
-    @patch('utils.ping_board')
     @patch('builtins.print')
-    def test_network_discovery(self, print_mock, ping, read_can_datagram, write_command, open_conn):
+    def test_network_discovery(self, print_mock, read_can_datagram,
+                               write_command, write_command_retry, open_conn):
         """
         Checks if we can perform a whole network discovery.
         """
         sys.argv = "test.py -p /dev/ttyUSB0 --all".split()
 
-        # The first two board answers
+        # The first two board answers the ping
         board_answers = [(b'', [0], i) for i in range(1, 3)] + [None]
-        board_answers += [(packb({'foo':i}), 0, i) for i in range(2)]
 
         read_can_datagram.side_effect = board_answers
 
+        write_command_retry.return_value = {
+            i: packb({'id': i}) for i in range(1, 3)
+        }
+
         bootloader_read_config.main()
-
-        write_command.assert_any_call(open_conn.return_value, encode_read_config(), [1, 2])
-
+        write_command.assert_any_call(open_conn.return_value,
+                                      encode_ping(),
+                                      list(range(1, 128)))
 
