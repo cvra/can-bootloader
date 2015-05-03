@@ -40,7 +40,6 @@ class FlashBinaryTestCase(unittest.TestCase):
         address = 0x1000
         device_class = 'dummy'
         destinations = [1]
-        write.return_value = msgpack.packb({1: True})  # Board is OK
 
         flash_binary(self.fd, data, address, "dummy", destinations)
 
@@ -51,12 +50,10 @@ class FlashBinaryTestCase(unittest.TestCase):
         """
         Tests that a single chunk can be written.
         """
-
         data = bytes(range(20))
         address = 0x1000
         device_class = 'dummy'
         destinations = [1]
-        write.return_value = msgpack.packb({1: True})  # Board is OK
 
         flash_binary(self.fd, data, address, "dummy", [1])
 
@@ -68,7 +65,6 @@ class FlashBinaryTestCase(unittest.TestCase):
         """
         Checks that we can write many chunks, but still in one page
         """
-        write.return_value = msgpack.packb({1: True})
         data = bytes([0] * 4096)
         address = 0x1000
         device_class = 'dummy'
@@ -86,7 +82,6 @@ class FlashBinaryTestCase(unittest.TestCase):
         """
         Checks that all pages are erased before writing data to them.
         """
-        write.return_value = msgpack.packb({1: True})
         data = bytes([0] * 4096)
         device_class = 'dummy'
         destinations = [1]
@@ -103,10 +98,8 @@ class FlashBinaryTestCase(unittest.TestCase):
         """
         Tests that the CRC is updated after flashing a binary.
         """
-
         data = bytes([0] * 10)
         dst = [1]
-        write.return_value = msgpack.packb({1: True})
 
         flash_binary(self.fd, data, 0x1000, '', dst)
 
@@ -119,8 +112,7 @@ class FlashBinaryTestCase(unittest.TestCase):
         Checks that a board who replies with an error flag during page erase
         leads to firmware upgrade halt.
         """
-        #  Board 1 fails
-        write.return_value = msgpack.packb({1: False, 2: False, 3: True})
+        write.return_value = {1: False, 2: False, 3: True}  # Board 1 fails
         data = bytes([0] * 10)
 
         with self.assertRaises(SystemExit):
@@ -136,7 +128,7 @@ class FlashBinaryTestCase(unittest.TestCase):
         """
         side_effect = [{1: True, 2: True, 3: True}]
         side_effect += [{1: False, 2: False, 3: True}]  # Board 1 fails
-        write.side_effect = [msgpack.packb(s) for s in side_effect]
+        write.side_effect = side_effect
 
         data = bytes([0] * 10)
 

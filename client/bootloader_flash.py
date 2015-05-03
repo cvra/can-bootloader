@@ -55,7 +55,6 @@ def flash_binary(fdesc, binary, base_address, device_class, destinations, page_s
     for offset in range(0, len(binary), page_size):
         erase_command = commands.encode_erase_flash_page(base_address + offset, device_class)
         res = utils.write_command_retry(fdesc, erase_command, destinations)
-        res = msgpack.unpackb(res)
 
         failed_boards = [str(id) for id, success in res.items() if not success]
         if failed_boards:
@@ -77,7 +76,6 @@ def flash_binary(fdesc, binary, base_address, device_class, destinations, page_s
         command = commands.encode_write_flash(chunk, base_address + offset, device_class)
 
         res = utils.write_command_retry(fdesc, command, destinations)
-        res = msgpack.unpackb(res)
         failed_boards = [str(id) for id, success in res.items() if not success]
 
         if failed_boards:
