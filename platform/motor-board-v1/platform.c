@@ -145,8 +145,8 @@ void platform_main(int arg)
     gpio_set_output_options(GPIOA, GPIO_OTYPE_PP, GPIO_OSPEED_100MHZ, GPIOA_LED);
     gpio_clear(GPIOA, GPIOA_LED);
 
-    // configure timeout of 2000 milliseconds
-    timeout_timer_init(72000000, 2000);
+    // configure timeout of 10000 milliseconds
+    timeout_timer_init(72000000, 10000);
 
     can_interface_init();
 
