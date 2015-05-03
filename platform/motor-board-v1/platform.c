@@ -45,7 +45,7 @@ void can_interface_init(void)
         CAN,
         0,      // filter nr
         0,      // id: only std id, no rtr
-        6,      // mask: macth any std id
+        6 | (7<<29), // mask: match only std id[10:8] = 0 (bootloader frames)
         0,      // assign to fifo0
         true    // enable
     );

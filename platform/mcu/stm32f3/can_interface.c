@@ -38,7 +38,7 @@ bool can_interface_send_message(uint32_t id, uint8_t *message, uint8_t length, u
             id,         // can id
             false,      // extended id
             false,      // request transmit
-            length,     // data leng
+            length,     // data length
             message     // data
         );
 

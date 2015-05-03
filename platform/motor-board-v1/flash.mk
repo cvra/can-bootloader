@@ -3,7 +3,7 @@
 
 .PHONY: flash
 flash: all
-	openocd -f oocd.cfg -c "program $(PROJNAME).elf verify reset"
+	openocd -f oocd.cfg -c "program $(PROJNAME).elf verify reset" -c "shutdown"
 
 .PHONY: reset
 reset:
