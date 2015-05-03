@@ -56,7 +56,7 @@ def flash_binary(fdesc, binary, base_address, device_class, destinations, page_s
         erase_command = commands.encode_erase_flash_page(base_address + offset, device_class)
         res = utils.write_command_retry(fdesc, erase_command, destinations)
 
-        failed_boards = [str(id) for id, success in res.items() if not success]
+        failed_boards = [str(id) for id, success in res.items() if not msgpack.unpackb(success)]
         if failed_boards:
             msg = ", ".join(failed_boards)
             msg = "Boards {} failed during page erase, aborting...".format(msg)
@@ -76,7 +76,7 @@ def flash_binary(fdesc, binary, base_address, device_class, destinations, page_s
         command = commands.encode_write_flash(chunk, base_address + offset, device_class)
 
         res = utils.write_command_retry(fdesc, command, destinations)
-        failed_boards = [str(id) for id, success in res.items() if not success]
+        failed_boards = [str(id) for id, success in res.items() if not msgpack.unpackb(success)]
 
         if failed_boards:
             msg = ", ".join(failed_boards)
