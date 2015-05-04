@@ -66,7 +66,7 @@ def open_connection(args):
     Returns a file like object which will be the connection handle.
     """
     if args.serial_device:
-        return serial.Serial(port=args.serial_device, timeout=0.2, baudrate=115200)
+        return serial.Serial(port=args.serial_device, timeout=2.0, baudrate=115200)
 
     elif args.hostname:
         try:
@@ -77,7 +77,7 @@ def open_connection(args):
         port = int(port)
 
         connection = socket.create_connection((host, port))
-        connection.settimeout(0.2)
+        connection.settimeout(2.0)
         return SocketSerialAdapter(connection)
 
 class CANDatagramReader:
@@ -146,7 +146,7 @@ def write_command(fdesc, command, destinations, source=0):
         datagram = serial_datagrams.datagram_encode(bridge_frame)
         fdesc.write(datagram)
         fdesc.flush()
-    time.sleep(0.3)
+    time.sleep(0.1)
 
 
 def write_command_retry(fdesc, command, destinations, source=0, retry_limit=3):
