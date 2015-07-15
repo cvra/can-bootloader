@@ -112,7 +112,9 @@ class FlashBinaryTestCase(unittest.TestCase):
         Checks that a board who replies with an error flag during page erase
         leads to firmware upgrade halt.
         """
-        write.return_value = {1: False, 2: False, 3: True}  # Board 1 fails
+        ok, nok = msgpack.packb(True), msgpack.packb(False)
+        write.return_value = {1: nok, 2: nok, 3: ok}  # Board 1 fails
+
         data = bytes([0] * 10)
 
         with self.assertRaises(SystemExit):
@@ -126,8 +128,9 @@ class FlashBinaryTestCase(unittest.TestCase):
         In this scenario we test what happens if the page erase is OK, but then
         the page write fails.
         """
-        side_effect = [{1: True, 2: True, 3: True}]
-        side_effect += [{1: False, 2: False, 3: True}]  # Board 1 fails
+        ok, nok = msgpack.packb(True), msgpack.packb(False)
+        side_effect = [{1: ok, 2: ok, 3: ok}]
+        side_effect += [{1: nok, 2: nok, 3: ok}]  # Board 1 fails
         write.side_effect = side_effect
 
         data = bytes([0] * 10)
