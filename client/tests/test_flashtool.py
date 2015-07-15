@@ -405,7 +405,8 @@ class MainTestCase(unittest.TestCase):
         Checks that we open the correct serial port to the bridge.
         """
         main()
-        self.serial.assert_any_call(port='/dev/ttyUSB0', baudrate=115200, timeout=0.2)
+        self.serial.assert_any_call(port='/dev/ttyUSB0', baudrate=115200,
+                                    timeout=ANY)
 
     def test_failing_ping(self):
         """
