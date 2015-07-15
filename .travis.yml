@@ -35,7 +35,7 @@ before_script:
     - source venv/bin/activate
     - python --version
     - pip install -r client/requirements.txt
-    - pip install mock # python 3.2 doesn't have unittest.mock
+    - pip install mock==1.0.1 # python 3.2 doesn't have unittest.mock
 
     - pushd serial-can-bridge/python
     - python setup.py install
