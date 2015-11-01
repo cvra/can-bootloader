@@ -61,7 +61,7 @@ void fault_handler(void)
 
     while(1); // debug
 
-    reboot(BOOT_ARG_START_BOOTLOADER_NO_TIMEOUT);
+    reboot_system(BOOT_ARG_START_BOOTLOADER_NO_TIMEOUT);
 }
 
 typedef struct {
@@ -149,5 +149,5 @@ void platform_main(int arg)
 
     bootloader_main(arg);
 
-    reboot(BOOT_ARG_START_BOOTLOADER);
+    reboot_system(BOOT_ARG_START_BOOTLOADER);
 }

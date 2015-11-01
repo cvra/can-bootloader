@@ -5,7 +5,7 @@
 #define BOOT_ARG_MAGIC_VALUE_LO 0x01234567
 #define BOOT_ARG_MAGIC_VALUE_HI 0x0089abcd
 
-void reboot(uint8_t arg)
+void reboot_system(uint8_t arg)
 {
     uint32_t *ram_start = (uint32_t *)0x20000000;
 

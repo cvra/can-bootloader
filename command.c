@@ -104,9 +104,9 @@ void command_read_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_co
 void command_jump_to_application(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config)
 {
     if (crc32(0, memory_get_app_addr(), config->application_size) == config->application_crc) {
-        reboot(BOOT_ARG_START_APPLICATION);
+        reboot_system(BOOT_ARG_START_APPLICATION);
     } else {
-        reboot(BOOT_ARG_START_BOOTLOADER_NO_TIMEOUT);
+        reboot_system(BOOT_ARG_START_BOOTLOADER_NO_TIMEOUT);
     }
 }
 
