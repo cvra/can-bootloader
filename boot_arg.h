@@ -12,7 +12,7 @@ extern "C" {
 #define BOOT_ARG_START_APPLICATION              0x02
 #define BOOT_ARG_START_ST_BOOTLOADER            0x03
 
-void reboot(uint8_t arg);
+void reboot_system(uint8_t arg);
 
 #ifdef __cplusplus
 }
