@@ -81,16 +81,26 @@ def open_connection(args):
         return SocketSerialAdapter(connection)
 
 
+def read_can_frame(fdesc):
+    """
+    Reads a single CAN frame from the given file descriptor.
+    """
+    frame = serial_datagrams.read_datagram(fdesc)
+    if frame is None:  # Timeout, retry
+        return None
+
+    return can_bridge.frame.decode(frame)
+
+
 def read_can_datagrams(fdesc):
     while True:
         buf = defaultdict(lambda: bytes())
         datagram = None
         while datagram is None:
-            frame = serial_datagrams.read_datagram(fdesc)
-            if frame is None:  # Timeout, retry
-                yield None
+            frame = read_can_frame(fdesc)
 
-            frame = can_bridge.frame.decode(frame)
+            if frame is None:
+                yield None
 
             if frame.extended:
                 continue
@@ -123,6 +133,7 @@ def ping_board(fdesc, destination):
         return False
 
     return True
+
 
 def write_command(fdesc, command, destinations, source=0):
     """
