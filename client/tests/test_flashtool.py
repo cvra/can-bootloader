@@ -163,7 +163,7 @@ class CANDatagramReadTestCase(unittest.TestCase):
         frames = bytes(c for i in [serial_datagrams.datagram_encode(f) for f in frames] for c in i)
 
         # Put all data in a pseudofile
-        fdesc = BytesIO(frames)
+        fdesc = SerialCANBridgeConnection(BytesIO(frames))
 
         reader = read_can_datagrams(fdesc)
 
@@ -196,7 +196,7 @@ class CANDatagramReadTestCase(unittest.TestCase):
         frames = bytes(c for i in [serial_datagrams.datagram_encode(f) for f in frames] for c in i)
 
         # Put all data in a pseudofile
-        fdesc = BytesIO(frames)
+        fdesc = SerialCANBridgeConnection(BytesIO(frames))
 
         reader = read_can_datagrams(fdesc)
 
@@ -231,7 +231,7 @@ class CANDatagramReadTestCase(unittest.TestCase):
         frames = bytes(c for i in [serial_datagrams.datagram_encode(f) for f in frames] for c in i)
 
         # Put all data in a pseudofile
-        fdesc = BytesIO(frames)
+        fdesc = SerialCANBridgeConnection(BytesIO(frames))
 
         decode = read_can_datagrams(fdesc)
 
@@ -252,7 +252,7 @@ class CANDatagramReadTestCase(unittest.TestCase):
             frames = bytes(c for i in [serial_datagrams.datagram_encode(f) for f in frames] for c in i)
             data += frames
 
-        fdesc = BytesIO(data)
+        fdesc = SerialCANBridgeConnection(BytesIO(data))
         decode = read_can_datagrams(fdesc)
 
         # Read a CAN datagram from that pseudofile
@@ -270,7 +270,7 @@ class CANDatagramReadTestCase(unittest.TestCase):
         """
         data = 'Hello world'.encode('ascii')
 
-        reader = read_can_datagrams(None)
+        reader = read_can_datagrams(SerialCANBridgeConnection(None))
 
         with patch('serial_datagrams.read_datagram') as read:
             read.return_value = None

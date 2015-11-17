@@ -59,6 +59,27 @@ class SocketSerialAdapter:
         pass
 
 
+class SerialCANBridgeConnection:
+    """
+    Implements the CAN API for serial bridge.
+    """
+    def __init__(self, fd):
+        self.fd = fd
+
+    def send_frame(self, frame):
+        bridge_frame = can_bridge.commands.encode_frame_write(frame)
+        datagram = serial_datagrams.datagram_encode(bridge_frame)
+        self.fd.write(datagram)
+        self.fd.flush()
+
+    def receive_frame(self):
+        frame = serial_datagrams.read_datagram(self.fd)
+        if frame is None:  # Timeout, retry
+            return None
+
+        return can_bridge.frame.decode(frame)
+
+
 def open_connection(args):
     """
     Open a connection based on commandline arguments.
@@ -81,30 +102,12 @@ def open_connection(args):
         return SocketSerialAdapter(connection)
 
 
-def read_can_frame(fdesc):
-    """
-    Reads a single CAN frame from the given file descriptor.
-    """
-    frame = serial_datagrams.read_datagram(fdesc)
-    if frame is None:  # Timeout, retry
-        return None
-
-    return can_bridge.frame.decode(frame)
-
-
-def write_can_frame(fdesc, frame):
-    bridge_frame = can_bridge.commands.encode_frame_write(frame)
-    datagram = serial_datagrams.datagram_encode(bridge_frame)
-    fdesc.write(datagram)
-    fdesc.flush()
-
-
 def read_can_datagrams(fdesc):
     while True:
         buf = defaultdict(lambda: bytes())
         datagram = None
         while datagram is None:
-            frame = read_can_frame(fdesc)
+            frame = fdesc.receive_frame()
 
             if frame is None:
                 yield None
@@ -150,7 +153,7 @@ def write_command(fdesc, command, destinations, source=0):
     frames = can.datagram_to_frames(datagram, source)
 
     for frame in frames:
-        write_can_frame(fdesc, frame)
+        fdesc.send_frame(frame)
 
     time.sleep(0.1)
 

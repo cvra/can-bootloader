@@ -53,9 +53,10 @@ class WriteCommandTestCase(unittest.TestCase):
                             for f in bridge_frames]
 
         fdesc = Mock()
+        conn = SerialCANBridgeConnection(fdesc)
 
         # Writes CAN frame
-        write_command(fdesc, data, dst)
+        write_command(conn, data, dst)
 
         # Asserts writes are OK
         for dt in bridge_datagrams:
