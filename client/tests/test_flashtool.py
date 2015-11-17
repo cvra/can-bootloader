@@ -20,6 +20,8 @@ import can, serial_datagrams
 import can_bridge.frame
 import sys
 
+from can.adapters import SerialCANBridgeConnection
+
 @patch('utils.write_command_retry')
 class FlashBinaryTestCase(unittest.TestCase):
     fd = "port"

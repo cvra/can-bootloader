@@ -7,10 +7,12 @@ except ImportError:
 from utils import *
 from itertools import repeat
 from collections import namedtuple
+from can.adapters import SerialCANBridgeConnection
 
 import commands
 import msgpack
 import serial_datagrams
+import can_bridge
 
 @patch('utils.read_can_datagrams')
 @patch('utils.write_command')
