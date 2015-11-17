@@ -106,12 +106,12 @@ def check_binary(fdesc, binary, base_address, destinations):
     command = commands.encode_crc_region(base_address, len(binary))
     utils.write_command(fdesc, command, destinations)
 
-    reader = utils.CANDatagramReader(fdesc)
+    reader = utils.read_can_datagrams(fdesc)
 
     boards_checked = 0
 
     while boards_checked < len(destinations):
-        dt = reader.read_datagram()
+        dt = next(reader)
 
         if dt is None:
             continue
@@ -150,7 +150,7 @@ def check_online_boards(fdesc, boards):
     online_boards = set()
 
     utils.write_command(fdesc, commands.encode_ping(), boards)
-    reader = utils.CANDatagramReader(fdesc)
+    reader = utils.read_can_datagrams(fdesc)
 
     while True:
         dt = reader.read_datagram()

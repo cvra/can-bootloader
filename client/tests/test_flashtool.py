@@ -165,10 +165,10 @@ class CANDatagramReadTestCase(unittest.TestCase):
         # Put all data in a pseudofile
         fdesc = BytesIO(frames)
 
-        reader = CANDatagramReader(fdesc)
+        reader = read_can_datagrams(fdesc)
 
         # Read a CAN datagram from that pseudofile
-        dt, dst, src = reader.read_datagram()
+        dt, dst, src = next(reader)
 
         self.assertEqual(dt.decode('ascii'), 'Hello world')
         self.assertEqual(dst, [1])
@@ -198,10 +198,10 @@ class CANDatagramReadTestCase(unittest.TestCase):
         # Put all data in a pseudofile
         fdesc = BytesIO(frames)
 
-        reader = CANDatagramReader(fdesc)
+        reader = read_can_datagrams(fdesc)
 
         # Read a CAN datagram from that pseudofile
-        dt, dst, src = reader.read_datagram()
+        dt, dst, src = next(reader)
 
         self.assertEqual(dt.decode('ascii'), 'Hello world')
         self.assertEqual(dst, [1])
@@ -233,10 +233,10 @@ class CANDatagramReadTestCase(unittest.TestCase):
         # Put all data in a pseudofile
         fdesc = BytesIO(frames)
 
-        decode = CANDatagramReader(fdesc)
+        decode = read_can_datagrams(fdesc)
 
         # Read a CAN datagram from that pseudofile
-        dt, dst, src = decode.read_datagram()
+        dt, dst, src = next(decode)
 
     def test_read_several_datagrams_from_src(self):
         """
@@ -253,13 +253,13 @@ class CANDatagramReadTestCase(unittest.TestCase):
             data += frames
 
         fdesc = BytesIO(data)
-        decode = CANDatagramReader(fdesc)
+        decode = read_can_datagrams(fdesc)
 
         # Read a CAN datagram from that pseudofile
-        _, dst, _ = decode.read_datagram()
+        _, dst, _ = next(decode)
         self.assertEqual([0], dst)
 
-        _, dst, _ = decode.read_datagram()
+        _, dst, _ = next(decode)
         self.assertEqual([1], dst)
 
 
@@ -270,11 +270,11 @@ class CANDatagramReadTestCase(unittest.TestCase):
         """
         data = 'Hello world'.encode('ascii')
 
-        reader = CANDatagramReader(None)
+        reader = read_can_datagrams(None)
 
         with patch('serial_datagrams.read_datagram') as read:
             read.return_value = None
-            a = reader.read_datagram()
+            a = next(reader)
 
         self.assertIsNone(a)
 
@@ -297,7 +297,7 @@ class ConfigTestCase(unittest.TestCase):
         # Checks that the calls were made, and in the correct order
         write.assert_has_calls([update_call, save_command])
 
-    @patch('utils.CANDatagramReader.read_datagram')
+    @patch('utils.read_can_datagrams')
     @patch('utils.write_command')
     def test_check_single_valid_checksum(self, write, read_datagram):
         """
@@ -310,14 +310,14 @@ class ConfigTestCase(unittest.TestCase):
         side_effect += [(msgpack.packb(0xdead), [0], 2)]
         side_effect += [None] # timeout
 
-        read_datagram.side_effect = side_effect
+        read_datagram.return_value = iter(side_effect)
 
 
         valid_nodes = check_binary(self.fd, binary, 0x1000, [1, 2])
 
         self.assertEqual([1], valid_nodes)
 
-    @patch('utils.CANDatagramReader.read_datagram')
+    @patch('utils.read_can_datagrams')
     @patch('utils.write_command')
     def test_verify_handles_timeout(self, write, read_datagram):
         """
@@ -331,7 +331,7 @@ class ConfigTestCase(unittest.TestCase):
         side_effect += [(msgpack.packb(0xdead), [0], 2)]
         side_effect += [(msgpack.packb(crc), [0], 1)]
 
-        read_datagram.side_effect = side_effect
+        read_datagram.return_value = iter(side_effect)
 
         valid_nodes = check_binary(self.fd, binary, 0x1000, [1, 2])
 

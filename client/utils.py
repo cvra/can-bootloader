@@ -80,26 +80,15 @@ def open_connection(args):
         connection.settimeout(2.0)
         return SocketSerialAdapter(connection)
 
-class CANDatagramReader:
-    """
-    This class implements CAN datagram reading.
 
-    It supports reading interleaved datagrams through internal buffering.
-    """
-    def __init__(self, fdesc):
-        self.fdesc = fdesc
-        self.buf = defaultdict(lambda: bytes())
-
-    def read_datagram(self):
-        """
-        Reads a single datagram.
-        """
+def read_can_datagrams(fdesc):
+    while True:
+        buf = defaultdict(lambda: bytes())
         datagram = None
-
         while datagram is None:
-            frame = serial_datagrams.read_datagram(self.fdesc)
-            if frame is None: # Timeout, retry
-                return None
+            frame = serial_datagrams.read_datagram(fdesc)
+            if frame is None:  # Timeout, retry
+                yield None
 
             frame = can_bridge.frame.decode(frame)
 
@@ -107,15 +96,15 @@ class CANDatagramReader:
                 continue
 
             src = frame.id & (0x7f)
-            self.buf[src] += frame.data
+            buf[src] += frame.data
 
-            datagram = can.decode_datagram(self.buf[src])
+            datagram = can.decode_datagram(buf[src])
 
             if datagram is not None:
-                del self.buf[src]
+                del buf[src]
                 data, dst = datagram
 
-        return data, dst, src
+        yield data, dst, src
 
 
 def ping_board(fdesc, destination):
@@ -126,8 +115,8 @@ def ping_board(fdesc, destination):
     """
     write_command(fdesc, commands.encode_ping(), [destination])
 
-    reader = CANDatagramReader(fdesc)
-    answer = reader.read_datagram()
+    reader = read_can_datagrams(fdesc)
+    answer = next(reader)
 
     # Timeout
     if answer is None:
@@ -155,13 +144,13 @@ def write_command_retry(fdesc, command, destinations, source=0, retry_limit=3):
     a map of each board ID and its answer.
     """
     write_command(fdesc, command, destinations, source)
-    reader = CANDatagramReader(fdesc)
+    reader = read_can_datagrams(fdesc)
     answers = dict()
 
     retry_count = 0
 
     while len(answers) < len(destinations):
-        dt = reader.read_datagram()
+        dt = next(reader)
 
         # If we have a timeout, retry on some boards
         if dt is None:

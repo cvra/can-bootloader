@@ -44,7 +44,7 @@ class ReadConfigToolTestCase(unittest.TestCase):
     @patch('utils.open_connection')
     @patch('utils.write_command_retry')
     @patch('utils.write_command')
-    @patch('utils.CANDatagramReader.read_datagram')
+    @patch('utils.read_can_datagrams')
     @patch('builtins.print')
     def test_network_discovery(self, print_mock, read_can_datagram,
                                write_command, write_command_retry, open_conn):
@@ -56,7 +56,7 @@ class ReadConfigToolTestCase(unittest.TestCase):
         # The first two board answers the ping
         board_answers = [(b'', [0], i) for i in range(1, 3)] + [None]
 
-        read_can_datagram.side_effect = board_answers
+        read_can_datagram.return_value = iter(board_answers)
 
         write_command_retry.return_value = {
             i: packb({'id': i}) for i in range(1, 3)
