@@ -6,6 +6,7 @@ except ImportError:
 
 from utils import *
 from itertools import repeat
+from collections import namedtuple
 
 import commands
 import msgpack
@@ -105,3 +106,48 @@ class CommandRetryTestCase(unittest.TestCase):
             # message
             self.assertEqual(write.call_count, 2 + 1)
             critical.assert_any_call(ANY)
+
+
+class OpenConnectionTestCase(unittest.TestCase):
+    Args = namedtuple("Args", ["hostname", "serial_device"])
+
+    def make_args(self, hostname=None, serial_device=None):
+        return self.Args(hostname=hostname, serial_device=serial_device)
+
+    def test_open_serial(self):
+        """
+        Checks that if we provide a serial port the serial port is
+        """
+        args = self.make_args(serial_device='/dev/ttyUSB0')
+
+        with patch('serial.Serial') as serial:
+            serial.return_value = object()
+            port = open_connection(args)
+
+            self.assertEqual(port, serial.return_value)
+            serial.assert_any_call(port="/dev/ttyUSB0",
+                                   baudrate=ANY, timeout=ANY)
+
+    def test_open_hostname_default_port(self):
+        """
+        Checks that we can open a connection to a hostname with the default
+        port.
+        """
+        args = self.make_args(hostname="10.0.0.10")
+
+        with patch('socket.create_connection') as create_connection:
+            create_connection.return_value = Mock()
+            port = open_connection(args)
+
+            create_connection.assert_any_call(('10.0.0.10', 1337))
+
+            self.assertEqual(port.socket, create_connection.return_value)
+
+    def test_open_hostname_custom_port(self):
+        """
+        Checks if we can open a connection to a hostname on a different port.
+        """
+        args = self.make_args(hostname="10.0.0.10:42")
+        with patch('socket.create_connection') as create_connection:
+            open_connection(args)
+            create_connection.assert_any_call(('10.0.0.10', 42))
