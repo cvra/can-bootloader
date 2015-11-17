@@ -9,6 +9,7 @@ from itertools import repeat
 
 import commands
 import msgpack
+import serial_datagrams
 
 @patch('utils.read_can_datagrams')
 @patch('utils.write_command')
@@ -33,6 +34,32 @@ class BoardPingTestCase(unittest.TestCase):
 
         port = object()
         self.assertTrue(ping_board(port, 1))
+
+
+@patch('time.sleep')
+class WriteCommandTestCase(unittest.TestCase):
+    def test_write(self, sleep):
+        # Prepares data
+        data = bytes(range(3))
+        dst = [1, 2]
+        datagram = can.encode_datagram(data, dst)
+        frames = can.datagram_to_frames(datagram, 0)
+
+        bridge_frames = [can_bridge.commands.encode_frame_write(f)
+                         for f in frames]
+
+        bridge_datagrams = [serial_datagrams.datagram_encode(f)
+                            for f in bridge_frames]
+
+        fdesc = Mock()
+
+        # Writes CAN frame
+        write_command(fdesc, data, dst)
+
+        # Asserts writes are OK
+        for dt in bridge_datagrams:
+            fdesc.write.assert_any_call(dt)
+            fdesc.flush.assert_any_call()
 
 
 
