@@ -365,23 +365,23 @@ class MainTestCase(unittest.TestCase):
         self.open = mock('builtins.open')
         self.print = mock('builtins.print')
 
-        self.serial = mock('serial.Serial')
-        self.serial_device = Mock()
-        self.serial.return_value = self.serial_device
+        self.open_conn = mock('utils.open_connection')
+        self.conn = Mock()
+        self.open_conn.return_value = self.conn
 
         self.flash = mock('bootloader_flash.flash_binary')
         self.check = mock('bootloader_flash.check_binary')
         self.run = mock('bootloader_flash.run_application')
 
         self.check_online_boards = mock('bootloader_flash.check_online_boards')
-        self.check_online_boards.side_effect = lambda f, b: set([1,2,3])
+        self.check_online_boards.side_effect = lambda f, b: set([1, 2, 3])
 
         # Prepare binary file argument
         self.binary_data = bytes([0] * 10)
         self.open.return_value = BytesIO(self.binary_data)
 
         # Flash checking results
-        self.check.return_value = [1,2,3] # all boards are ok
+        self.check.return_value = [1, 2, 3] # all boards are ok
 
         # Populate command line arguments
         sys.argv = "test.py -b test.bin -a 0x1000 -p /dev/ttyUSB0 -c dummy 1 2 3".split()
@@ -400,14 +400,6 @@ class MainTestCase(unittest.TestCase):
         main()
         self.open.assert_any_call('test.bin', 'rb')
 
-    def test_open_bridge_port(self):
-        """
-        Checks that we open the correct serial port to the bridge.
-        """
-        main()
-        self.serial.assert_any_call(port='/dev/ttyUSB0', baudrate=115200,
-                                    timeout=ANY)
-
     def test_failing_ping(self):
         """
         Checks what happens if a board doesn't pingback.
@@ -424,14 +416,14 @@ class MainTestCase(unittest.TestCase):
         Checks that the binary file is flashed correctly.
         """
         main()
-        self.flash.assert_any_call(self.serial_device, self.binary_data, 0x1000, 'dummy', [1,2,3])
+        self.flash.assert_any_call(self.conn, self.binary_data, 0x1000, 'dummy', [1,2,3])
 
     def test_check(self):
         """
         Checks that the flash is verified.
         """
         main()
-        self.check.assert_any_call(self.serial_device, self.binary_data, 0x1000, [1,2,3])
+        self.check.assert_any_call(self.conn, self.binary_data, 0x1000, [1,2,3])
 
 
     def test_check_failed(self):
@@ -456,7 +448,7 @@ class MainTestCase(unittest.TestCase):
         """
         sys.argv += ["--run"]
         main()
-        self.run.assert_any_call(self.serial_device, [1,2,3])
+        self.run.assert_any_call(self.conn, [1, 2, 3])
 
 
 

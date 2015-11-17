@@ -16,9 +16,9 @@ import json
 class ReadConfigToolTestCase(unittest.TestCase):
     @patch('utils.write_command_retry')
     @patch('utils.write_command')
-    @patch('serial.Serial')
+    @patch('utils.open_connection')
     @patch('builtins.print')
-    def test_integration(self, print_mock, serial, write_command,
+    def test_integration(self, print_mock, open_conn, write_command,
                          write_command_retry):
         sys.argv = "test.py -p /dev/ttyUSB0 0 1 2".split()
         configs = [{'id': i} for i in range(3)]
@@ -27,13 +27,11 @@ class ReadConfigToolTestCase(unittest.TestCase):
             i: packb(configs[i]) for i in range(3)
         }
 
-        serial.return_value = object()
+        open_conn.return_value = object()
 
         bootloader_read_config.main()
 
-        serial.assert_any_call(port='/dev/ttyUSB0', timeout=ANY, baudrate=ANY)
-
-        write_command_retry.assert_any_call(serial.return_value,
+        write_command_retry.assert_any_call(open_conn.return_value,
                                             encode_read_config(), [0, 1, 2])
 
         all_configs = {i: configs[i] for i in range(3)}

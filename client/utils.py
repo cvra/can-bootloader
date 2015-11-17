@@ -87,7 +87,10 @@ def open_connection(args):
     Returns a file like object which will be the connection handle.
     """
     if args.serial_device:
-        return serial.Serial(port=args.serial_device, timeout=2.0, baudrate=115200)
+        port = serial.Serial(port=args.serial_device,
+                             timeout=2.0, baudrate=115200)
+
+        return SerialCANBridgeConnection(port)
 
     elif args.hostname:
         try:
@@ -99,7 +102,7 @@ def open_connection(args):
 
         connection = socket.create_connection((host, port))
         connection.settimeout(2.0)
-        return SocketSerialAdapter(connection)
+        return SerialCANBridgeConnection(SocketSerialAdapter(connection))
 
 
 def read_can_datagrams(fdesc):

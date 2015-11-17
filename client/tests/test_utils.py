@@ -125,7 +125,7 @@ class OpenConnectionTestCase(unittest.TestCase):
             serial.return_value = object()
             port = open_connection(args)
 
-            self.assertEqual(port, serial.return_value)
+            self.assertEqual(port.fd, serial.return_value)
             serial.assert_any_call(port="/dev/ttyUSB0",
                                    baudrate=ANY, timeout=ANY)
 
@@ -142,7 +142,8 @@ class OpenConnectionTestCase(unittest.TestCase):
 
             create_connection.assert_any_call(('10.0.0.10', 1337))
 
-            self.assertEqual(port.socket, create_connection.return_value)
+            self.assertEqual(port.fd.socket,
+                             create_connection.return_value)
 
     def test_open_hostname_custom_port(self):
         """
