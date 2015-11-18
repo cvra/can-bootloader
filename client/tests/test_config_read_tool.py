@@ -16,9 +16,9 @@ import json
 class ReadConfigToolTestCase(unittest.TestCase):
     @patch('utils.write_command_retry')
     @patch('utils.write_command')
-    @patch('serial.Serial')
+    @patch('utils.open_connection')
     @patch('builtins.print')
-    def test_integration(self, print_mock, serial, write_command,
+    def test_integration(self, print_mock, open_conn, write_command,
                          write_command_retry):
         sys.argv = "test.py -p /dev/ttyUSB0 0 1 2".split()
         configs = [{'id': i} for i in range(3)]
@@ -27,13 +27,11 @@ class ReadConfigToolTestCase(unittest.TestCase):
             i: packb(configs[i]) for i in range(3)
         }
 
-        serial.return_value = object()
+        open_conn.return_value = object()
 
         bootloader_read_config.main()
 
-        serial.assert_any_call(port='/dev/ttyUSB0', timeout=ANY, baudrate=ANY)
-
-        write_command_retry.assert_any_call(serial.return_value,
+        write_command_retry.assert_any_call(open_conn.return_value,
                                             encode_read_config(), [0, 1, 2])
 
         all_configs = {i: configs[i] for i in range(3)}
@@ -44,7 +42,7 @@ class ReadConfigToolTestCase(unittest.TestCase):
     @patch('utils.open_connection')
     @patch('utils.write_command_retry')
     @patch('utils.write_command')
-    @patch('utils.CANDatagramReader.read_datagram')
+    @patch('utils.read_can_datagrams')
     @patch('builtins.print')
     def test_network_discovery(self, print_mock, read_can_datagram,
                                write_command, write_command_retry, open_conn):
@@ -56,7 +54,7 @@ class ReadConfigToolTestCase(unittest.TestCase):
         # The first two board answers the ping
         board_answers = [(b'', [0], i) for i in range(1, 3)] + [None]
 
-        read_can_datagram.side_effect = board_answers
+        read_can_datagram.return_value = iter(board_answers)
 
         write_command_retry.return_value = {
             i: packb({'id': i}) for i in range(1, 3)

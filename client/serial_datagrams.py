@@ -50,16 +50,16 @@ def datagram_decode(data):
 
     return data[:-4]
 
-def read_datagram(fd):
+def read_datagram(fdesc):
     """
-    Reads a datagram from fd (which is supposed to have one file-like read()
+    Reads a datagram from fdesc (which is supposed to have one file-like read()
     method).
 
     Returns None if the read timed out.
     """
     buf = bytes()
     while True:
-        b = fd.read(1)
+        b = fdesc.read(1)
         buf += b
 
         if b == b'': # timeout

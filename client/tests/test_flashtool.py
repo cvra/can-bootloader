@@ -5,19 +5,15 @@ try:
 except ImportError:
     from mock import *
 
-from serial import Serial
 from zlib import crc32
 
 from bootloader_flash import *
 from commands import *
 from utils import *
-from collections import namedtuple
 import msgpack
 
 from io import BytesIO
 
-import can, serial_datagrams
-import can_bridge.frame
 import sys
 
 @patch('utils.write_command_retry')
@@ -141,143 +137,6 @@ class FlashBinaryTestCase(unittest.TestCase):
         c.assert_any_call("Boards 1, 2 failed during page write, aborting...")
 
 
-class CANDatagramReadTestCase(unittest.TestCase):
-    """
-    This testcase groups all tests related to reading a datagram from the bus.
-    """
-    def test_read_can_datagram(self):
-        """
-        Tests reading a complete CAN datagram from the bus.
-        """
-        data = 'Hello world'.encode('ascii')
-        # Encapsulates it in a CAN datagram
-        data = can.encode_datagram(data, destinations=[1])
-
-        # Slice the datagram in frames
-        frames = can.datagram_to_frames(data, source=42)
-
-        # Serializes CAN frames for the bridge
-        frames = [can_bridge.frame.encode(f) for f in frames]
-
-        # Packs each frame in a serial datagram
-        frames = bytes(c for i in [serial_datagrams.datagram_encode(f) for f in frames] for c in i)
-
-        # Put all data in a pseudofile
-        fdesc = BytesIO(frames)
-
-        reader = CANDatagramReader(fdesc)
-
-        # Read a CAN datagram from that pseudofile
-        dt, dst, src = reader.read_datagram()
-
-        self.assertEqual(dt.decode('ascii'), 'Hello world')
-        self.assertEqual(dst, [1])
-        self.assertEqual(src, 42)
-
-    def test_drop_extended_frames(self):
-        """
-        Checks that we drop extended frames
-        """
-        data = 'Hello world'.encode('ascii')
-        # Encapsulates it in a CAN datagram
-        data = can.encode_datagram(data, destinations=[1])
-
-        # Slice the datagram in frames
-        frames = list(can.datagram_to_frames(data, source=42))
-
-        # Add an extended frame, with an annoying ID
-        id = frames[0].id
-        frames = [can_bridge.frame.Frame(extended=True, data=bytes([1, 2, 3]), id=id)] + frames
-
-        # Serializes CAN frames for the bridge
-        frames = [can_bridge.frame.encode(f) for f in frames]
-
-        # Packs each frame in a serial datagram
-        frames = bytes(c for i in [serial_datagrams.datagram_encode(f) for f in frames] for c in i)
-
-        # Put all data in a pseudofile
-        fdesc = BytesIO(frames)
-
-        reader = CANDatagramReader(fdesc)
-
-        # Read a CAN datagram from that pseudofile
-        dt, dst, src = reader.read_datagram()
-
-        self.assertEqual(dt.decode('ascii'), 'Hello world')
-        self.assertEqual(dst, [1])
-        self.assertEqual(src, 42)
-
-
-
-    def test_read_can_interleaved_datagrams(self):
-        """
-        Tests reading two interleaved CAN datagrams together.
-        """
-
-        data = 'Hello world'.encode('ascii')
-        # Encapsulates it in a CAN datagram
-        data = can.encode_datagram(data, destinations=[1])
-
-        # Slice the datagram in frames
-        frames = [can.datagram_to_frames(data, source=i) for i in range(2)]
-
-        # Interleave frames
-        frames = [x for t in zip(*frames) for x in t]
-
-        # Serializes CAN frames for the bridge
-        frames = [can_bridge.frame.encode(f) for f in frames]
-
-        # Packs each frame in a serial datagram
-        frames = bytes(c for i in [serial_datagrams.datagram_encode(f) for f in frames] for c in i)
-
-        # Put all data in a pseudofile
-        fdesc = BytesIO(frames)
-
-        decode = CANDatagramReader(fdesc)
-
-        # Read a CAN datagram from that pseudofile
-        dt, dst, src = decode.read_datagram()
-
-    def test_read_several_datagrams_from_src(self):
-        """
-        Checks if we can read several datagrams from the same source.
-        """
-        data = bytes()
-
-        for i in range(2):
-            # Encapsulates it in a CAN datagram
-            dt = can.encode_datagram(bytes(), destinations=[i])
-            frames = can.datagram_to_frames(dt, source=1)
-            frames = [can_bridge.frame.encode(f) for f in frames]
-            frames = bytes(c for i in [serial_datagrams.datagram_encode(f) for f in frames] for c in i)
-            data += frames
-
-        fdesc = BytesIO(data)
-        decode = CANDatagramReader(fdesc)
-
-        # Read a CAN datagram from that pseudofile
-        _, dst, _ = decode.read_datagram()
-        self.assertEqual([0], dst)
-
-        _, dst, _ = decode.read_datagram()
-        self.assertEqual([1], dst)
-
-
-
-    def test_read_can_datagram_timeout(self):
-        """
-        Tests reading a datagram with a timeout (read_datagram returns None).
-        """
-        data = 'Hello world'.encode('ascii')
-
-        reader = CANDatagramReader(None)
-
-        with patch('serial_datagrams.read_datagram') as read:
-            read.return_value = None
-            a = reader.read_datagram()
-
-        self.assertIsNone(a)
-
 class ConfigTestCase(unittest.TestCase):
     fd = "port"
 
@@ -297,7 +156,7 @@ class ConfigTestCase(unittest.TestCase):
         # Checks that the calls were made, and in the correct order
         write.assert_has_calls([update_call, save_command])
 
-    @patch('utils.CANDatagramReader.read_datagram')
+    @patch('utils.read_can_datagrams')
     @patch('utils.write_command')
     def test_check_single_valid_checksum(self, write, read_datagram):
         """
@@ -310,14 +169,14 @@ class ConfigTestCase(unittest.TestCase):
         side_effect += [(msgpack.packb(0xdead), [0], 2)]
         side_effect += [None] # timeout
 
-        read_datagram.side_effect = side_effect
+        read_datagram.return_value = iter(side_effect)
 
 
         valid_nodes = check_binary(self.fd, binary, 0x1000, [1, 2])
 
         self.assertEqual([1], valid_nodes)
 
-    @patch('utils.CANDatagramReader.read_datagram')
+    @patch('utils.read_can_datagrams')
     @patch('utils.write_command')
     def test_verify_handles_timeout(self, write, read_datagram):
         """
@@ -331,7 +190,7 @@ class ConfigTestCase(unittest.TestCase):
         side_effect += [(msgpack.packb(0xdead), [0], 2)]
         side_effect += [(msgpack.packb(crc), [0], 1)]
 
-        read_datagram.side_effect = side_effect
+        read_datagram.return_value = iter(side_effect)
 
         valid_nodes = check_binary(self.fd, binary, 0x1000, [1, 2])
 
@@ -365,23 +224,23 @@ class MainTestCase(unittest.TestCase):
         self.open = mock('builtins.open')
         self.print = mock('builtins.print')
 
-        self.serial = mock('serial.Serial')
-        self.serial_device = Mock()
-        self.serial.return_value = self.serial_device
+        self.open_conn = mock('utils.open_connection')
+        self.conn = Mock()
+        self.open_conn.return_value = self.conn
 
         self.flash = mock('bootloader_flash.flash_binary')
         self.check = mock('bootloader_flash.check_binary')
         self.run = mock('bootloader_flash.run_application')
 
         self.check_online_boards = mock('bootloader_flash.check_online_boards')
-        self.check_online_boards.side_effect = lambda f, b: set([1,2,3])
+        self.check_online_boards.side_effect = lambda f, b: set([1, 2, 3])
 
         # Prepare binary file argument
         self.binary_data = bytes([0] * 10)
         self.open.return_value = BytesIO(self.binary_data)
 
         # Flash checking results
-        self.check.return_value = [1,2,3] # all boards are ok
+        self.check.return_value = [1, 2, 3] # all boards are ok
 
         # Populate command line arguments
         sys.argv = "test.py -b test.bin -a 0x1000 -p /dev/ttyUSB0 -c dummy 1 2 3".split()
@@ -400,14 +259,6 @@ class MainTestCase(unittest.TestCase):
         main()
         self.open.assert_any_call('test.bin', 'rb')
 
-    def test_open_bridge_port(self):
-        """
-        Checks that we open the correct serial port to the bridge.
-        """
-        main()
-        self.serial.assert_any_call(port='/dev/ttyUSB0', baudrate=115200,
-                                    timeout=ANY)
-
     def test_failing_ping(self):
         """
         Checks what happens if a board doesn't pingback.
@@ -424,14 +275,14 @@ class MainTestCase(unittest.TestCase):
         Checks that the binary file is flashed correctly.
         """
         main()
-        self.flash.assert_any_call(self.serial_device, self.binary_data, 0x1000, 'dummy', [1,2,3])
+        self.flash.assert_any_call(self.conn, self.binary_data, 0x1000, 'dummy', [1,2,3])
 
     def test_check(self):
         """
         Checks that the flash is verified.
         """
         main()
-        self.check.assert_any_call(self.serial_device, self.binary_data, 0x1000, [1,2,3])
+        self.check.assert_any_call(self.conn, self.binary_data, 0x1000, [1,2,3])
 
 
     def test_check_failed(self):
@@ -456,7 +307,7 @@ class MainTestCase(unittest.TestCase):
         """
         sys.argv += ["--run"]
         main()
-        self.run.assert_any_call(self.serial_device, [1,2,3])
+        self.run.assert_any_call(self.conn, [1, 2, 3])
 
 
 
@@ -520,47 +371,3 @@ class ArgumentParsingTestCase(unittest.TestCase):
 
             # Checked that we printed some kind of error
             error.assert_any_call(ANY)
-
-class OpenConnectionTestCase(unittest.TestCase):
-    Args = namedtuple("Args", ["hostname", "serial_device"])
-
-    def make_args(self, hostname=None, serial_device=None):
-        return self.Args(hostname=hostname, serial_device=serial_device)
-
-    def test_open_serial(self):
-        """
-        Checks that if we provide a serial port the serial port is
-        """
-        args = self.make_args(serial_device='/dev/ttyUSB0')
-
-        with patch('serial.Serial') as serial:
-            serial.return_value = object()
-            port = open_connection(args)
-
-            self.assertEqual(port, serial.return_value)
-            serial.assert_any_call(port="/dev/ttyUSB0", baudrate=ANY, timeout=ANY)
-
-    def test_open_hostname_default_port(self):
-        """
-        Checks that we can open a connection to a hostname with the default port.
-        """
-        args = self.make_args(hostname="10.0.0.10")
-
-        with patch('socket.create_connection') as create_connection:
-            socket = Mock(return_value=object())
-
-            create_connection.return_value = Mock()
-            port = open_connection(args)
-
-            create_connection.assert_any_call(('10.0.0.10', 1337))
-
-            self.assertEqual(port.socket, create_connection.return_value)
-
-    def test_open_hostname_custom_port(self):
-        """
-        Checks if we can open a connection to a hostname on a different port.
-        """
-        args = self.make_args(hostname="10.0.0.10:42")
-        with patch('socket.create_connection') as create_connection:
-            port = open_connection(args)
-            create_connection.assert_any_call(('10.0.0.10', 42))

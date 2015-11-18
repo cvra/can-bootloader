@@ -29,9 +29,9 @@ def main():
 
         # Broadcast ping
         utils.write_command(connection, commands.encode_ping(), list(range(1, 128)))
-        reader = utils.CANDatagramReader(connection)
+        reader = utils.read_can_datagrams(connection)
         while True:
-            dt = reader.read_datagram()
+            dt = next(reader)
 
             if dt is None: # Timeout
                 break

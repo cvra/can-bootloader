@@ -5,12 +5,12 @@ import time
 
 import commands
 import can
-import can_bridge
-import can_bridge.commands
 import logging
 
 import serial_datagrams
 from collections import defaultdict
+
+from can.adapters import SerialCANBridgeConnection
 
 class ConnectionArgumentParser(argparse.ArgumentParser):
     """
@@ -66,7 +66,10 @@ def open_connection(args):
     Returns a file like object which will be the connection handle.
     """
     if args.serial_device:
-        return serial.Serial(port=args.serial_device, timeout=2.0, baudrate=115200)
+        port = serial.Serial(port=args.serial_device,
+                             timeout=2.0, baudrate=115200)
+
+        return SerialCANBridgeConnection(port)
 
     elif args.hostname:
         try:
@@ -78,44 +81,32 @@ def open_connection(args):
 
         connection = socket.create_connection((host, port))
         connection.settimeout(2.0)
-        return SocketSerialAdapter(connection)
+        return SerialCANBridgeConnection(SocketSerialAdapter(connection))
 
-class CANDatagramReader:
-    """
-    This class implements CAN datagram reading.
 
-    It supports reading interleaved datagrams through internal buffering.
-    """
-    def __init__(self, fdesc):
-        self.fdesc = fdesc
-        self.buf = defaultdict(lambda: bytes())
-
-    def read_datagram(self):
-        """
-        Reads a single datagram.
-        """
+def read_can_datagrams(fdesc):
+    buf = defaultdict(lambda: bytes())
+    while True:
         datagram = None
-
         while datagram is None:
-            frame = serial_datagrams.read_datagram(self.fdesc)
-            if frame is None: # Timeout, retry
-                return None
+            frame = fdesc.receive_frame()
 
-            frame = can_bridge.frame.decode(frame)
+            if frame is None:
+                yield None
 
             if frame.extended:
                 continue
 
             src = frame.id & (0x7f)
-            self.buf[src] += frame.data
+            buf[src] += frame.data
 
-            datagram = can.decode_datagram(self.buf[src])
+            datagram = can.decode_datagram(buf[src])
 
             if datagram is not None:
-                del self.buf[src]
+                del buf[src]
                 data, dst = datagram
 
-        return data, dst, src
+        yield data, dst, src
 
 
 def ping_board(fdesc, destination):
@@ -126,8 +117,8 @@ def ping_board(fdesc, destination):
     """
     write_command(fdesc, commands.encode_ping(), [destination])
 
-    reader = CANDatagramReader(fdesc)
-    answer = reader.read_datagram()
+    reader = read_can_datagrams(fdesc)
+    answer = next(reader)
 
     # Timeout
     if answer is None:
@@ -135,17 +126,17 @@ def ping_board(fdesc, destination):
 
     return True
 
+
 def write_command(fdesc, command, destinations, source=0):
     """
     Writes the given encoded command to the CAN bridge.
     """
     datagram = can.encode_datagram(command, destinations)
     frames = can.datagram_to_frames(datagram, source)
+
     for frame in frames:
-        bridge_frame = can_bridge.commands.encode_frame_write(frame)
-        datagram = serial_datagrams.datagram_encode(bridge_frame)
-        fdesc.write(datagram)
-        fdesc.flush()
+        fdesc.send_frame(frame)
+
     time.sleep(0.1)
 
 
@@ -155,13 +146,13 @@ def write_command_retry(fdesc, command, destinations, source=0, retry_limit=3):
     a map of each board ID and its answer.
     """
     write_command(fdesc, command, destinations, source)
-    reader = CANDatagramReader(fdesc)
+    reader = read_can_datagrams(fdesc)
     answers = dict()
 
     retry_count = 0
 
     while len(answers) < len(destinations):
-        dt = reader.read_datagram()
+        dt = next(reader)
 
         # If we have a timeout, retry on some boards
         if dt is None:
