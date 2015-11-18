@@ -10,6 +10,8 @@ import can.adapters
 
 from collections import defaultdict
 
+import can.adapters
+
 class ConnectionArgumentParser(argparse.ArgumentParser):
     """
     Subclass of ArgumentParser with default arguments for connection handling (TCP and serial).
@@ -25,11 +27,18 @@ class ConnectionArgumentParser(argparse.ArgumentParser):
                           help='Serial port to which the CAN bridge is connected to.',
                           metavar='DEVICE')
 
+        self.add_argument('-i', '--interface', dest='can_interface',
+                          help="SocketCAN interface, e.g 'can0' (Linux only).",
+                          metavar='INTERFACE')
+
+
     def parse_args(self, *args, **kwargs):
         args = super(ConnectionArgumentParser, self).parse_args(*args, **kwargs)
 
-        if args.hostname is None and args.serial_device is None:
-            self.error("You must specify one of --tcp or --port")
+        if args.hostname is None and \
+           args.serial_device is None and \
+           args.can_interface is None:
+            self.error("You must specify one of --tcp, --port or --interface")
 
         if args.hostname and args.serial_device:
             self.error("Can only use one of--tcp and --port")
@@ -80,6 +89,8 @@ def open_connection(args):
         connection = socket.create_connection((host, port))
         connection.settimeout(2.0)
         return can.adapters.SerialCANBridgeConnection(SocketSerialAdapter(connection))
+    elif args.can_interface:
+        return can.adapters.SocketCANConnection(args.can_interface)
 
 
 def read_can_datagrams(fdesc):
@@ -186,4 +197,3 @@ def config_update_and_save(fdesc, config, destinations):
 
     # Then save the config to flash
     write_command_retry(fdesc, commands.encode_save_config(), destinations)
-

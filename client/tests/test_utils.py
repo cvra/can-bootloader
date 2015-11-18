@@ -101,10 +101,10 @@ class CommandRetryTestCase(unittest.TestCase):
 
 
 class OpenConnectionTestCase(unittest.TestCase):
-    Args = namedtuple("Args", ["hostname", "serial_device"])
+    Args = namedtuple("Args", ["hostname", "serial_device", "can_interface"])
 
-    def make_args(self, hostname=None, serial_device=None):
-        return self.Args(hostname=hostname, serial_device=serial_device)
+    def make_args(self, hostname=None, serial_device=None, can_interface=None):
+        return self.Args(hostname=hostname, serial_device=serial_device, can_interface=can_interface)
 
     def test_open_serial(self):
         """
@@ -144,3 +144,22 @@ class OpenConnectionTestCase(unittest.TestCase):
         with patch('socket.create_connection') as create_connection:
             open_connection(args)
             create_connection.assert_any_call(('10.0.0.10', 42))
+
+    @patch('can.adapters.SocketCANConnection', autospec=True)
+    def test_open_can_interface(self, create_socket):
+        """
+        Check that we can open a socket CAN adapter.
+        """
+        args = self.make_args(can_interface='can0')
+        conn = open_connection(args)
+        create_socket.assert_any_call('can0')
+        self.assertEqual(conn, create_socket.return_value)
+
+
+class ArgumentParserTestCase(unittest.TestCase):
+    def test_socketcan(self):
+        parser = ConnectionArgumentParser()
+        args = parser.parse_args("-i can0".split())
+
+        self.assertEqual('can0', args.can_interface)
+
