@@ -107,8 +107,11 @@ class CANDatagramReaderTestCase(unittest.TestCase):
 
         decode = read_can_datagrams(fdesc)
 
-        # Read a CAN datagram from that pseudofile
-        dt, dst, src = next(decode)
+        # Read the two datagrams
+        _, _, src = next(decode)
+        self.assertEqual(0, src)
+        _, _, src = next(decode)
+        self.assertEqual(1, src)
 
     def test_read_several_datagrams_from_src(self):
         """

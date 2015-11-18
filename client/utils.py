@@ -85,8 +85,8 @@ def open_connection(args):
 
 
 def read_can_datagrams(fdesc):
+    buf = defaultdict(lambda: bytes())
     while True:
-        buf = defaultdict(lambda: bytes())
         datagram = None
         while datagram is None:
             frame = fdesc.receive_frame()
