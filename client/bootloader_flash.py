@@ -171,12 +171,9 @@ def check_online_boards(fdesc, boards):
     utils.write_command(fdesc, commands.encode_ping(), boards)
     reader = utils.read_can_datagrams(fdesc)
 
-    while True:
-        dt = reader.read_datagram()
-
-        if dt is None:  # Timeout
+    for dt in reader:
+        if dt is None:
             break
-
         _, _, src = dt
         online_boards.add(src)
 
