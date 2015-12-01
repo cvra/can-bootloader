@@ -1,8 +1,8 @@
 import unittest
 try:
-    from unittest.mock import patch
+    from unittest.mock import patch, Mock
 except ImportError:
-    from mock import patch
+    from mock import patch, Mock
 
 import can
 import can_bridge
@@ -153,3 +153,32 @@ class CANDatagramReaderTestCase(unittest.TestCase):
 
         self.assertIsNone(a)
 
+
+    def test_recover_from_timeout(self):
+        """
+        Tests reading a CAN datagram after a timeout.
+        """
+        data = 'Hello world'.encode('ascii')
+        # Encapsulates it in a CAN datagram
+        data = can.encode_datagram(data, destinations=[1])
+
+        # Slice the datagram in frames
+        frames = list(can.datagram_to_frames(data, source=42))
+
+        fdesc = Mock()
+
+        # Insert a frame receive timeout
+        fdesc.receive_frame.side_effect = frames[:1] + [None] + frames[1:]
+
+        reader = read_can_datagrams(fdesc)
+
+        # Check that the timeout is reported
+        a = next(reader)
+        self.assertIsNone(a)
+
+        # Now try to read the real CAN datagram
+        dt, dst, src = next(reader)
+
+        self.assertEqual(dt.decode('ascii'), 'Hello world')
+        self.assertEqual(dst, [1])
+        self.assertEqual(src, 42)

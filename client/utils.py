@@ -93,6 +93,7 @@ def read_can_datagrams(fdesc):
 
             if frame is None:
                 yield None
+                continue
 
             if frame.extended:
                 continue
