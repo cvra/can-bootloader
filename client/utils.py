@@ -6,11 +6,9 @@ import time
 import commands
 import can
 import logging
+import can.adapters
 
-import serial_datagrams
 from collections import defaultdict
-
-from can.adapters import SerialCANBridgeConnection
 
 class ConnectionArgumentParser(argparse.ArgumentParser):
     """
@@ -69,7 +67,7 @@ def open_connection(args):
         port = serial.Serial(port=args.serial_device,
                              timeout=2.0, baudrate=115200)
 
-        return SerialCANBridgeConnection(port)
+        return can.adapters.SerialCANBridgeConnection(port)
 
     elif args.hostname:
         try:
@@ -81,7 +79,7 @@ def open_connection(args):
 
         connection = socket.create_connection((host, port))
         connection.settimeout(2.0)
-        return SerialCANBridgeConnection(SocketSerialAdapter(connection))
+        return can.adapters.SerialCANBridgeConnection(SocketSerialAdapter(connection))
 
 
 def read_can_datagrams(fdesc):

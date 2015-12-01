@@ -7,12 +7,9 @@ except ImportError:
 from utils import *
 from itertools import repeat
 from collections import namedtuple
-from can.adapters import SerialCANBridgeConnection
 
 import commands
 import msgpack
-import serial_datagrams
-import can_bridge
 
 @patch('utils.read_can_datagrams')
 @patch('utils.write_command')
@@ -46,24 +43,16 @@ class WriteCommandTestCase(unittest.TestCase):
         data = bytes(range(3))
         dst = [1, 2]
         datagram = can.encode_datagram(data, dst)
-        frames = can.datagram_to_frames(datagram, 0)
-
-        bridge_frames = [can_bridge.commands.encode_frame_write(f)
-                         for f in frames]
-
-        bridge_datagrams = [serial_datagrams.datagram_encode(f)
-                            for f in bridge_frames]
+        frames = list(can.datagram_to_frames(datagram, 0))
 
         fdesc = Mock()
-        conn = SerialCANBridgeConnection(fdesc)
 
         # Writes CAN frame
-        write_command(conn, data, dst)
+        write_command(fdesc, data, dst)
 
         # Asserts writes are OK
-        for dt in bridge_datagrams:
-            fdesc.write.assert_any_call(dt)
-            fdesc.flush.assert_any_call()
+        for f in frames:
+            fdesc.send_frame.assert_any_call(f)
 
 
 

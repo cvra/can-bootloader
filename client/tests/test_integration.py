@@ -1,16 +1,23 @@
-import can, commands, serial_datagrams, can_bridge
+import can
+import commands
+import serial_datagrams
+import can_bridge
 import unittest
+
 
 class IntegrationTesting(unittest.TestCase):
     def test_encoding_whole_stack(self):
         """
-        Checks that the whole stack needed to encode a write command still works.
+        Checks that the whole stack needed to encode a write command still
+        works.
         """
 
         data = 'Hello, world!'.encode('ascii')
 
         # Generates the command
-        data = commands.encode_write_flash(data, address=0x00, device_class="dummy")
+        data = commands.encode_write_flash(data,
+                                           address=0x00,
+                                           device_class="dummy")
 
         # Encapsulates it in a CAN datagram
         data = can.encode_datagram(data, destinations=[1])
@@ -20,7 +27,6 @@ class IntegrationTesting(unittest.TestCase):
 
         # Serializes CAN frames for the bridge
         frames = [can_bridge.frame.encode(f) for f in frames]
-
 
         # Packs each frame in a serial datagram
         frames = [serial_datagrams.datagram_encode(f) for f in frames]
