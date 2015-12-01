@@ -1,17 +1,12 @@
 import unittest
 try:
-    from unittest.mock import patch, Mock
+    from unittest.mock import Mock
 except ImportError:
-    from mock import patch, Mock
+    from mock import Mock
 
 import can
 import can_bridge
-import serial_datagrams
-
-from can.adapters import SerialCANBridgeConnection
 from utils import read_can_datagrams
-from io import BytesIO
-
 
 class CANDatagramReaderTestCase(unittest.TestCase):
     """
@@ -26,16 +21,11 @@ class CANDatagramReaderTestCase(unittest.TestCase):
         data = can.encode_datagram(data, destinations=[1])
 
         # Slice the datagram in frames
-        frames = can.datagram_to_frames(data, source=42)
+        frames = list(can.datagram_to_frames(data, source=42))
 
-        # Serializes CAN frames for the bridge
-        frames = [can_bridge.frame.encode(f) for f in frames]
-
-        # Packs each frame in a serial datagram
-        frames = bytes(c for i in [serial_datagrams.datagram_encode(f) for f in frames] for c in i)
-
-        # Put all data in a pseudofile
-        fdesc = SerialCANBridgeConnection(BytesIO(frames))
+        # Prepares a pseudo CAN adapter
+        fdesc = Mock()
+        fdesc.receive_frame.side_effect = frames
 
         reader = read_can_datagrams(fdesc)
 
@@ -61,14 +51,9 @@ class CANDatagramReaderTestCase(unittest.TestCase):
         id = frames[0].id
         frames = [can_bridge.frame.Frame(extended=True, data=bytes([1, 2, 3]), id=id)] + frames
 
-        # Serializes CAN frames for the bridge
-        frames = [can_bridge.frame.encode(f) for f in frames]
-
-        # Packs each frame in a serial datagram
-        frames = bytes(c for i in [serial_datagrams.datagram_encode(f) for f in frames] for c in i)
-
-        # Put all data in a pseudofile
-        fdesc = SerialCANBridgeConnection(BytesIO(frames))
+        # Prepares a pseudo CAN adapter
+        fdesc = Mock()
+        fdesc.receive_frame.side_effect = frames
 
         reader = read_can_datagrams(fdesc)
 
@@ -87,6 +72,7 @@ class CANDatagramReaderTestCase(unittest.TestCase):
         """
 
         data = 'Hello world'.encode('ascii')
+
         # Encapsulates it in a CAN datagram
         data = can.encode_datagram(data, destinations=[1])
 
@@ -96,14 +82,9 @@ class CANDatagramReaderTestCase(unittest.TestCase):
         # Interleave frames
         frames = [x for t in zip(*frames) for x in t]
 
-        # Serializes CAN frames for the bridge
-        frames = [can_bridge.frame.encode(f) for f in frames]
-
-        # Packs each frame in a serial datagram
-        frames = bytes(c for i in [serial_datagrams.datagram_encode(f) for f in frames] for c in i)
-
-        # Put all data in a pseudofile
-        fdesc = SerialCANBridgeConnection(BytesIO(frames))
+        # Prepares a pseudo CAN adapter
+        fdesc = Mock()
+        fdesc.receive_frame.side_effect = frames
 
         decode = read_can_datagrams(fdesc)
 
@@ -117,17 +98,17 @@ class CANDatagramReaderTestCase(unittest.TestCase):
         """
         Checks if we can read several datagrams from the same source.
         """
-        data = bytes()
+        frames = []
 
         for i in range(2):
             # Encapsulates it in a CAN datagram
             dt = can.encode_datagram(bytes(), destinations=[i])
-            frames = can.datagram_to_frames(dt, source=1)
-            frames = [can_bridge.frame.encode(f) for f in frames]
-            frames = bytes(c for i in [serial_datagrams.datagram_encode(f) for f in frames] for c in i)
-            data += frames
+            frames += list(can.datagram_to_frames(dt, source=1))
 
-        fdesc = SerialCANBridgeConnection(BytesIO(data))
+        # Prepares a pseudo CAN adapter
+        fdesc = Mock()
+        fdesc.receive_frame.side_effect = frames
+
         decode = read_can_datagrams(fdesc)
 
         # Read a CAN datagram from that pseudofile
@@ -137,22 +118,18 @@ class CANDatagramReaderTestCase(unittest.TestCase):
         _, dst, _ = next(decode)
         self.assertEqual([1], dst)
 
-
-
     def test_read_can_datagram_timeout(self):
         """
         Tests reading a datagram with a timeout (read_datagram returns None).
         """
-        data = 'Hello world'.encode('ascii')
+        # Prepares a pseudo CAN adapter that always timeout
+        fdesc = Mock()
+        fdesc.receive_frame.return_value = None
 
-        reader = read_can_datagrams(SerialCANBridgeConnection(None))
+        reader = read_can_datagrams(fdesc)
 
-        with patch('serial_datagrams.read_datagram') as read:
-            read.return_value = None
-            a = next(reader)
-
-        self.assertIsNone(a)
-
+        # Check that the timeout is returned
+        self.assertIsNone(next(reader))
 
     def test_recover_from_timeout(self):
         """
