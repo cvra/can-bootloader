@@ -33,6 +33,10 @@ target.stm32f3:
     - platform/mcu/stm32f3/flash_writer.c
     - platform/mcu/stm32f3/can_interface.c
 
+target.stm32f4:
+    - platform/mcu/stm32f4/flash_writer.c
+    - platform/mcu/stm32f4/can_interface.c
+
 include_directories:
     - ./
 
