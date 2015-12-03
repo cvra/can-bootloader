@@ -1,7 +1,6 @@
 
 #include <libopencm3/stm32/flash.h>
 #include "flash_writer.h"
-#include <stdio.h>
 
 void flash_writer_unlock(void)
 {

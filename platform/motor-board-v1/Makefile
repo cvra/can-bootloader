@@ -35,7 +35,7 @@ LIBS     += -lopencm3_stm32f3
 LDSCRIPT = ./linkerscript.ld
 
 # defines
-DEFS += -DSTM32F3 -DSTM32F3
+DEFS += -DSTM32F3
 
 # Cortex-M4f
 CFLAGS   += -mthumb -mcpu=cortex-m4 -march=armv7e-m -mfloat-abi=hard -mfpu=fpv4-sp-d16
