@@ -2,7 +2,11 @@
 #include <libopencm3/stm32/flash.h>
 #include "flash_writer.h"
 
-#define FLASH_PROGRAM_SIZE 0 // 8bit flash read/write size
+#if !defined(FLASH_PROGRAM_SIZE)
+// flash parallel program size, depends on VCC
+// 0 (8-bit), 1 (16-bit), 2 (32-bit), 3 (64-bit)
+#define FLASH_PROGRAM_SIZE 0 // default: 8-bit
+#endif
 
 static uint8_t flash_addr_to_sector(uint32_t addr)
 {

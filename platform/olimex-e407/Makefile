@@ -36,6 +36,7 @@ LDSCRIPT = ./linkerscript.ld
 
 # defines
 DEFS += -DSTM32F4
+DEFS += -DFLASH_PROGRAM_SIZE=2 # faster flash erase
 
 # Cortex-M4f
 CFLAGS   += -mthumb -mcpu=cortex-m4 -march=armv7e-m -mfloat-abi=hard -mfpu=fpv4-sp-d16
