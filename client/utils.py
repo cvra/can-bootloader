@@ -70,7 +70,10 @@ def open_connection(args):
     """
     if args.can_interface:
         return can.adapters.SocketCANConnection(args.can_interface)
-
+    elif args.serial_device:
+        port = serial.Serial(port=args.serial_device,
+                             timeout=2.0, baudrate=115200)
+        return can.adapters.CVRACANDongleConnection(port)
 
 def read_can_datagrams(fdesc):
     buf = defaultdict(lambda: bytes())
