@@ -1,6 +1,6 @@
 import struct
 from zlib import crc32
-from can_bridge.frame import Frame
+from .frame import *
 
 DATAGRAM_VERSION = 1
 START_OF_DATAGRAM_MASK = (1 << 7)

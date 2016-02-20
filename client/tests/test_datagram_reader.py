@@ -5,7 +5,6 @@ except ImportError:
     from mock import Mock
 
 import can
-import can_bridge
 from utils import read_can_datagrams
 
 class CANDatagramReaderTestCase(unittest.TestCase):
@@ -49,7 +48,7 @@ class CANDatagramReaderTestCase(unittest.TestCase):
 
         # Add an extended frame, with an annoying ID
         id = frames[0].id
-        frames = [can_bridge.frame.Frame(extended=True, data=bytes([1, 2, 3]), id=id)] + frames
+        frames = [can.Frame(extended=True, data=bytes([1, 2, 3]), id=id)] + frames
 
         # Prepares a pseudo CAN adapter
         fdesc = Mock()
