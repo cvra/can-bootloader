@@ -101,10 +101,10 @@ class CommandRetryTestCase(unittest.TestCase):
 
 
 class OpenConnectionTestCase(unittest.TestCase):
-    Args = namedtuple("Args", ["hostname", "serial_device", "can_interface"])
+    Args = namedtuple("Args", ["serial_device", "can_interface"])
 
-    def make_args(self, hostname=None, serial_device=None, can_interface=None):
-        return self.Args(hostname=hostname, serial_device=serial_device, can_interface=can_interface)
+    def make_args(self, serial_device=None, can_interface=None):
+        return self.Args(serial_device=serial_device, can_interface=can_interface)
 
     def test_open_serial(self):
         """
@@ -119,31 +119,6 @@ class OpenConnectionTestCase(unittest.TestCase):
             self.assertEqual(port.fd, serial.return_value)
             serial.assert_any_call(port="/dev/ttyUSB0",
                                    baudrate=ANY, timeout=ANY)
-
-    def test_open_hostname_default_port(self):
-        """
-        Checks that we can open a connection to a hostname with the default
-        port.
-        """
-        args = self.make_args(hostname="10.0.0.10")
-
-        with patch('socket.create_connection') as create_connection:
-            create_connection.return_value = Mock()
-            port = open_connection(args)
-
-            create_connection.assert_any_call(('10.0.0.10', 1337))
-
-            self.assertEqual(port.fd.socket,
-                             create_connection.return_value)
-
-    def test_open_hostname_custom_port(self):
-        """
-        Checks if we can open a connection to a hostname on a different port.
-        """
-        args = self.make_args(hostname="10.0.0.10:42")
-        with patch('socket.create_connection') as create_connection:
-            open_connection(args)
-            create_connection.assert_any_call(('10.0.0.10', 42))
 
     @patch('can.adapters.SocketCANConnection', autospec=True)
     def test_open_can_interface(self, create_socket):

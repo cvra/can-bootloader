@@ -339,18 +339,18 @@ class ArgumentParsingTestCase(unittest.TestCase):
         self.assertEqual([1,2,3], args.ids)
         self.assertTrue(args.run)
 
-    def test_network_hostname(self):
+    def test_can_interface_argument(self):
         """
-        Checks that we can pass a hostname
+        Checks that we can pass CAN interface
         """
-        commandline = "-b test.bin -a 0x1000 --tcp 10.0.0.10 --run -c dummy 1 2 3"
+        commandline = "-b test.bin -a 0x1000 --interface /dev/can0 --run -c dummy 1 2 3"
         args = parse_commandline_args(commandline.split())
         self.assertEqual(None, args.serial_device)
-        self.assertEqual("10.0.0.10", args.hostname)
+        self.assertEqual("/dev/can0", args.can_interface)
 
-    def test_network_hostname_or_serial_is_required(self):
+    def test_can_interface_or_serial_is_required(self):
         """
-        Checks that we have either a serial device or a TCP/IP host to use.
+        Checks that we have either a serial device or a CAN interface to use.
         """
         commandline = "-b test.bin -a 0x1000 --run -c dummy 1 2 3"
 
@@ -360,11 +360,11 @@ class ArgumentParsingTestCase(unittest.TestCase):
             # Checked that we printed some kind of error
             error.assert_any_call(ANY)
 
-    def test_network_hostname_or_serial_are_exclusive(self):
+    def test_can_interface_or_serial_are_exclusive(self):
         """
-        Checks that the serial device and the TCP/IP host are mutually exclusive.
+        Checks that the serial device and the CAN interface are mutually exclusive.
         """
-        commandline = "-b test.bin -a 0x1000 -p /dev/ttyUSB0 --tcp 10.0.0.10 --run -c dummy 1 2 3"
+        commandline = "-b test.bin -a 0x1000 -p /dev/ttyUSB0 --interface /dev/can0 --run -c dummy 1 2 3"
 
         with patch('argparse.ArgumentParser.error') as error:
             parse_commandline_args(commandline.split())
