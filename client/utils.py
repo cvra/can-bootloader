@@ -10,8 +10,6 @@ import can.adapters
 
 from collections import defaultdict
 
-import can.adapters
-
 class ConnectionArgumentParser(argparse.ArgumentParser):
     """
     Subclass of ArgumentParser with default arguments for connection handling (TCP and serial).
@@ -22,7 +20,6 @@ class ConnectionArgumentParser(argparse.ArgumentParser):
     def __init__(self, *args, **kwargs):
         super(ConnectionArgumentParser, self).__init__(*args, **kwargs)
 
-        self.add_argument('--tcp', dest='hostname', help="Use TCP/IP instead of serial port (host:port format).", metavar="HOST")
         self.add_argument('-p', '--port', dest='serial_device',
                           help='Serial port to which the CAN bridge is connected to.',
                           metavar='DEVICE')
@@ -35,13 +32,12 @@ class ConnectionArgumentParser(argparse.ArgumentParser):
     def parse_args(self, *args, **kwargs):
         args = super(ConnectionArgumentParser, self).parse_args(*args, **kwargs)
 
-        if args.hostname is None and \
-           args.serial_device is None and \
+        if args.serial_device is None and \
            args.can_interface is None:
             self.error("You must specify one of --tcp, --port or --interface")
 
-        if args.hostname and args.serial_device:
-            self.error("Can only use one of--tcp and --port")
+        if args.can_interface and args.serial_device:
+            self.error("Can only use one of --interface and --port")
 
         return args
 
@@ -72,24 +68,7 @@ def open_connection(args):
 
     Returns a file like object which will be the connection handle.
     """
-    if args.serial_device:
-        port = serial.Serial(port=args.serial_device,
-                             timeout=2.0, baudrate=115200)
-
-        return can.adapters.SerialCANBridgeConnection(port)
-
-    elif args.hostname:
-        try:
-            host, port = args.hostname.split(":")
-        except ValueError:
-            host, port = args.hostname, 1337
-
-        port = int(port)
-
-        connection = socket.create_connection((host, port))
-        connection.settimeout(2.0)
-        return can.adapters.SerialCANBridgeConnection(SocketSerialAdapter(connection))
-    elif args.can_interface:
+    if args.can_interface:
         return can.adapters.SocketCANConnection(args.can_interface)
 
 

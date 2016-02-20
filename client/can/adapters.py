@@ -1,28 +1,6 @@
-import serial_datagrams
-import can_bridge
-import can_bridge.commands
+import can
 import socket
 import struct
-
-class SerialCANBridgeConnection:
-    """
-    Implements the CAN API for serial bridge.
-    """
-    def __init__(self, fd):
-        self.fd = fd
-
-    def send_frame(self, frame):
-        bridge_frame = can_bridge.commands.encode_frame_write(frame)
-        datagram = serial_datagrams.datagram_encode(bridge_frame)
-        self.fd.write(datagram)
-        self.fd.flush()
-
-    def receive_frame(self):
-        frame = serial_datagrams.read_datagram(self.fd)
-        if frame is None:  # Timeout, retry
-            return None
-
-        return can_bridge.frame.decode(frame)
 
 class SocketCANConnection:
     # See <linux/can.h> for format
@@ -54,5 +32,5 @@ class SocketCANConnection:
         frame, _ = self.socket.recvfrom(self.CAN_FRAME_SIZE)
         can_id, can_dlc, data = struct.unpack(self.CAN_FRAME_FMT, frame)
 
-        return can_bridge.frame.Frame(id=can_id, data=data[:can_dlc])
+        return can.Frame(id=can_id, data=data[:can_dlc])
 
