@@ -106,20 +106,6 @@ class OpenConnectionTestCase(unittest.TestCase):
     def make_args(self, serial_device=None, can_interface=None):
         return self.Args(serial_device=serial_device, can_interface=can_interface)
 
-    def test_open_serial(self):
-        """
-        Checks that if we provide a serial port the serial port is
-        """
-        args = self.make_args(serial_device='/dev/ttyUSB0')
-
-        with patch('serial.Serial') as serial:
-            serial.return_value = object()
-            port = open_connection(args)
-
-            self.assertEqual(port.fd, serial.return_value)
-            serial.assert_any_call(port="/dev/ttyUSB0",
-                                   baudrate=ANY, timeout=ANY)
-
     @patch('can.adapters.SocketCANConnection', autospec=True)
     def test_open_can_interface(self, create_socket):
         """
