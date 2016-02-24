@@ -21,6 +21,7 @@ class SocketCANConnection:
 
         self.socket.bind((interface, ))
         self.socket.settimeout(1.)
+        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 4096)
 
     def send_frame(self, frame):
         data = frame.data.ljust(8, b'\x00')

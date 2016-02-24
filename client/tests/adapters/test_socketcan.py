@@ -32,6 +32,7 @@ class SocketCANTestCase(TestCase):
 
         socket_create.return_value.bind.assert_any_call(('vcan0', ))
         socket_create.return_value.settimeout.assert_any_call(ANY)
+        socket_create.return_value.setsockopt.assert_any_call(socket.SOL_SOCKET, socket.SO_SNDBUF, 4096)
 
 
     def test_can_send_frame(self, socket_create):
