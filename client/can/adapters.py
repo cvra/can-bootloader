@@ -20,6 +20,7 @@ class SocketCANConnection:
                                     socket.CAN_RAW)
 
         self.socket.bind((interface, ))
+        self.socket.settimeout(1.)
 
     def send_frame(self, frame):
         data = frame.data.ljust(8, b'\x00')
@@ -31,7 +32,10 @@ class SocketCANConnection:
         self.socket.send(data)
 
     def receive_frame(self):
-        frame, _ = self.socket.recvfrom(self.CAN_FRAME_SIZE)
+        try:
+            frame, _ = self.socket.recvfrom(self.CAN_FRAME_SIZE)
+        except socket.timeout:
+            return None
         can_id, can_dlc, data = struct.unpack(self.CAN_FRAME_FMT, frame)
 
         return can.Frame(id=can_id, data=data[:can_dlc])

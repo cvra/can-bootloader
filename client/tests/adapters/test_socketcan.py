@@ -31,6 +31,8 @@ class SocketCANTestCase(TestCase):
                                       socket.CAN_RAW)
 
         socket_create.return_value.bind.assert_any_call(('vcan0', ))
+        socket_create.return_value.settimeout.assert_any_call(ANY)
+
 
     def test_can_send_frame(self, socket_create):
         s = SocketCANConnection('vcan0')
@@ -65,3 +67,9 @@ class SocketCANTestCase(TestCase):
 
         self.assertEqual(expected_frame, actual_frame)
 
+    def test_receive_frame_timeout(self, socket_create):
+        s = SocketCANConnection('vcan0')
+        s.socket = Mock()
+        s.socket.recvfrom.side_effect = [socket.timeout]
+
+        s.receive_frame()
