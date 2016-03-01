@@ -24,6 +24,10 @@ matrix:
           env: BUILD_TYPE="tests"
         - compiler: gcc
           env: BUILD_TYPE="tests"
+        - compiler: clang
+          env: BUILD_TYPE="client-tests"
+        - compiler: gcc
+          env: BUILD_TYPE="client-tests"
         - compiler: gcc
           env: BUILD_TYPE="build" PLATFORM="motor-board-v1"
         - compiler: gcc

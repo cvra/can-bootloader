@@ -27,6 +27,11 @@ case $BUILD_TYPE in
         ./tests
         ;;
 
+    client-tests)
+        cd client/
+        python -m unittest2
+        ;;
+
     build)
         pushd libopencm3
         make
