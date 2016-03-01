@@ -1,65 +1,43 @@
+sudo: false
+addons:
+    apt:
+        sources:
+            - deadsnakes
+            - ubuntu-toolchain-r-test
+        packages:
+            - python3.5
+            - python3.5-dev
+            - python-pip
+            - python-virtualenv
+            - gcc-4.9
+            - g++-4.9
+            # Needed for ARM gcc
+            - lib32bz2-1.0
+            - lib32ncurses5
+            - lib32z1
+
 language: cpp
-compiler:
-    - gcc
-    - clang
+
+matrix:
+    include:
+        - compiler: clang
+          env: BUILD_TYPE="tests"
+        - compiler: gcc
+          env: BUILD_TYPE="tests"
+        - compiler: gcc
+          env: BUILD_TYPE="build" PLATFORM="motor-board-v1"
+        - compiler: gcc
+          env: BUILD_TYPE="build" PLATFORM="rc-board-v1"
+        - compiler: gcc
+          env: BUILD_TYPE="build" PLATFORM="olimex-e407"
 
 before_install:
-    # Start by fetching latest apt-get repositories
-    - sudo apt-get update
+    - if [ "$CXX" = "g++" ]; then export CXX="g++-4.9" CC="gcc-4.9"; fi
 
-    # Install cpputest
-    - pushd ..
-    - wget "https://github.com/cpputest/cpputest.github.io/blob/master/releases/cpputest-3.6.tar.gz?raw=true" -O cpputest.tar.gz
-    - tar -xzf cpputest.tar.gz
-    - cd cpputest-3.6/
-    - ./configure
-    - make
-    - sudo make install
-    - popd
-
-    # Install test environment for the client
-    - sudo apt-get install python-virtualenv python3
-    - python3 --version
-
-    # Clone needed python dependencies
-    - git clone https://github.com/cvra/serial-can-bridge.git
-
-
-
-before_script:
-    # packager requirements
-    - sudo pip install -r packager/requirements.txt
-
-    # Create client test environment
-    - virtualenv --python=python3 venv
-    - source venv/bin/activate
-    - python --version
-    - pip install -r client/requirements.txt
-    - pip install mock==1.0.1 # python 3.2 doesn't have unittest.mock
-
-    - pushd serial-can-bridge/python
-    - python setup.py install
-    - popd
-    - deactivate
-
-    # Prepare bootloader build
-    - ./packager/packager.py
-    - mkdir build/
-    - pushd build/
-    - cmake ..
-    - popd
+install:
+    - ci/install.sh
 
 script:
-    # Booloader tests
-    - pushd build/
-    - make
-    - ./tests
-    - popd
+    - ci/build.sh
 
-    # Client tests
-    - source venv/bin/activate
-    - pushd client/
-    - python -m unittest2
-    - deactivate
-    - popd
 
