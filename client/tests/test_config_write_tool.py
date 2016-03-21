@@ -5,13 +5,13 @@ try:
 except ImportError:
     from mock import *
 
-import bootloader_write_config
+from cvra_bootloader.write_config import main
 from io import StringIO
 import sys
 
 class WriteConfigToolTestCase(unittest.TestCase):
-    @patch('utils.config_update_and_save')
-    @patch('utils.open_connection')
+    @patch('cvra_bootloader.utils.config_update_and_save')
+    @patch('cvra_bootloader.utils.open_connection')
     @patch('builtins.open')
     def test_integration(self, open_mock, open_conn, config_save):
         sys.argv = "test.py -c test.json -p /dev/ttyUSB0 1 2 3".split()
@@ -20,7 +20,7 @@ class WriteConfigToolTestCase(unittest.TestCase):
         open_mock.return_value = StringIO(config_file)
         open_conn.return_value = object()
 
-        bootloader_write_config.main()
+        main()
 
         open_mock.assert_any_call('test.json')
         config_save.assert_any_call(open_conn.return_value, {'foo':12}, [1, 2, 3])
@@ -37,4 +37,4 @@ class WriteConfigToolTestCase(unittest.TestCase):
         open_mock.return_value = StringIO(config_file)
 
         with self.assertRaises(SystemExit):
-            bootloader_write_config.main()
+            main()

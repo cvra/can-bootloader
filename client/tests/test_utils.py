@@ -4,15 +4,15 @@ try:
 except ImportError:
     from mock import *
 
-from utils import *
+from cvra_bootloader.utils import *
 from itertools import repeat
 from collections import namedtuple
 
-import commands
+from cvra_bootloader import commands
 import msgpack
 
-@patch('utils.read_can_datagrams')
-@patch('utils.write_command')
+@patch('cvra_bootloader.utils.read_can_datagrams')
+@patch('cvra_bootloader.utils.write_command')
 class BoardPingTestCase(unittest.TestCase):
     """
     Checks for the ping_board function.
@@ -56,8 +56,8 @@ class WriteCommandTestCase(unittest.TestCase):
 
 
 
-@patch('utils.read_can_datagrams')
-@patch('utils.write_command')
+@patch('cvra_bootloader.utils.read_can_datagrams')
+@patch('cvra_bootloader.utils.write_command')
 class CommandRetryTestCase(unittest.TestCase):
     def test_write_is_forwarded(self, write, read):
         port = object()
