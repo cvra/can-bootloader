@@ -29,7 +29,7 @@ case $BUILD_TYPE in
 
     client-tests)
         cd client/
-        python -m unittest2
+        python -m unittest discover
         ;;
 
     build)

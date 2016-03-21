@@ -31,7 +31,9 @@ case $BUILD_TYPE in
         ;;
 
     client-tests)
-        pip install -r client/requirements.txt
+        pushd client
+        python setup.py install
+        popd
         ;;
 
     *)
