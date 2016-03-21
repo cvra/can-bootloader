@@ -1,4 +1,0 @@
-msgpack-python==0.4.2
-unittest2==0.8.0
-pyserial==2.7
-progressbar2==2.7.3
