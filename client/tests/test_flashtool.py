@@ -7,16 +7,16 @@ except ImportError:
 
 from zlib import crc32
 
-from bootloader_flash import *
-from commands import *
-from utils import *
+from cvra_bootloader.bootloader_flash import *
+from cvra_bootloader.commands import *
+from cvra_bootloader.utils import *
 import msgpack
 
 from io import BytesIO
 
 import sys
 
-@patch('utils.write_command_retry')
+@patch('cvra_bootloader.utils.write_command_retry')
 class FlashBinaryTestCase(unittest.TestCase):
     fd = "port"
 
@@ -89,7 +89,7 @@ class FlashBinaryTestCase(unittest.TestCase):
             erase_command = encode_erase_flash_page(addr, device_class)
             write.assert_any_call(self.fd, erase_command, destinations)
 
-    @patch('utils.config_update_and_save')
+    @patch('cvra_bootloader.utils.config_update_and_save')
     def test_crc_is_updated(self, conf, write):
         """
         Tests that the CRC is updated after flashing a binary.
@@ -140,7 +140,7 @@ class FlashBinaryTestCase(unittest.TestCase):
 class ConfigTestCase(unittest.TestCase):
     fd = "port"
 
-    @patch('utils.write_command_retry')
+    @patch('cvra_bootloader.utils.write_command_retry')
     def test_config_is_updated_and_saved(self, write):
         """
         Checks that the config is correctly sent encoded to the board.
@@ -156,8 +156,8 @@ class ConfigTestCase(unittest.TestCase):
         # Checks that the calls were made, and in the correct order
         write.assert_has_calls([update_call, save_command])
 
-    @patch('utils.read_can_datagrams')
-    @patch('utils.write_command')
+    @patch('cvra_bootloader.utils.read_can_datagrams')
+    @patch('cvra_bootloader.utils.write_command')
     def test_check_single_valid_checksum(self, write, read_datagram):
         """
         Checks what happens if there are invalid checksums.
@@ -176,8 +176,8 @@ class ConfigTestCase(unittest.TestCase):
 
         self.assertEqual([1], valid_nodes)
 
-    @patch('utils.read_can_datagrams')
-    @patch('utils.write_command')
+    @patch('cvra_bootloader.utils.read_can_datagrams')
+    @patch('cvra_bootloader.utils.write_command')
     def test_verify_handles_timeout(self, write, read_datagram):
         """
         When working with large firmwares, the connection may timeout before
@@ -199,7 +199,7 @@ class ConfigTestCase(unittest.TestCase):
 class RunApplicationTestCase(unittest.TestCase):
     fd = 'port'
 
-    @patch('utils.write_command')
+    @patch('cvra_bootloader.utils.write_command')
     def test_run_application(self, write):
         run_application(self.fd, [1])
 
@@ -224,15 +224,15 @@ class MainTestCase(unittest.TestCase):
         self.open = mock('builtins.open')
         self.print = mock('builtins.print')
 
-        self.open_conn = mock('utils.open_connection')
+        self.open_conn = mock('cvra_bootloader.utils.open_connection')
         self.conn = Mock()
         self.open_conn.return_value = self.conn
 
-        self.flash = mock('bootloader_flash.flash_binary')
-        self.check = mock('bootloader_flash.check_binary')
-        self.run = mock('bootloader_flash.run_application')
+        self.flash = mock('cvra_bootloader.bootloader_flash.flash_binary')
+        self.check = mock('cvra_bootloader.bootloader_flash.check_binary')
+        self.run = mock('cvra_bootloader.bootloader_flash.run_application')
 
-        self.check_online_boards = mock('bootloader_flash.check_online_boards')
+        self.check_online_boards = mock('cvra_bootloader.bootloader_flash.check_online_boards')
         self.check_online_boards.side_effect = lambda f, b: set([1, 2, 3])
 
         # Prepare binary file argument
@@ -290,7 +290,7 @@ class MainTestCase(unittest.TestCase):
         Checks that the program behaves correctly when verification fails.
         """
         self.check.return_value = [1]
-        with patch('bootloader_flash.verification_failed') as failed:
+        with patch('cvra_bootloader.bootloader_flash.verification_failed') as failed:
             main()
             failed.assert_any_call(set((2,3)))
 

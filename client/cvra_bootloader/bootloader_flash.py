@@ -2,14 +2,12 @@
 """
 Update firmware using CVRA bootloading protocol.
 """
-import page
 import logging
-import commands
+from cvra_bootloader import page, commands, utils
 import msgpack
 from zlib import crc32
 from sys import exit
 
-import utils
 import progressbar
 import sys
 

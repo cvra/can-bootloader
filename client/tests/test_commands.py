@@ -1,5 +1,5 @@
 import unittest
-from commands import *
+from cvra_bootloader.commands import *
 from msgpack import Unpacker
 
 class ProtocolVersionTestCase(unittest.TestCase):

@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-import utils
-import commands
+from cvra_bootloader import commands, utils
 
 
 def parse_commandline_args():

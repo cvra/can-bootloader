@@ -3,7 +3,7 @@
 import sys
 import json
 
-import utils
+from cvra_bootloader import utils
 
 def parse_commandline_args():
     """

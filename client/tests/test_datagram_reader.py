@@ -5,7 +5,7 @@ except ImportError:
     from mock import Mock
 
 import can
-from utils import read_can_datagrams
+from cvra_bootloader.utils import read_can_datagrams
 
 class CANDatagramReaderTestCase(unittest.TestCase):
     """

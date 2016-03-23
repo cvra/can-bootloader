@@ -1,5 +1,5 @@
 import unittest
-from page import *
+from cvra_bootloader.page import *
 
 class PaginationTestCase(unittest.TestCase):
     def test_smaller_than_page_is_yielded(self):

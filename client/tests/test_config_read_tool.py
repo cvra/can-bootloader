@@ -7,16 +7,16 @@ except ImportError:
 
 from msgpack import *
 
-import bootloader_read_config
-from commands import *
+from cvra_bootloader.read_config import main
+from cvra_bootloader.commands import *
 import sys
 import json
 
 
 class ReadConfigToolTestCase(unittest.TestCase):
-    @patch('utils.write_command_retry')
-    @patch('utils.write_command')
-    @patch('utils.open_connection')
+    @patch('cvra_bootloader.utils.write_command_retry')
+    @patch('cvra_bootloader.utils.write_command')
+    @patch('cvra_bootloader.utils.open_connection')
     @patch('builtins.print')
     def test_integration(self, print_mock, open_conn, write_command,
                          write_command_retry):
@@ -29,7 +29,7 @@ class ReadConfigToolTestCase(unittest.TestCase):
 
         open_conn.return_value = object()
 
-        bootloader_read_config.main()
+        main()
 
         write_command_retry.assert_any_call(open_conn.return_value,
                                             encode_read_config(), [0, 1, 2])
@@ -39,10 +39,10 @@ class ReadConfigToolTestCase(unittest.TestCase):
         print_mock.assert_any_call(json.dumps(all_configs, indent=4,
                                               sort_keys=True))
 
-    @patch('utils.open_connection')
-    @patch('utils.write_command_retry')
-    @patch('utils.write_command')
-    @patch('utils.read_can_datagrams')
+    @patch('cvra_bootloader.utils.open_connection')
+    @patch('cvra_bootloader.utils.write_command_retry')
+    @patch('cvra_bootloader.utils.write_command')
+    @patch('cvra_bootloader.utils.read_can_datagrams')
     @patch('builtins.print')
     def test_network_discovery(self, print_mock, read_can_datagram,
                                write_command, write_command_retry, open_conn):
@@ -60,7 +60,7 @@ class ReadConfigToolTestCase(unittest.TestCase):
             i: packb({'id': i}) for i in range(1, 3)
         }
 
-        bootloader_read_config.main()
+        main()
         write_command.assert_any_call(open_conn.return_value,
                                       encode_ping(),
                                       list(range(1, 128)))

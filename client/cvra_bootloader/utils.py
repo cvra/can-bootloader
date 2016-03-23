@@ -3,7 +3,7 @@ import socket
 import argparse
 import time
 
-import commands
+from cvra_bootloader import commands
 import can
 import logging
 import can.adapters
