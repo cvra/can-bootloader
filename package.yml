@@ -44,3 +44,4 @@ templates:
     platform/rc-board-v1/include.jinja: 'platform/rc-board-v1/include.mk'
     platform/motor-board-v1/include.jinja: 'platform/motor-board-v1/include.mk'
     platform/olimex-e407/include.jinja: 'platform/olimex-e407/include.mk'
+    platform/can-io-board/include.jinja: 'platform/can-io-board/include.mk'
