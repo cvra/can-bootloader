@@ -39,6 +39,12 @@ class SocketCANConnection:
             return None
         can_id, can_dlc, data = struct.unpack(self.CAN_FRAME_FMT, frame)
 
+        # Extract extended frame flag
+        extended = bool(can_id & (1 << 31))
+
+        # Extract can ID (29 LSB)
+        can_id = can_id & ((1 << 30) - 1)
+
         return can.Frame(id=can_id, data=data[:can_dlc])
 
 class CVRACANDongleConnection:
