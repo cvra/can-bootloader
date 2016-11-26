@@ -3,6 +3,7 @@ import socket
 import struct
 import serial
 from queue import Queue
+import threading
 
 class SocketCANConnection:
     # See <linux/can.h> for format
@@ -41,55 +42,95 @@ class SocketCANConnection:
 
         return can.Frame(id=can_id, data=data[:can_dlc])
 
-class CVRACANDongleConnection:
+class SerialCANConnection:
     """
-    Implements the CAN API for the CVRA CAN dongle.
+    Implements the slcan API.
     """
-    def __init__(self, port, baudrate=115200, timeout=None):
-        import cvra_can
-        self.cvra_can = cvra_can
-        from datagrammessages import SerialConnection
 
-        self.conn = SerialConnection(port)
-        self.conn.set_msg_handler('rx', lambda msg: self.rx_handler(msg))
-        self.conn.set_msg_handler('drop', self.drop_handler)
+    MIN_MSG_LEN = len('t1230')
 
-        id_filter = [int(self.cvra_can.Frame.ID(0, extended=0)),
-                     self.cvra_can.Frame.ID.mask(0, extended=1)]
-        if not self.conn.service_call('filter', id_filter):
-            print('filter configuration error')
-            sys.exit(1)
-        self.conn.service_call('silent', False)
-        self.conn.service_call('loop back', False)
-        self.conn.service_call('bit rate', 1000000)
+    def __init__(self, port):
+        self.port = port
+
         self.rx_queue = Queue()
+        t = threading.Thread(target=self.spin)
+        t.daemon = True
+        t.start()
 
-    def rx_handler(self, msg):
-        rec = self.cvra_can.Frame.decode(msg[0])
-        if rec.can_id.extended:
-            return
-        frame = can.Frame(id=rec.can_id.value,
-                                 data=rec.data,
-                                 extended=rec.can_id.extended,
-                                 transmission_request=rec.can_id.remote,
-                                 data_length=len(rec.data))
-        self.rx_queue.put(frame)
+        self.send_command('S8'); # bitrate 1Mbit
+        self.send_command('O'); # open device
+        port.reset_input_buffer()
 
-    def drop_handler(self, msg):
-        # non fatal error
-        # print a warning?
-        pass
+    def spin(self):
+        part = ''
+        while True:
+            part += self.port.read(100).decode('ascii')
+
+            if part.startswith('\r'):
+                part.lstrip('\r')
+
+            if '\r' not in part:
+                continue
+
+            data = part.split('\r')
+            data, part = data[:-1], data[-1]
+
+            for frame in data:
+                if frame is None:
+                    continue
+                frame = self.decode_frame(frame)
+                if frame:
+                    self.rx_queue.put(frame)
+
+    def send_command(self, cmd):
+        cmd += '\r'
+        cmd = cmd.encode('ascii')
+        self.port.write(cmd)
+
+    def decode_frame(self, msg):
+        if len(msg) < self.MIN_MSG_LEN:
+            return None
+
+        cmd, msg = msg[0], msg[1:]
+        if cmd == 'T':
+            extended = True
+            id_len = 8
+        elif cmd == 't':
+            extended = False
+            id_len = 3
+        else:
+            return None
+
+        if len(msg) < id_len + 1:
+            return None
+        can_id = int(msg[0:id_len], 16)
+        msg = msg[id_len:]
+        data_len = int(msg[0])
+        msg = msg[1:]
+        if len(msg) < 2 * data_len:
+            return None
+        data = [int(msg[i:i+2], 16) for i in range(0, 2 * data_len, 2)]
+
+        return can.Frame(id=can_id, data=bytearray(data), data_length=data_len, extended=extended)
+
+    def encode_frame(self, frame):
+        if frame.extended:
+            cmd = 'T'
+            can_id = '{:08x}'.format(frame.id)
+        else:
+            cmd = 't'
+            can_id = '{:03x}'.format(frame.id)
+
+        length = '{:x}'.format(frame.data_length)
+
+        data = ''
+        for b in frame.data:
+            data += '{:02x}'.format(b)
+        return cmd + can_id + length + data
 
     def send_frame(self, frame):
-        ident = self.cvra_can.Frame.ID(value=frame.id,
-                                  extended=frame.extended,
-                                  remote=frame.transmission_request)
-        if frame.transmission_request:
-            data = frame.data_length * b'0'
-        else:
-            data = frame.data
-        frame = self.cvra_can.Frame(can_id=ident, data=data).encode()
-        self.conn.service_call('tx', [frame])
+        cmd = self.encode_frame(frame)
+        self.send_command(cmd)
 
     def receive_frame(self):
         try:
