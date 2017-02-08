@@ -20,3 +20,8 @@ void *memory_get_config2_addr(void)
 {
     return &memory_mock_config2[0];
 }
+
+size_t memory_get_app_size(void)
+{
+    return sizeof(memory_mock_app);
+}

@@ -14,7 +14,6 @@ TEST_GROUP(FlashCommandTestGroup)
     cmp_mem_access_t command_cma;
     cmp_ctx_t command_builder;
     char command_data[1024];
-    char page[1024];
     bootloader_config_t config;
 
     cmp_ctx_t out;
@@ -32,6 +31,9 @@ TEST_GROUP(FlashCommandTestGroup)
 
         // Creates a dummy device class for testing
         strcpy(config.device_class, "test.dummy");
+
+        // Erases flash memory
+        memset(memory_mock_app, 0, sizeof(memory_mock_app));
     }
 
     void teardown()
@@ -46,7 +48,7 @@ TEST(FlashCommandTestGroup, CanFlashSinglePage)
     const char *data = "xkcd";
 
     // Writes the adress of the page
-    cmp_write_u64(&command_builder, (size_t)page);
+    cmp_write_u64(&command_builder, (size_t)memory_mock_app);
 
     // Writes the correct device class
     cmp_write_str(&command_builder, config.device_class, strlen(config.device_class));
@@ -57,14 +59,14 @@ TEST(FlashCommandTestGroup, CanFlashSinglePage)
     mock("flash").expectOneCall("lock");
 
     mock("flash").expectOneCall("page_write")
-                 .withPointerParameter("page_adress", page)
-                 .withIntParameter("size", strlen(data));
+    .withPointerParameter("page_adress", memory_mock_app)
+    .withIntParameter("size", strlen(data));
 
     cmp_mem_access_set_pos(&command_cma, 0);
     command_write_flash(1, &command_builder, &out, &config);
 
     mock().checkExpectations();
-    STRCMP_EQUAL(data, page);
+    STRCMP_EQUAL(data, (char *)memory_mock_app);
 
     // check return value
     bool ret = false;
@@ -92,7 +94,7 @@ TEST(FlashCommandTestGroup, CheckThatDeviceClassIsRespected)
     const char *data = "xkcd";
 
     // Writes the adress of the page
-    cmp_write_uint(&command_builder, (size_t)page);
+    cmp_write_uint(&command_builder, (size_t)memory_mock_app);
 
     // Writes a "wrong" device class
     cmp_write_str(&command_builder, "fail", 4);
@@ -114,12 +116,38 @@ TEST(FlashCommandTestGroup, CheckThatDeviceClassIsRespected)
     CHECK_FALSE(ret);
 }
 
+TEST(FlashCommandTestGroup, DoNotWritePastEndOfFlash)
+{
+    const char *data = "xkcd";
+
+    // Try to write immediately after the end of the flash
+    size_t past_end = (size_t)(&memory_mock_app[sizeof(memory_mock_app)]);
+    cmp_write_u64(&command_builder, past_end);
+
+    // Writes the correct device class
+    cmp_write_str(&command_builder, config.device_class, strlen(config.device_class));
+
+    // Write some data
+    cmp_write_bin(&command_builder, data, strlen(data));
+
+    // Execute the write flash command
+    cmp_mem_access_set_pos(&command_cma, 0);
+    command_write_flash(1, &command_builder, &out, &config);
+
+    // No flash operation should have occured
+    mock().checkExpectations();
+
+    // An error should be returned
+    bool ret;
+    cmp_mem_access_set_pos(&out_cma, 0);
+    CHECK_TRUE(cmp_read_bool(&out, &ret));
+    CHECK_FALSE(ret);
+}
+
 TEST(FlashCommandTestGroup, CanErasePage)
 {
-    int page;
-
     // Writes the adress of the page
-    cmp_write_u64(&command_builder, (size_t)&page);
+    cmp_write_u64(&command_builder, (size_t)memory_mock_app);
 
     // Writes the correct device class
     cmp_write_str(&command_builder, config.device_class, strlen(config.device_class));
@@ -127,7 +155,8 @@ TEST(FlashCommandTestGroup, CanErasePage)
     mock("flash").expectOneCall("unlock");
     mock("flash").expectOneCall("lock");
 
-    mock("flash").expectOneCall("page_erase").withPointerParameter("adress", &page);
+    mock("flash").expectOneCall("page_erase")
+    .withPointerParameter("adress", memory_mock_app);
 
     cmp_mem_access_set_pos(&command_cma, 0);
     command_erase_flash_page(1, &command_builder, &out, &config);
@@ -135,16 +164,16 @@ TEST(FlashCommandTestGroup, CanErasePage)
     mock().checkExpectations();
 
     // check return value
-    bool ret = false;
+    bool ret;
     cmp_mem_access_set_pos(&out_cma, 0);
-    cmp_read_bool(&out, &ret);
+    CHECK_TRUE(cmp_read_bool(&out, &ret));
     CHECK_TRUE(ret);
 }
 
 TEST(FlashCommandTestGroup, DeviceClassIsRespectedForErasePage)
 {
     // Writes the adress of the page
-    cmp_write_u64(&command_builder, (size_t)&page);
+    cmp_write_u64(&command_builder, (size_t)memory_mock_app);
 
     // Writes the wrong device class
     cmp_write_str(&command_builder, "fail", 4);
@@ -172,6 +201,31 @@ TEST(FlashCommandTestGroup, CheckIllFormatedArgumentsForErasePage)
     cmp_mem_access_set_pos(&out_cma, 0);
     cmp_read_bool(&out, &ret);
     CHECK_FALSE(ret);
+}
+
+TEST(FlashCommandTestGroup, DoesNotErasePastEndOfFlash)
+{
+    // Try to erase immediately after the end of the flash
+    size_t past_end = (size_t)(&memory_mock_app[sizeof(memory_mock_app)]);
+
+    cmp_write_u64(&command_builder, past_end);
+
+    // Writes the correct device class
+    cmp_write_str(&command_builder, config.device_class, strlen(config.device_class));
+
+    // Execute the command
+    cmp_mem_access_set_pos(&command_cma, 0);
+    command_erase_flash_page(1, &command_builder, &out, &config);
+
+    // No flash operation should have occured
+    mock().checkExpectations();
+
+    // The operation should have failed
+    bool ret = false;
+    cmp_mem_access_set_pos(&out_cma, 0);
+    CHECK_TRUE(cmp_read_bool(&out, &ret))
+    CHECK_FALSE(ret);
+
 }
 
 TEST_GROUP(JumpToApplicationCodetestGroup)

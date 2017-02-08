@@ -29,6 +29,7 @@ SECTIONS
 
     /* application in flash */
     application_address = ORIGIN(FLASH_APP);
+    application_size = LENGTH(FLASH_APP);
 
     .text :
     {
