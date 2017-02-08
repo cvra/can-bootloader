@@ -21,6 +21,11 @@ void command_erase_flash_page(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloa
         goto command_fail;
     }
 
+    // Refuse to erase past end of flash memory
+    if (address >= memory_get_app_addr() + memory_get_app_size()) {
+        goto command_fail;
+    }
+
     uint32_t size = 64;
     cmp_read_str(args, device_class, &size);
 
@@ -55,6 +60,11 @@ void command_write_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_c
 
     // refuse to overwrite bootloader or config pages
     if (address < memory_get_app_addr()) {
+        goto command_fail;
+    }
+
+    // Refuse to erase past end of flash memory
+    if (address >= memory_get_app_addr() + memory_get_app_size()) {
         goto command_fail;
     }
 
