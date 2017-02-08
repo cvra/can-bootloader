@@ -104,8 +104,6 @@ TEST(CANDatagramInputTestGroup, CanReadDestinationLength)
 
 TEST(CANDatagramInputTestGroup, CanReadDestinations)
 {
-    int i;
-
     uint8_t buf[] = {
         0x01, // protocol version
         0x00, 0x00, 0x00, 0x00, // CRC
@@ -145,7 +143,7 @@ TEST(CANDatagramInputTestGroup, CanReadData)
         0x00, 0x00, 0x00, 0x00, // CRC
         1, // destination node list length
         3, // destination nodes
-        0x00, 0x00, 0x00, len & 0xff // data length
+        0x00, 0x00, 0x00, (uint8_t)(len & 0xff) // data length
     };
 
     input_data(buf, sizeof buf);
@@ -206,8 +204,8 @@ TEST(CANDatagramInputTestGroup, IsInvalidOnCRCMismatch)
         0x00, 0x00, 0x00, 0x00, // CRC
         1, // destination node list length
         3, // destination nodes
-        len >> 8,  // data length (MSB)
-        len & 0xff,// data length (LSB)
+        (uint8_t)(len >> 8),  // data length (MSB)
+        (uint8_t)(len & 0xff),// data length (LSB)
         0x42 // data
     };
 
@@ -267,7 +265,6 @@ TEST(CANDatagramInputTestGroup, DoesNotAppendMoreBytesThanDataLen)
 {
     /** This test checks that if bytes arrive after the specified data length, they
      * are simply discarded. */
-    int len = 1;
     uint8_t buf[] = {
         0x01, // protocol version
         0x9a, 0x54, 0xb8, 0x63, // CRC
@@ -293,7 +290,7 @@ TEST(CANDatagramInputTestGroup, DoesNotOverflowDataBuffer)
     can_datagram_set_data_buffer(&datagram, data_buffer, 5);
 
     char data[] = "hello, world"; // too long to fit in buffer !
-    int len = strlen(data);
+    uint8_t len = strlen(data);
 
     uint8_t buf[] = {
         0x01, // protocol version
@@ -325,7 +322,6 @@ TEST(CANDatagramInputTestGroup, CanResetToStart)
     // valid packet.
     can_datagram_start(&datagram);
 
-    int len = 1;
     uint8_t buf[] = {
         0x01, // protocol version
         0xde, 0xad, 0xbe, 0xef,  // CRC

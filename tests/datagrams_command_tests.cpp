@@ -252,7 +252,6 @@ void output_mock_command(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_c
 
 TEST(ProtocolOutputCommand, CanPassOutputBuffer)
 {
-    int result;
     command_t commands[1];
     commands[0].index = 0x01;
     commands[0].callback = output_mock_command;
