@@ -4,7 +4,8 @@
 This repository contains the code used for the bootloader running on every microcontroller in our robots.
 It allows us to quickly update the firmware on all (>20) boards quickly and without disassembly or additional electrical connections.
 
-#Config pages
+# Config pages
+
 The bootloader code is followed by two pages of bootloader config.
 The two pages are for redundancy and are checked by a CRC32 placed at the beginning of a page.
 The bootloader checks the configuration CRC at boot.
@@ -22,7 +23,8 @@ The config contains the following informations, stored as a messagepack map:
 * application_size: Needed for CRC calculation.
 * update_count: Firmware update counter. Used for diagnostics and lifespan estimation.
 
-#Performance considerations
+# Performance considerations
+
 Assuming :
 
 * CAN speed is 1 Mb/s
@@ -37,7 +39,7 @@ Assuming :
 We can flash a whole board (1MB) in about 20 seconds.
 If all board in the robot run the same firmware, this is the time required to do a full system update!
 
-#Safety features
+# Safety features
 The bootloader is expected to be one of the safest part of the robot firmware.
 Correcting a bug in the bootloader could be very complicated, requiring disassembly of the robot in the worst cases.
 Therefore, when implementing the bootloader or the associated protocol, the following safety points must be taken into account:
@@ -47,7 +49,7 @@ Therefore, when implementing the bootloader or the associated protocol, the foll
 * If the application CRC does not match, the bootloader should not boot it.
 * On power up the bootloader should wait enough time for the user to input commands before jumping to the application code.
 
-#Building
+# Building
 
 1. Run [CVRA's packager script](https://github.com/cvra/packager): `packager.py`.
 2. Build libopencm3: `pushd libopencm3 && make && popd`.
