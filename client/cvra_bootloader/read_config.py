@@ -11,9 +11,9 @@ def parse_commandline_args():
     DESCRIPTION = 'Read board configs and dumps to JSON'
     parser = utils.ConnectionArgumentParser(description=DESCRIPTION)
     parser.add_argument("ids", metavar='DEVICEID', nargs='*', type=int,
-                        help="Device IDs to flash")
+                        help="Device IDs to query")
 
-    parser.add_argument('-a', '--all', help="Try to scan all network.",
+    parser.add_argument('-a', '--all', help="Try to scan the whole bus.",
                         action='store_true')
 
     return parser.parse_args()
