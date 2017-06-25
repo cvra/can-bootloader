@@ -50,3 +50,4 @@ templates:
     platform/olimex-e407/include.jinja: 'platform/olimex-e407/include.mk'
     platform/can-io-board/include.jinja: 'platform/can-io-board/include.mk'
     platform/nucleo-board-stm32f103rb/include.jinja: 'platform/nucleo-board-stm32f103rb/include.mk'
+    platform/uwb-beacon/include.jinja: 'platform/uwb-beacon/include.mk'
