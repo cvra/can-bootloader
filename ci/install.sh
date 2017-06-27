@@ -8,7 +8,7 @@ source env/bin/activate
 python --version
 wget https://bootstrap.pypa.io/get-pip.py
 python get-pip.py
-pip install -r packager/requirements.txt
+pip install cvra-packager~=1.0.0
 
 case $BUILD_TYPE in
     build)

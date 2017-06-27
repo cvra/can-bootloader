@@ -16,7 +16,7 @@ export CFLAGS="$CFLAGS -I $HOME/cpputest/include/"
 export CXXFLAGS="$CXXFLAGS -I $HOME/cpputest/include/"
 export LDFLAGS="$CXXFLAGS -L $HOME/cpputest/lib/"
 
-packager/packager.py
+packager
 
 case $BUILD_TYPE in
     tests)
