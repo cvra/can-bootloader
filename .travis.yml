@@ -27,13 +27,13 @@ matrix:
         - compiler: clang
           env: BUILD_TYPE="client-tests"
         - compiler: gcc
-          env: BUILD_TYPE="client-tests"
-        - compiler: gcc
           env: BUILD_TYPE="build" PLATFORM="motor-board-v1"
         - compiler: gcc
           env: BUILD_TYPE="build" PLATFORM="rc-board-v1"
         - compiler: gcc
           env: BUILD_TYPE="build" PLATFORM="olimex-e407"
+        - compiler: gcc
+          env: BUILD_TYPE="build" PLATFORM="can-io-board"
 
 before_install:
     - if [ "$CXX" = "g++" ]; then export CXX="g++-4.9" CC="gcc-4.9"; fi
