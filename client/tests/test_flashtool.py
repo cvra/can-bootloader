@@ -89,6 +89,27 @@ class FlashBinaryTestCase(unittest.TestCase):
             erase_command = encode_erase_flash_page(addr, device_class)
             write.assert_any_call(self.fd, erase_command, destinations)
 
+    def test_smaller_pages(self, write):
+        """
+        Checks that smaller page sizes work as well.
+        """
+        data = bytes([0] * 4096)
+        address = 0x1000
+        device_class = 'dummy'
+        destinations = [1]
+
+        flash_binary(self.fd, binary=bytes(4096), base_address=0x1000,
+                     device_class="dummy", destinations=[1], page_size=16)
+
+        # Check that we werased everything
+        for addr in range(0x1000, 0x1000 + 4096, 16):
+            erase_cmd = encode_erase_flash_page(addr, device_class)
+            write.assert_any_call(self.fd, erase_cmd, destinations)
+
+            write_cmd = encode_write_flash(bytes(16), addr, device_class)
+            write.assert_any_call(self.fd, write_cmd, destinations)
+
+
     @patch('cvra_bootloader.utils.config_update_and_save')
     def test_crc_is_updated(self, conf, write):
         """
@@ -275,7 +296,7 @@ class MainTestCase(unittest.TestCase):
         Checks that the binary file is flashed correctly.
         """
         main()
-        self.flash.assert_any_call(self.conn, self.binary_data, 0x1000, 'dummy', [1,2,3])
+        self.flash.assert_any_call(self.conn, self.binary_data, 0x1000, 'dummy', [1,2,3], page_size=ANY)
 
     def test_check(self):
         """
@@ -308,6 +329,14 @@ class MainTestCase(unittest.TestCase):
         sys.argv += ["--run"]
         main()
         self.run.assert_any_call(self.conn, [1, 2, 3])
+
+    def test_change_page_size(self):
+        """
+        Checks that we can change the page size.
+        """
+        sys.argv += ["--page-size=16"]
+        main()
+        self.flash.assert_any_call(ANY, ANY, ANY, ANY, ANY, page_size=16)
 
 
 
@@ -371,3 +400,14 @@ class ArgumentParsingTestCase(unittest.TestCase):
 
             # Checked that we printed some kind of error
             error.assert_any_call(ANY)
+
+    def test_page_size(self):
+        """
+        Checks that we can change the page size.
+        """
+        cmd = "-b test.bin -a 0x1000 -p /dev/ttyUSB0 -c dummy 1".split()
+        self.assertEqual(2048, parse_commandline_args(cmd).page_size,
+                "Invalid page size")
+        cmd += '--page-size 10'.split()
+        self.assertEqual(10, parse_commandline_args(cmd).page_size,
+                "Invalid page size")

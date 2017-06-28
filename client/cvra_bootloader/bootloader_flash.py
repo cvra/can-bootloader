@@ -11,9 +11,6 @@ from sys import exit
 import progressbar
 import sys
 
-CHUNK_SIZE = 2048
-
-
 def parse_commandline_args(args=None):
     """
     Parses the program commandline arguments.
@@ -38,6 +35,8 @@ def parse_commandline_args(args=None):
     parser.add_argument('-r', '--run',
                         help='Run application after flashing',
                         action='store_true')
+    parser.add_argument("--page-size", type=int, default=2048,
+                        help="Page size in bytes (default 2048)")
     parser.add_argument("ids",
                         metavar='DEVICEID',
                         nargs='+', type=int,
@@ -81,8 +80,8 @@ def flash_binary(fdesc, binary, base_address, device_class, destinations,
     pbar = progressbar.ProgressBar(maxval=len(binary)).start()
 
     # Then write all pages in chunks
-    for offset, chunk in enumerate(page.slice_into_pages(binary, CHUNK_SIZE)):
-        offset *= CHUNK_SIZE
+    for offset, chunk in enumerate(page.slice_into_pages(binary, page_size)):
+        offset *= page_size
         command = commands.encode_write_flash(chunk,
                                               base_address + offset,
                                               device_class)
@@ -198,7 +197,7 @@ def main():
 
     print("Flashing firmware (size: {} bytes)".format(len(binary)))
     flash_binary(serial_port, binary, args.base_address, args.device_class,
-                 args.ids)
+                 args.ids, page_size=args.page_size)
 
     print("Verifying firmware...")
     valid_nodes_set = set(check_binary(serial_port, binary,
