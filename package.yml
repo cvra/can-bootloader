@@ -36,6 +36,10 @@ target.stm32f3:
 target.stm32f4:
     - platform/mcu/stm32f4/flash_writer.c
     - platform/mcu/stm32f4/can_interface.c
+    
+target.stm32f1:
+    - platform/mcu/stm32f1/flash_writer.c
+    - platform/mcu/stm32f1/can_interface.c
 
 include_directories:
     - ./
@@ -45,3 +49,4 @@ templates:
     platform/motor-board-v1/include.jinja: 'platform/motor-board-v1/include.mk'
     platform/olimex-e407/include.jinja: 'platform/olimex-e407/include.mk'
     platform/can-io-board/include.jinja: 'platform/can-io-board/include.mk'
+    platform/nucleo-board-stm32f103rb/include.jinja: 'platform/nucleo-board-stm32f103rb/include.mk'
