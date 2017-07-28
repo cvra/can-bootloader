@@ -28,10 +28,13 @@ SZ  = arm-none-eabi-size
 
 MKDIR = mkdir -p
 
+ifdef NO_COLOR
+PRINT = @printf "%s\n"
+else
 ANSI_RED = \033[1;31m
 ANSI_RESET = \033[0m
-#PRINT = @printf "$(ANSI_RED)%s$(ANSI_RESET)\n"
-PRINT = @printf "%s\n"
+PRINT = @printf "$(ANSI_RED)%s$(ANSI_RESET)\n"
+endif
 
 ifeq ($(QUIET),1)
 Q = @
