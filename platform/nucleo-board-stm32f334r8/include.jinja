@@ -1,0 +1,10 @@
+
+{% for dir in include_directories %}
+PACKAGER_INCDIR += {{ dir }}
+{% endfor %}
+
+{% for file in target['armv7-m'] + target.stm32f3 + source %}
+{% if file.endswith('.c') %}CSRC += {{ file }}
+{% elif file.endswith('.s') %}ASMSRC += {{ file }}
+{% elif file.endswith('.cpp') %}CXXSRC += {{ file }}
+{% endif %}{% endfor %}

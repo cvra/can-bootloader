@@ -1,6 +1,15 @@
 # # Editor swap files
 *.swp
 
+# Eclipse files
+.project
+.cproject
+.settings
+.metadata
+
+# Dependency files
+*.d
+
 # Object files
 *.o
 *.ko
