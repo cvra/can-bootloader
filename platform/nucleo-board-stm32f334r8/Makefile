@@ -82,9 +82,13 @@ CFLAGS   += $(addprefix  -I, $(INCDIR))
 #CXXFLAGS += -fno-use-cxa-atexit
 
 # Libraries to link with
+LIBOPENCM3 = opencm3_stm32f3
+LIBOPENCM3_PATH = $(PROJ_ROOT)/libopencm3
+LIBOPENCM3_LD = $(LIBOPENCM3_PATH)/lib/lib$(LIBOPENCM3).ld
+
 LIBS     += -Wl,-lc -Wl,-lgcc -Wl,-lnosys
-LIBS     += -Wl,-L$(PROJ_ROOT)/libopencm3/lib
-LIBS     += -Wl,-lopencm3_stm32f3
+LIBS     += -Wl,-L$(LIBOPENCM3_PATH)/lib
+LIBS     += -Wl,-l$(LIBOPENCM3)
 
 # Linker flags
 LFLAGS   += -nostartfiles
@@ -137,6 +141,15 @@ reset:
 
 ################################################################################
 
+# OpenCM3 library
+$(LIBOPENCM3):
+	cd $(LIBOPENCM3_PATH); make
+
+# linked elf-object
+$(PROJNAME).elf: $(OBJS) $(LDSCRIPT) $(LIBOPENCM3_LD)
+	$(PRINT) "> linking"
+	$(Q) $(LD) -o $(PROJNAME).elf $(OBJS) $(LFLAGS)
+
 # binary
 $(PROJNAME).bin: $(PROJNAME).elf
 	$(PRINT) "> copying"
@@ -146,11 +159,6 @@ $(PROJNAME).bin: $(PROJNAME).elf
 $(PROJNAME).lst: $(PROJNAME).elf
 	$(PRINT) "> generating assembly listing"
 	$(Q) $(OD) -D -h $(PROJNAME).elf > $(PROJNAME).lst
-
-# linked elf-object
-$(PROJNAME).elf: $(OBJS) $(LDSCRIPT)
-	$(PRINT) "> linking"
-	$(Q) $(LD) -o $(PROJNAME).elf $(OBJS) $(LFLAGS)
 
 # object from c
 $(COBJS): $(BUILD_DIR)/%.o : $(PROJ_ROOT)/%.c Makefile
