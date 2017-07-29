@@ -28,7 +28,14 @@ extern "C" {
 #define GPIO_PIN_CAN_TX     GPIO9
 #define GPIO_AF_CAN         GPIO_AF9
 
-#define USE_CAN_ENABLE
+/*
+ * Many CAN transceivers have an enable input,
+ * which needs to be driven HIGH in order
+ * for the transceiver to become operational.
+ * Define USE_CAN_ENABLE to set the pin
+ * defined below to HIGH upon startup.
+ */
+//#define USE_CAN_ENABLE
 #ifdef USE_CAN_ENABLE
 #define GPIO_PORT_CAN_ENABLE    GPIOA
 #define GPIO_PIN_CAN_ENABLE     GPIO8
