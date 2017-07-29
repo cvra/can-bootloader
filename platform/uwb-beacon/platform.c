@@ -26,10 +26,10 @@ void can_interface_init(void)
     rcc_periph_clock_enable(RCC_CAN1);
 
     /*
-    STM32F4 CAN1 on 42MHz configured APB1 peripheral clock
-    42MHz / 2 -> 21MHz
-    21MHz / (1tq + 12tq + 8tq) = 1MHz => 1Mbit
-    */
+       STM32F4 CAN1 on 42MHz configured APB1 peripheral clock
+       42MHz / 2 -> 21MHz
+       21MHz / (1tq + 12tq + 8tq) = 1MHz => 1Mbit
+     */
     can_init(CAN1,            // Interface
              false,           // Time triggered communication mode.
              true,            // Automatic bus-off management.
@@ -48,12 +48,12 @@ void can_interface_init(void)
     // mask bits: 0 = Don't care, 1 = mute match corresponding id bit
     can_filter_id_mask_32bit_init(
         CAN1,
-        0,      // filter nr
-        0,      // id: only std id, no rtr
-        6 | (7<<29), // mask: match only std id[10:8] = 0 (bootloader frames)
-        0,      // assign to fifo0
-        true    // enable
-    );
+        0,                    // filter nr
+        0,                    // id: only std id, no rtr
+        6 | (7 << 29),        // mask: match only std id[10:8] = 0 (bootloader frames)
+        0,                    // assign to fifo0
+        true                  // enable
+        );
 }
 
 void fault_handler(void)
@@ -73,7 +73,8 @@ void platform_main(int arg)
 
     // CAN pin
     gpio_mode_setup(GPIOB, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIOB_CAN1_RX | GPIOB_CAN1_TX);
-    gpio_set_output_options(GPIOB, GPIO_OTYPE_PP, GPIO_OSPEED_100MHZ, GPIOB_CAN1_RX | GPIOB_CAN1_TX);
+    gpio_set_output_options(GPIOB, GPIO_OTYPE_PP, GPIO_OSPEED_100MHZ,
+                            GPIOB_CAN1_RX | GPIOB_CAN1_TX);
     gpio_set_af(GPIOB, GPIO_AF9, GPIOB_CAN1_RX | GPIOB_CAN1_TX);
 
     // LED on
