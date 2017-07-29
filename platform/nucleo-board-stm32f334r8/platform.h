@@ -16,14 +16,30 @@ extern "C" {
 #define PLATFORM_DEVICE_CLASS "nucleo-board-stm32f334r8"
 #define FLASH_PAGE_SIZE 0x0800 // 2K
 #define CONFIG_PAGE_SIZE FLASH_PAGE_SIZE
-#define PIN_LED2  GPIO5
-#define PORT_LED2 GPIOA
 
+// Onboard LED
+#define GPIO_PORT_LED2  GPIOA
+#define GPIO_PIN_LED2   GPIO5
+
+// CAN pins
+#define GPIO_PORT_CAN_RX    GPIOB
+#define GPIO_PIN_CAN_RX     GPIO8
+#define GPIO_PORT_CAN_TX    GPIOB
+#define GPIO_PIN_CAN_TX     GPIO9
+#define GPIO_AF_CAN         GPIO_AF9
+
+#define USE_CAN_ENABLE
+#ifdef USE_CAN_ENABLE
+#define GPIO_PORT_CAN_ENABLE    GPIOA
+#define GPIO_PIN_CAN_ENABLE     GPIO8
+#endif
+
+// Import symbols from linker script
 extern uint8_t config_page_buffer[CONFIG_PAGE_SIZE];
-
-// symbols defined in linkerscript
 extern int application_address, application_size, config_page1, config_page2;
 
+
+// TODO: Superfluous(?) inline functions
 static inline void *memory_get_app_addr(void)
 {
     return (void *) &application_address;

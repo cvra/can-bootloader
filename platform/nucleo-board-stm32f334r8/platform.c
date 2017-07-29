@@ -17,45 +17,103 @@
 // page buffer used by config commands.
 uint8_t config_page_buffer[CONFIG_PAGE_SIZE];
 
+
+void led_init()
+{
+    #if (GPIO_PORT_LED2 == GPIOA)
+    rcc_periph_clock_enable(RCC_GPIOA);
+    #endif
+    #if (GPIO_PORT_LED2 == GPIOB)
+    rcc_periph_clock_enable(RCC_GPIOB);
+    #endif
+
+    gpio_mode_setup(
+            GPIO_PORT_LED2,
+            GPIO_MODE_OUTPUT,
+            GPIO_PUPD_NONE,
+            GPIO_PIN_LED2
+            );
+    gpio_set_output_options(
+            GPIO_PORT_LED2,
+            GPIO_OTYPE_PP,
+            GPIO_OSPEED_2MHZ,
+            GPIO_PIN_LED2
+            );
+    gpio_set(
+            GPIO_PORT_LED2,
+            GPIO_PIN_LED2
+            );
+}
+
+void led_blink()
+{
+    // Blink onboard led
+    for (uint32_t i=0;i<3;i++)
+    {
+        for (uint32_t j=0;j<150000;j++)
+        {
+            asm("nop");
+        }
+        gpio_toggle(GPIO_PORT_LED2, GPIO_PIN_LED2);
+    }
+}
+
 void can_interface_init(void)
 {
-    // Enable clock to GPIO port A
+    // Enable clock to GPIO port A and B
+    #if (GPIO_PORT_CAN_TX == GPIOA) || (GPIO_PORT_CAN_RX == GPIOA) || (GPIO_PORT_CAN_ENABLE == GPIOA)
     rcc_periph_clock_enable(RCC_GPIOA);
+    #endif
+    #if (GPIO_PORT_CAN_TX == GPIOB) || (GPIO_PORT_CAN_RX == GPIOB) || (GPIO_PORT_CAN_ENABLE == GPIOB)
+    rcc_periph_clock_enable(RCC_GPIOB);
+    #endif
 
     // Enable clock to CAN peripheral
     rcc_periph_clock_enable(RCC_CAN);
 
     // Setup CAN pins
     gpio_mode_setup(
-            GPIO_BANK_CAN_TX,
+            GPIO_PORT_CAN_TX,
             GPIO_MODE_AF,
-            GPIO_PUPD_NONE,
-            GPIO_CAN_TX);
+            GPIO_PUPD_PULLUP,
+            GPIO_PIN_CAN_TX
+            );
     gpio_set_af(
-            GPIO_BANK_CAN_TX,
+            GPIO_PORT_CAN_TX,
             GPIO_AF_CAN,
-            GPIO_CAN_TX
+            GPIO_PIN_CAN_TX
             );
 
     gpio_mode_setup(
-            GPIO_BANK_CAN_RX,
+            GPIO_PORT_CAN_RX,
             GPIO_MODE_AF,
-            GPIO_PUPD_NONE,
-            GPIO_CAN_RX
+            GPIO_PUPD_PULLUP,
+            GPIO_PIN_CAN_RX
             );
     gpio_set_af(
-            GPIO_BANK_CAN_RX,
+            GPIO_PORT_CAN_RX,
             GPIO_AF_CAN,
-            GPIO_CAN_RX
+            GPIO_PIN_CAN_RX
             );
 
-    /* Remap the can to pin PA11 and PA12 , should already be by default */
-/*
-    gpio_primary_remap(
-            AFIO_MAPR_SWJ_CFG_FULL_SWJ,
-            AFIO_MAPR_CAN1_REMAP_PORTA
+    #ifdef USE_CAN_ENABLE
+    gpio_mode_setup(
+            GPIO_PORT_CAN_ENABLE,
+            GPIO_MODE_OUTPUT,
+            GPIO_PUPD_NONE,
+            GPIO_PIN_CAN_ENABLE
             );
-*/
+    gpio_set_output_options(
+            GPIO_PORT_CAN_ENABLE,
+            GPIO_OTYPE_PP,
+            GPIO_OSPEED_2MHZ,
+            GPIO_PIN_CAN_ENABLE
+            );
+    gpio_set(
+            GPIO_PORT_CAN_ENABLE,
+            GPIO_PIN_CAN_ENABLE
+            );
+    #endif
 
     /*
     STM32F3 CAN1 on 18MHz configured APB1 peripheral clock
@@ -120,36 +178,16 @@ void platform_main(int arg)
     // If external 8MHz present on PF0/PF1
     rcc_clock_setup_in_hse_8mhz_out_72mhz();
     */
-    // otherwise use internal RC oscillator
+    // Otherwise use internal RC oscillator
     rcc_clock_setup_in_hsi_out_36mhz();
 
-    /* Init the PA5 port to output at maximum speed */
-    gpio_mode_setup(
-            PORT_LED2,
-            GPIO_MODE_OUTPUT,
-            GPIO_PUPD_NONE,
-            PIN_LED2
-            );
+    // Initialize the onboard LED
+    led_init();
 
-    // Blink onboard led
-    uint32_t i=0,j=0;
-    for(i=0;i<11;i++)
-    {
-//        for(j=0;j<1000000;j++)
-//        {
-//            asm("nop");
-//        }
-        gpio_toggle(PORT_LED2,PIN_LED2);
-    }
-    /*
-    for(j=0;j<10000000;j++)
-    {
-        asm("nop");
-    }
-    gpio_set(PORT_LED2,PIN_LED2);
-    */
+    // Blink onboard LED to indicate platform startup
+    led_blink();
 
-    // configure timeout of 10000 milliseconds (assuming 36 Mhz system clock, see above)
+    // Configure timeout of 10000 milliseconds (assuming 36 Mhz system clock, see above)
     timeout_timer_init(36000000, 10000);
     can_interface_init();
     bootloader_main(arg);
