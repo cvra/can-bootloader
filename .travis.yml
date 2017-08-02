@@ -37,6 +37,8 @@ matrix:
         - compiler: gcc
           env: BUILD_TYPE="build" PLATFORM="nucleo-board-stm32f103rb"
         - compiler: gcc
+          env: BUILD_TYPE="build" PLATFORM="nucleo-board-stm32f334r8"
+        - compiler: gcc
           env: BUILD_TYPE="build" PLATFORM="uwb-beacon"
 
 before_install:
