@@ -109,11 +109,18 @@ void can_interface_init(void)
             GPIO_OSPEED_2MHZ,
             GPIO_PIN_CAN_ENABLE
             );
+    #ifndef CAN_ENABLE_INVERTED
     gpio_set(
             GPIO_PORT_CAN_ENABLE,
             GPIO_PIN_CAN_ENABLE
             );
-    #endif
+    #else
+    gpio_clear(
+            GPIO_PORT_CAN_ENABLE,
+            GPIO_PIN_CAN_ENABLE
+            );
+    #endif // CAN_ENABLE_INVERTED
+    #endif // USE_CAN_ENABLE
 
     /*
     STM32F3 CAN1 on 18MHz configured APB1 peripheral clock

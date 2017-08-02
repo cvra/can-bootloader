@@ -30,12 +30,16 @@ extern "C" {
 
 /*
  * Many CAN transceivers have an enable input,
- * which needs to be driven HIGH in order
+ * which needs to be driven HIGH or LOW in order
  * for the transceiver to become operational.
  * Define USE_CAN_ENABLE to set the pin
  * defined below to HIGH upon startup.
+ * Additionally define CAN_ENABLE_INVERTED
+ * to drive it LOW instead.
  */
 //#define USE_CAN_ENABLE
+//#define CAN_ENABLE_INVERTED
+
 #ifdef USE_CAN_ENABLE
 #define GPIO_PORT_CAN_ENABLE    GPIOA
 #define GPIO_PIN_CAN_ENABLE     GPIO8
@@ -46,7 +50,6 @@ extern uint8_t config_page_buffer[CONFIG_PAGE_SIZE];
 extern int application_address, application_size, config_page1, config_page2;
 
 
-// TODO: Superfluous(?) inline functions
 static inline void *memory_get_app_addr(void)
 {
     return (void *) &application_address;
