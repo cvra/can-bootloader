@@ -54,7 +54,8 @@ INCDIR   += $(addprefix $(PROJ_ROOT)/, $(PACKAGER_INCDIR))
 LDSCRIPT = ./linkerscript.ld
 
 # Target processor
-CFLAGS += -mthumb -march=armv7-m -mtune=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16
+CFLAGS += -mthumb -march=armv7e-m -mtune=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16
+LFLAGS += -mthumb -march=armv7e-m -mtune=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16
 
 DEFINES += -DSTM32F3
 OPTIMIZATION = -Og
@@ -96,7 +97,6 @@ LIBS     += -Wl,-l$(LIBOPENCM3)
 
 # Linker flags
 LFLAGS   += -nostartfiles
-LFLAGS   += -L/usr/lib/arm-none-eabi/newlib/fpu
 LFLAGS   += $(LIBS)
 LFLAGS   += -Wl,-Map=$(PROJNAME).map
 LFLAGS   += -T$(LDSCRIPT)
