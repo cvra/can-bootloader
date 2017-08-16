@@ -1,13 +1,13 @@
-#Bootloader protocol
+# Bootloader protocol
 
-##Design goals
+## Design goals
 
 * The bootloader might coexist with higher level protocols (UAVCAN) and its operation must not be disturbed.
 * It must handle lost CAN frames gracefully.
 * The protocol must be open to extension.
 
-##CAN Transport layer
-Apparently it will not be really needed to have a complicated transport layer here.
+## CAN Transport layer
+It will not be really needed to have a complicated transport layer here.
 Using standard frames over extended frames guarantees that the bootloader protocol always win the arbitration.
 CAN is pretty robust so packet drops will be really infrequent and will be detected when doing the CRC of the whole flash.
 We will never send packet out of order so no sequence number is needed.
@@ -27,6 +27,7 @@ The format of the CAN message ID is :
 
 ## CAN Datagram format
 The CAN datagram layer has the following resposibilities :
+
 * Adressing
 * Ensure data integrity (CRC)
 
