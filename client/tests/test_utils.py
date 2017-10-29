@@ -12,12 +12,14 @@ from cvra_bootloader import commands
 import msgpack
 import io
 
+
 @patch('cvra_bootloader.utils.read_can_datagrams')
 @patch('cvra_bootloader.utils.write_command')
 class BoardPingTestCase(unittest.TestCase):
     """
     Checks for the ping_board function.
     """
+
     def test_sends_correct_command(self, write_command, read_datagram):
         port = object()
         ping_board(port, 1)
@@ -56,7 +58,6 @@ class WriteCommandTestCase(unittest.TestCase):
             fdesc.send_frame.assert_any_call(f)
 
 
-
 @patch('cvra_bootloader.utils.read_can_datagrams')
 @patch('cvra_bootloader.utils.write_command')
 class CommandRetryTestCase(unittest.TestCase):
@@ -91,7 +92,7 @@ class CommandRetryTestCase(unittest.TestCase):
         read.return_value = repeat(None)  # Timeout forever
         data = "hello"
 
-        with patch('logging.warning'),  patch('logging.critical') as critical:
+        with patch('logging.warning'), patch('logging.critical') as critical:
             with self.assertRaises(IOError):
                 write_command_retry(None, data, [1, 2], retry_limit=2)
 
@@ -99,6 +100,7 @@ class CommandRetryTestCase(unittest.TestCase):
             # message
             self.assertEqual(write.call_count, 2 + 1)
             critical.assert_any_call(ANY)
+
 
 class PCAPWrapperTestCase(unittest.TestCase):
     def setUp(self):
@@ -137,15 +139,21 @@ class PCAPWrapperTestCase(unittest.TestCase):
         """
         Checks that read timeoutes are not logged in the pcap.
         """
-        self.underlying_conn.receive_frame.return_value = None # timeout
+        self.underlying_conn.receive_frame.return_value = None  # timeout
         self.assertIsNone(self.conn.receive_frame())
-        self.assertEqual(24, len(self.outfile.getvalue()), 'pcap should only contain header')
+        self.assertEqual(24,
+                         len(self.outfile.getvalue()),
+                         'pcap should only contain header')
+
 
 class OpenConnectionTestCase(unittest.TestCase):
     Args = namedtuple("Args", ["serial_device", "can_interface", "pcap"])
 
     def make_args(self, serial_device=None, can_interface=None, pcap=None):
-        return self.Args(serial_device=serial_device, can_interface=can_interface, pcap=pcap)
+        return self.Args(
+            serial_device=serial_device,
+            can_interface=can_interface,
+            pcap=pcap)
 
     @patch('can.adapters.SocketCANConnection', autospec=True)
     def test_open_can_interface(self, create_socket):
@@ -175,4 +183,3 @@ class ArgumentParserTestCase(unittest.TestCase):
         args = parser.parse_args("-i can0".split())
 
         self.assertEqual('can0', args.can_interface)
-

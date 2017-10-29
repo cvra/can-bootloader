@@ -11,6 +11,7 @@ import can.pcap
 
 from collections import defaultdict
 
+
 class ConnectionArgumentParser(argparse.ArgumentParser):
     """
     Subclass of ArgumentParser with default arguments for connection handling (TCP and serial).
@@ -21,18 +22,29 @@ class ConnectionArgumentParser(argparse.ArgumentParser):
     def __init__(self, *args, **kwargs):
         super(ConnectionArgumentParser, self).__init__(*args, **kwargs)
 
-        self.add_argument('-p', '--port', dest='serial_device',
-                          help='Serial port to which the CAN bridge is connected to.',
-                          metavar='DEVICE')
+        self.add_argument(
+            '-p',
+            '--port',
+            dest='serial_device',
+            help='Serial port to which the CAN bridge is connected to.',
+            metavar='DEVICE')
 
-        self.add_argument('-i', '--interface', dest='can_interface',
-                          help="SocketCAN interface, e.g 'can0' (Linux only).",
-                          metavar='INTERFACE')
+        self.add_argument(
+            '-i',
+            '--interface',
+            dest='can_interface',
+            help="SocketCAN interface, e.g 'can0' (Linux only).",
+            metavar='INTERFACE')
 
-        self.add_argument('--pcap', help='Log CAN frames to the given file in Wireshark compatible Pcap format.', type=argparse.FileType('wb'))
+        self.add_argument(
+            '--pcap',
+            help=
+            'Log CAN frames to the given file in Wireshark compatible Pcap format.',
+            type=argparse.FileType('wb'))
 
     def parse_args(self, *args, **kwargs):
-        args = super(ConnectionArgumentParser, self).parse_args(*args, **kwargs)
+        args = super(ConnectionArgumentParser, self).parse_args(
+            *args, **kwargs)
 
         if args.serial_device is None and \
            args.can_interface is None:
@@ -43,10 +55,12 @@ class ConnectionArgumentParser(argparse.ArgumentParser):
 
         return args
 
+
 class SocketSerialAdapter:
     """
     This class wraps a socket in an API compatible with PySerial's one.
     """
+
     def __init__(self, socket):
         self.socket = socket
 
@@ -56,18 +70,19 @@ class SocketSerialAdapter:
         except socket.timeout:
             return bytes()
 
-
     def write(self, data):
         return self.socket.send(data)
 
     def flush(self):
         pass
 
+
 class PcapConnectionWrapper:
     """
     Connection wrapper which logs all frames sent and received into a wireshark
     compatible pcap file.
     """
+
     def __init__(self, conn, pcap_file):
         self.conn = conn
         self.pcap_file = pcap_file
@@ -92,7 +107,7 @@ def open_connection(args):
     """
     conn = None
     if args.can_interface:
-        conn =  can.adapters.SocketCANConnection(args.can_interface)
+        conn = can.adapters.SocketCANConnection(args.can_interface)
     elif args.serial_device:
         port = serial.Serial(port=args.serial_device, timeout=0.1)
         conn = can.adapters.SerialCANConnection(port)
@@ -101,6 +116,7 @@ def open_connection(args):
         conn = PcapConnectionWrapper(conn, args.pcap)
 
     return conn
+
 
 def read_can_datagrams(fdesc):
     buf = defaultdict(lambda: bytes())
