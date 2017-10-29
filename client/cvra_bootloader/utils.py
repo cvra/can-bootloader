@@ -7,6 +7,7 @@ from cvra_bootloader import commands
 import can
 import logging
 import can.adapters
+import can.pcap
 
 from collections import defaultdict
 
@@ -28,6 +29,7 @@ class ConnectionArgumentParser(argparse.ArgumentParser):
                           help="SocketCAN interface, e.g 'can0' (Linux only).",
                           metavar='INTERFACE')
 
+        self.add_argument('--pcap', help='Log CAN frames to the given file in Wireshark compatible Pcap format.', type=argparse.FileType('wb'))
 
     def parse_args(self, *args, **kwargs):
         args = super(ConnectionArgumentParser, self).parse_args(*args, **kwargs)
@@ -61,6 +63,26 @@ class SocketSerialAdapter:
     def flush(self):
         pass
 
+class PcapConnectionWrapper:
+    """
+    Connection wrapper which logs all frames sent and received into a wireshark
+    compatible pcap file.
+    """
+    def __init__(self, conn, pcap_file):
+        self.conn = conn
+        self.pcap_file = pcap_file
+        can.pcap.write_header(self.pcap_file)
+
+    def send_frame(self, frame):
+        can.pcap.write_frame(self.pcap_file, time.time(), frame)
+        self.conn.send_frame(frame)
+
+    def receive_frame(self):
+        frame = self.conn.receive_frame()
+        if frame:
+            can.pcap.write_frame(self.pcap_file, time.time(), frame)
+        return frame
+
 
 def open_connection(args):
     """
@@ -68,11 +90,17 @@ def open_connection(args):
 
     Returns a file like object which will be the connection handle.
     """
+    conn = None
     if args.can_interface:
-        return can.adapters.SocketCANConnection(args.can_interface)
+        conn =  can.adapters.SocketCANConnection(args.can_interface)
     elif args.serial_device:
         port = serial.Serial(port=args.serial_device, timeout=0.1)
-        return can.adapters.SerialCANConnection(port)
+        conn = can.adapters.SerialCANConnection(port)
+
+    if args.pcap:
+        conn = PcapConnectionWrapper(conn, args.pcap)
+
+    return conn
 
 def read_can_datagrams(fdesc):
     buf = defaultdict(lambda: bytes())
