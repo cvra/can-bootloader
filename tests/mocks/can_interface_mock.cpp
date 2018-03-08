@@ -13,8 +13,7 @@ bool can_interface_read_message(uint32_t *id, uint8_t *message, uint8_t *length,
     mock("can").actualCall("read")
                .withOutputParameter("id", id)
                .withOutputParameter("message", message)
-               .withOutputParameter("length", length)
-               .returnIntValue();
+               .withOutputParameter("length", length);
     return true;
 }
 
@@ -36,8 +35,7 @@ void can_mock_message(uint32_t message_id, uint8_t *msg, uint8_t message_len)
     mock("can").expectOneCall("read")
                .withOutputParameterReturning("id", &expected_id, sizeof(uint32_t))
                .withOutputParameterReturning("message", expected_msg, message_len)
-               .withOutputParameterReturning("length", &expected_len, sizeof(uint8_t))
-               .andReturnValue(true);
+               .withOutputParameterReturning("length", &expected_len, sizeof(uint8_t));
 }
 
 TEST_GROUP(CanInterfaceMockTestGroup)

@@ -54,6 +54,7 @@ CXXFLAGS += -fno-use-cxa-atexit
 # Linker flags
 LFLAGS   += $(LIBS) -T$(LDSCRIPT) -nostartfiles -Wl,-Map=$(PROJNAME).map
 LFLAGS   += -Wl,--gc-sections
+LFLAGS   += -lc_nano
 
 CCFLAGS  += $(CFLAGS)
 CXXFLAGS += $(CFLAGS)
