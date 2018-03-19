@@ -40,6 +40,8 @@ matrix:
           env: BUILD_TYPE="build" PLATFORM="nucleo-board-stm32f334r8"
         - compiler: gcc
           env: BUILD_TYPE="build" PLATFORM="uwb-beacon"
+        - compiler: gcc
+          env: BUILD_TYPE="build" PLATFORM="sensor-board"
 
 before_install:
     - if [ "$CXX" = "g++" ]; then export CXX="g++-4.9" CC="gcc-4.9"; fi
