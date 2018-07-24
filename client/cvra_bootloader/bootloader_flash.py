@@ -35,8 +35,8 @@ def parse_commandline_args(args=None):
     parser.add_argument('-r', '--run',
                         help='Run application after flashing',
                         action='store_true')
-    parser.add_argument("--page-size", type=int, default=2048,
-                        help="Page size in bytes (default 2048)")
+    parser.add_argument("--chunk-size", type=int, default=2048,
+                        help="Chunk size in bytes (default 2048)")
     parser.add_argument("ids",
                         metavar='DEVICEID',
                         nargs='+', type=int,
@@ -46,7 +46,7 @@ def parse_commandline_args(args=None):
 
 
 def flash_binary(fdesc, binary, base_address, device_class, destinations,
-                 page_size=2048):
+                 sectors, chunk_size=2048):
     """
     Writes a full binary to the flash using the given file descriptor.
 
@@ -58,8 +58,12 @@ def flash_binary(fdesc, binary, base_address, device_class, destinations,
     pbar = progressbar.ProgressBar(maxval=len(binary)).start()
 
     # First erase all pages
-    for offset in range(0, len(binary), page_size):
-        erase_command = commands.encode_erase_flash_page(base_address + offset,
+    for offset in sectors:
+        # If this sector does not need to be erased, skip it
+        if offset < base_address or offset > base_address + len(binary):
+            continue
+
+        erase_command = commands.encode_erase_flash_page(offset,
                                                          device_class)
         res = utils.write_command_retry(fdesc, erase_command, destinations)
 
@@ -80,8 +84,8 @@ def flash_binary(fdesc, binary, base_address, device_class, destinations,
     pbar = progressbar.ProgressBar(maxval=len(binary)).start()
 
     # Then write all pages in chunks
-    for offset, chunk in enumerate(page.slice_into_pages(binary, page_size)):
-        offset *= page_size
+    for offset, chunk in enumerate(page.slice_into_pages(binary, chunk_size)):
+        offset *= chunk_size
         command = commands.encode_write_flash(chunk,
                                               base_address + offset,
                                               device_class)
@@ -196,8 +200,11 @@ def main():
         exit(2)
 
     print("Flashing firmware (size: {} bytes)".format(len(binary)))
+
+    # TODO: Read this from config file instead
+    sectors = list(range(args.base_address, args.base_address + len(binary), 2 * 1024))
     flash_binary(serial_port, binary, args.base_address, args.device_class,
-                 args.ids, page_size=args.page_size)
+                 args.ids, sectors, chunk_size=args.chunk_size)
 
     print("Verifying firmware...")
     valid_nodes_set = set(check_binary(serial_port, binary,

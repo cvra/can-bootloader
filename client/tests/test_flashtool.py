@@ -34,10 +34,11 @@ class FlashBinaryTestCase(unittest.TestCase):
         """
         data = bytes(range(20))
         address = 0x1000
+        sectors = [address]
         device_class = 'dummy'
         destinations = [1]
 
-        flash_binary(self.fd, data, address, "dummy", destinations)
+        flash_binary(self.fd, data, address, "dummy", destinations, sectors)
 
         erase_command = encode_erase_flash_page(address, device_class)
         write.assert_any_call(self.fd, erase_command, destinations)
@@ -48,10 +49,11 @@ class FlashBinaryTestCase(unittest.TestCase):
         """
         data = bytes(range(20))
         address = 0x1000
+        sectors = [address]
         device_class = 'dummy'
         destinations = [1]
 
-        flash_binary(self.fd, data, address, "dummy", [1])
+        flash_binary(self.fd, data, address, "dummy", [1], sectors)
 
         write_command = encode_write_flash(data, address, device_class)
 
@@ -63,10 +65,12 @@ class FlashBinaryTestCase(unittest.TestCase):
         """
         data = bytes([0] * 4096)
         address = 0x1000
+        sectors = [address]
         device_class = 'dummy'
         destinations = [1]
 
-        flash_binary(self.fd, data, address, "dummy", [1])
+        flash_binary(self.fd, data, address, "dummy", [1], sectors,
+                     chunk_size=2048)
 
         write_command = encode_write_flash(bytes([0] * 2048), address, device_class)
         write.assert_any_call(self.fd, write_command, destinations)
@@ -74,20 +78,61 @@ class FlashBinaryTestCase(unittest.TestCase):
         write_command = encode_write_flash(bytes([0] * 2048), address + 2048, device_class)
         write.assert_any_call(self.fd, write_command, destinations)
 
+    def get_erased_sectors_list(self, write):
+        """
+        Returns the list of erased addresses from the given write mock.
+        """
+        def unpack_cmd(b):
+            u = msgpack.Unpacker()
+            u.feed(b)
+            return list(u)
+
+        cmd = [unpack_cmd(c[0][1]) for c in write.call_args_list]
+        addresses = [args[0] for _, opcode, args in cmd
+                     if opcode == CommandType.Erase]
+
+        return addresses
+
     def test_erase_multiple_pages(self, write):
         """
-        Checks that all pages are erased before writing data to them.
+        Checks that all sectors are erased before writing data to them.
+
+        We check that we only erase each sector once, even if the chunk size is
+        much smaller.
+        """
+        data = bytes([0] * 4096)
+        device_class = 'dummy'
+        destinations = [1]
+        sectors = [0x1000, 0x1800]
+
+        flash_binary(self.fd, bytes([0] * 4096),
+                     0x1000,
+                     device_class, destinations, sectors, chunk_size=16)
+
+        addresses = self.get_erased_sectors_list(write)
+        self.assertEqual(sectors, addresses)
+
+    def test_erase_only_sectors_where_data_will_be_written(self, write):
+        """
+        Checks that we only erase sectors where data will be written
+
+        We should not erase sectors before the beginning of the binary or after
+        the end of it.
         """
         data = bytes([0] * 4096)
         device_class = 'dummy'
         destinations = [1]
 
-        flash_binary(self.fd, bytes([0] * 4096), 0x1000, device_class, destinations, page_size=2048)
+        # The first and last sectors should not be touched
+        sectors = [0x800, 0x1000, 0x1800, 0x3000]
 
-        # Check that all pages were erased correctly
-        for addr in [0x1000, 0x1800]:
-            erase_command = encode_erase_flash_page(addr, device_class)
-            write.assert_any_call(self.fd, erase_command, destinations)
+        flash_binary(self.fd, bytes([0] * 4096),
+                     0x1000,
+                     device_class, destinations, sectors)
+
+        addresses = self.get_erased_sectors_list(write)
+        self.assertEqual(sectors[1:3], addresses, "Only needed sectors are erased")
+
 
     def test_smaller_pages(self, write):
         """
@@ -98,8 +143,11 @@ class FlashBinaryTestCase(unittest.TestCase):
         device_class = 'dummy'
         destinations = [1]
 
+        sectors = list(range(0x1000, 0x1000 + 4096, 16))
+
         flash_binary(self.fd, binary=bytes(4096), base_address=0x1000,
-                     device_class="dummy", destinations=[1], page_size=16)
+                     device_class="dummy", destinations=[1], sectors=sectors,
+                     chunk_size=16)
 
         # Check that we werased everything
         for addr in range(0x1000, 0x1000 + 4096, 16):
@@ -117,8 +165,10 @@ class FlashBinaryTestCase(unittest.TestCase):
         """
         data = bytes([0] * 10)
         dst = [1]
+        address = 0x1000
+        sectors = [address]
 
-        flash_binary(self.fd, data, 0x1000, '', dst)
+        flash_binary(self.fd, data, address, '', dst, sectors)
 
         expected_config = {'application_size': 10, 'application_crc': crc32(data)}
         conf.assert_any_call(self.fd, expected_config, dst)
@@ -133,9 +183,11 @@ class FlashBinaryTestCase(unittest.TestCase):
         write.return_value = {1: nok, 2: nok, 3: ok}  # Board 1 fails
 
         data = bytes([0] * 10)
+        address = 0x1000
+        sectors = [address]
 
         with self.assertRaises(SystemExit):
-            flash_binary(None, data, 0x1000, '', [1, 2, 3])
+            flash_binary(None, data, address, '', [1, 2, 3], sectors)
 
         c.assert_any_call("Boards 1, 2 failed during page erase, aborting...")
 
@@ -149,11 +201,13 @@ class FlashBinaryTestCase(unittest.TestCase):
         side_effect = [{1: ok, 2: ok, 3: ok}]
         side_effect += [{1: nok, 2: nok, 3: ok}]  # Board 1 fails
         write.side_effect = side_effect
+        address = 0x1000
+        sectors = [address]
 
         data = bytes([0] * 10)
 
         with self.assertRaises(SystemExit):
-            flash_binary(None, data, 0x1000, '', [1, 2, 3])
+            flash_binary(None, data, address, '', [1, 2, 3], sectors)
 
         c.assert_any_call("Boards 1, 2 failed during page write, aborting...")
 
@@ -296,7 +350,9 @@ class MainTestCase(unittest.TestCase):
         Checks that the binary file is flashed correctly.
         """
         main()
-        self.flash.assert_any_call(self.conn, self.binary_data, 0x1000, 'dummy', [1,2,3], page_size=ANY)
+        sectors = [0x1000]
+        self.flash.assert_any_call(self.conn, self.binary_data, 0x1000,
+                                   'dummy', [1,2,3], sectors, chunk_size=ANY)
 
     def test_check(self):
         """
@@ -334,9 +390,10 @@ class MainTestCase(unittest.TestCase):
         """
         Checks that we can change the page size.
         """
-        sys.argv += ["--page-size=16"]
+        sys.argv += ["--chunk-size=16"]
         main()
-        self.flash.assert_any_call(ANY, ANY, ANY, ANY, ANY, page_size=16)
+        sectors = [0x1000]
+        self.flash.assert_any_call(ANY, ANY, ANY, ANY, ANY, sectors, chunk_size=16)
 
 
 
@@ -406,8 +463,8 @@ class ArgumentParsingTestCase(unittest.TestCase):
         Checks that we can change the page size.
         """
         cmd = "-b test.bin -a 0x1000 -p /dev/ttyUSB0 -c dummy 1".split()
-        self.assertEqual(2048, parse_commandline_args(cmd).page_size,
+        self.assertEqual(2048, parse_commandline_args(cmd).chunk_size,
                 "Invalid page size")
-        cmd += '--page-size 10'.split()
-        self.assertEqual(10, parse_commandline_args(cmd).page_size,
+        cmd += '--chunk-size 10'.split()
+        self.assertEqual(10, parse_commandline_args(cmd).chunk_size,
                 "Invalid page size")
