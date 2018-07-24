@@ -352,7 +352,7 @@ class MainTestCase(unittest.TestCase):
         main()
         sectors = [0x1000]
         self.flash.assert_any_call(self.conn, self.binary_data, 0x1000,
-                                   'dummy', [1,2,3], sectors, chunk_size=ANY)
+                                   'dummy', [1,2,3], sectors, chunk_size=2048)
 
     def test_check(self):
         """
@@ -386,17 +386,23 @@ class MainTestCase(unittest.TestCase):
         main()
         self.run.assert_any_call(self.conn, [1, 2, 3])
 
-    def test_change_page_size(self):
+    def test_change_chunk_size(self):
         """
-        Checks that we can change the page size.
+        Checks that we can change the chunk size.
         """
         sys.argv += ["--chunk-size=16"]
         main()
         sectors = [0x1000]
         self.flash.assert_any_call(ANY, ANY, ANY, ANY, ANY, sectors, chunk_size=16)
 
-
-
+    def test_change_sector_layout(self):
+        """
+        Checks that we can change the sector layout.
+        """
+        sys.argv += ["--sectors=0x1000,0x2000,0x3000"]
+        sectors = [0x1000, 0x2000, 0x3000]
+        main()
+        self.flash.assert_any_call(ANY, ANY, ANY, ANY, ANY, sectors, chunk_size=ANY)
 
     def test_verification_failed(self):
         """
@@ -468,3 +474,13 @@ class ArgumentParsingTestCase(unittest.TestCase):
         cmd += '--chunk-size 10'.split()
         self.assertEqual(10, parse_commandline_args(cmd).chunk_size,
                 "Invalid page size")
+
+    def test_flash_layout(self):
+        """
+        Checks that we can load a page layout from a config file.
+        """
+        cmd = "-b test.bin -a 0x1000 -p /dev/ttyUSB0 -c dummy 1 --sectors=0x1000,0x2000".split()
+        expected_sectors = [0x1000, 0x2000]
+        sectors = parse_commandline_args(cmd).sectors
+        self.assertEqual(expected_sectors, sectors)
+

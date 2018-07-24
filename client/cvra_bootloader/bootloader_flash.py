@@ -42,6 +42,15 @@ def parse_commandline_args(args=None):
                         nargs='+', type=int,
                         help="Device IDs to flash")
 
+    def sectors_parser(value):
+        # 0 as base means it will be autodetected from prefix (10 -> 10, 0xa ->
+        # 10)
+        return [int(s, 0) for s in value.split(",")]
+
+    parser.add_argument("--sectors",
+                        help="comma separated list of sectors base address, e.g. '--sectors=0x1000,0x2000'",
+                        type=sectors_parser)
+
     return parser.parse_args(args)
 
 
@@ -201,8 +210,15 @@ def main():
 
     print("Flashing firmware (size: {} bytes)".format(len(binary)))
 
-    # TODO: Read this from config file instead
-    sectors = list(range(args.base_address, args.base_address + len(binary), 2 * 1024))
+    # Read sector config from command line if provided, or generate sectors
+    # equal to the chunks otherwise
+    if args.sectors:
+        sectors = args.sectors
+    else:
+        sectors = list(range(args.base_address,
+                       args.base_address + len(binary),
+                       args.chunk_size))
+
     flash_binary(serial_port, binary, args.base_address, args.device_class,
                  args.ids, sectors, chunk_size=args.chunk_size)
 
