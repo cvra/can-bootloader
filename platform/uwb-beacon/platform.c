@@ -12,8 +12,9 @@
 
 #define GPIOB_LED_ERROR GPIO0
 #define GPIOB_LED_DEBUG GPIO1
-#define GPIOB_LED_STATUS GPIO2
-#define GPIOB_LED_ALL (GPIOB_LED_ERROR | GPIOB_LED_DEBUG | GPIOB_LED_STATUS)
+/* LED_STATUS is different between the two board revisions so dont use it */
+
+#define GPIOB_LED_ALL (GPIOB_LED_ERROR | GPIOB_LED_DEBUG)
 
 #define GPIOB_CAN1_RX GPIO8
 #define GPIOB_CAN1_TX GPIO9
@@ -64,6 +65,28 @@ void fault_handler(void)
     reboot_system(BOOT_ARG_START_BOOTLOADER_NO_TIMEOUT);
 }
 
+static void delay(int n)
+{
+    for (volatile int i = 0; i < n; i++) {
+        asm volatile ("nop");
+    }
+}
+
+static void reboot_blink(void)
+{
+    /* arbitrary period obtained by trial and error. No units. */
+    const int period = 700 * 1000;
+    for (int i = 0; i < 10; i++) {
+        gpio_clear(GPIOB, GPIOB_LED_ALL);
+        gpio_set(GPIOB, GPIOB_LED_DEBUG);
+        delay(period);
+
+        gpio_clear(GPIOB, GPIOB_LED_ALL);
+        gpio_set(GPIOB, GPIOB_LED_ERROR);
+        delay(period);
+    }
+    gpio_set(GPIOB, GPIOB_LED_ALL);
+}
 
 void platform_main(int arg)
 {
@@ -80,8 +103,10 @@ void platform_main(int arg)
     // LED on
     gpio_mode_setup(GPIOB, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIOB_LED_ALL);
     gpio_set_output_options(GPIOB, GPIO_OTYPE_PP, GPIO_OSPEED_100MHZ, GPIOB_LED_ALL);
-    gpio_clear(GPIOB, GPIOB_LED_ALL);
-    gpio_set(GPIOB, GPIOB_LED_STATUS);
+    gpio_set(GPIOB, GPIOB_LED_ERROR);
+
+    // Signal entering the bootloader
+    reboot_blink();
 
     // configure timeout of 10000 milliseconds
     timeout_timer_init(168000000, 10000);
