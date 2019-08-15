@@ -8,6 +8,7 @@
 #include "boot_arg.h"
 #include "timeout.h"
 #include "can_interface.h"
+#include "flash_writer.h"
 
 #define BUFFER_SIZE         FLASH_PAGE_SIZE + 128
 #define DEFAULT_ID          0x01
@@ -69,6 +70,8 @@ static void return_datagram(uint8_t source_id, uint8_t dest_id, uint8_t *data, s
 void bootloader_main(int arg)
 {
     bool timeout_active = !(arg == BOOT_ARG_START_BOOTLOADER_NO_TIMEOUT);
+
+    flash_init();
 
     bootloader_config_t config;
     if (config_is_valid(memory_get_config1_addr(), CONFIG_PAGE_SIZE)) {

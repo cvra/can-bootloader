@@ -8,6 +8,10 @@
 #define FLASH_PROGRAM_SIZE 0 // default: 8-bit
 #endif
 
+#define SECTOR_COUNT 24
+
+static int sector_erased[SECTOR_COUNT];
+
 static uint8_t flash_addr_to_sector(uint32_t addr)
 {
     uint8_t sector;
@@ -26,6 +30,13 @@ static uint8_t flash_addr_to_sector(uint32_t addr)
     return sector;
 }
 
+void flash_init(void)
+{
+    for (int i = 0; i < SECTOR_COUNT; i++) {
+        sector_erased[i] = 0;
+    }
+}
+
 void flash_writer_unlock(void)
 {
     flash_unlock();
@@ -39,10 +50,15 @@ void flash_writer_lock(void)
 void flash_writer_page_erase(void *page)
 {
     uint8_t sector = flash_addr_to_sector((uint32_t)page);
-    flash_erase_sector(sector, FLASH_PROGRAM_SIZE);
+    if (sector_erased[sector] == 0) {
+        sector_erased[sector] = 1;
+        flash_erase_sector(sector, FLASH_PROGRAM_SIZE);
+    }
 }
 
 void flash_writer_page_write(void *page, void *data, size_t len)
 {
+    uint8_t sector = flash_addr_to_sector((uint32_t)page);
+    sector_erased[sector] = 0;
     flash_program((uint32_t)page, data, len);
 }

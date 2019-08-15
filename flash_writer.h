@@ -8,6 +8,9 @@
 extern "C" {
 #endif
 
+/** Initializes anything needed before flash can be accessed */
+void flash_init(void);
+
 /** Unlocks the flash for programming. */
 void flash_writer_unlock(void);
 

@@ -8,6 +8,9 @@
 #define FLASH_PROGRAM_SIZE 0 // default: 8-bit
 #endif
 
+void flash_init(void)
+{
+}
 
 void flash_writer_unlock(void)
 {
