@@ -2,19 +2,15 @@ sudo: false
 addons:
     apt:
         sources:
-            - deadsnakes
             - ubuntu-toolchain-r-test
         packages:
             - python3.5
             - python3.5-dev
             - python-pip
             - python-virtualenv
-            - gcc-4.9
-            - g++-4.9
             # Needed for ARM gcc
-            - lib32bz2-1.0
-            - lib32ncurses5
-            - lib32z1
+            - libbz2-1.0:i386
+            - libncurses5:i386
 
 language: cpp
 
@@ -42,9 +38,6 @@ matrix:
           env: BUILD_TYPE="build" PLATFORM="uwb-beacon"
         - compiler: gcc
           env: BUILD_TYPE="build" PLATFORM="sensor-board"
-
-before_install:
-    - if [ "$CXX" = "g++" ]; then export CXX="g++-4.9" CC="gcc-4.9"; fi
 
 install:
     - ci/install.sh
