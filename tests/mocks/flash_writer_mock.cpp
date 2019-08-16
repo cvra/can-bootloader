@@ -8,6 +8,10 @@ extern "C" {
 int app_start;
 }
 
+void flash_init(void)
+{
+}
+
 void flash_writer_unlock(void)
 {
     mock("flash").actualCall("unlock");

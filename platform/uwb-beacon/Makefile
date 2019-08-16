@@ -117,6 +117,12 @@ rebuild: clean all
 flash: all
 	openocd -f oocd.cfg -c "program $(PROJNAME).elf verify reset" -c "shutdown"
 
+.PHONY: dfu
+dfu: $(PROJNAME).bin
+	# 0483:df11 is the USB Vendor ID:Product ID pair for an STM32 in DFU
+	# bootloader mode. It can be found by running lsusb under Linux.
+	dfu-util -a 0 -d 0483:df11 --dfuse-address 0x08000000 -D $(PROJNAME).bin
+
 .PHONY: reset
 reset:
 	openocd -f oocd.cfg -c "init" -c "reset" -c "shutdown"

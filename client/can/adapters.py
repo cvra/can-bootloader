@@ -134,6 +134,9 @@ class SerialCANConnection:
 
     def receive_frame(self):
         try:
-            return self.rx_queue.get(True, 1) # block with timeout 1 sec
+            # according to the datasheet, erasing a sector from an stm32f407
+            # can take up to 4 seconds. Therefore wait for 5 seconds before
+            # assuming nobody answered.
+            return self.rx_queue.get(True, 5)
         except:
             return None
