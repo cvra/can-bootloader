@@ -10,6 +10,8 @@ from collections import namedtuple
 
 from cvra_bootloader import commands
 import msgpack
+import io
+
 
 @patch('cvra_bootloader.utils.read_can_datagrams')
 @patch('cvra_bootloader.utils.write_command')
@@ -17,6 +19,7 @@ class BoardPingTestCase(unittest.TestCase):
     """
     Checks for the ping_board function.
     """
+
     def test_sends_correct_command(self, write_command, read_datagram):
         port = object()
         ping_board(port, 1)
@@ -55,7 +58,6 @@ class WriteCommandTestCase(unittest.TestCase):
             fdesc.send_frame.assert_any_call(f)
 
 
-
 @patch('cvra_bootloader.utils.read_can_datagrams')
 @patch('cvra_bootloader.utils.write_command')
 class CommandRetryTestCase(unittest.TestCase):
@@ -90,7 +92,7 @@ class CommandRetryTestCase(unittest.TestCase):
         read.return_value = repeat(None)  # Timeout forever
         data = "hello"
 
-        with patch('logging.warning'),  patch('logging.critical') as critical:
+        with patch('logging.warning'), patch('logging.critical') as critical:
             with self.assertRaises(IOError):
                 write_command_retry(None, data, [1, 2], retry_limit=2)
 
@@ -100,11 +102,58 @@ class CommandRetryTestCase(unittest.TestCase):
             critical.assert_any_call(ANY)
 
 
-class OpenConnectionTestCase(unittest.TestCase):
-    Args = namedtuple("Args", ["serial_device", "can_interface"])
+class PCAPWrapperTestCase(unittest.TestCase):
+    def setUp(self):
+        self.underlying_conn = Mock()
+        self.outfile = io.BytesIO()
+        self.conn = PcapConnectionWrapper(self.underlying_conn, self.outfile)
 
-    def make_args(self, serial_device=None, can_interface=None):
-        return self.Args(serial_device=serial_device, can_interface=can_interface)
+    def test_write_header(self):
+        """
+        Check that a pcap file header was written
+        """
+        self.assertEqual(24, len(self.outfile.getvalue()))
+
+    def test_write_frame(self):
+        """
+        Checks that a pcap frame was logged and the frame was forwarded.
+        """
+        f = can.Frame(0, "hello".encode())
+        self.conn.send_frame(f)
+
+        # The frame should have been sent and logged to the file
+        self.assertEqual(53, len(self.outfile.getvalue()), 'no data in pcap')
+        self.underlying_conn.send_frame.assert_any_call(f)
+
+    def test_receive_frame(self):
+        """
+        Checks that we can still receive frame and log them to the disk.
+        """
+        f = can.Frame(0, "hello".encode())
+        self.underlying_conn.receive_frame.return_value = f
+
+        self.assertEqual(f, self.conn.receive_frame())
+        self.assertEqual(53, len(self.outfile.getvalue()), 'no data in pcap')
+
+    def test_receive_frame_timeout(self):
+        """
+        Checks that read timeoutes are not logged in the pcap.
+        """
+        self.underlying_conn.receive_frame.return_value = None  # timeout
+        self.assertIsNone(self.conn.receive_frame())
+        self.assertEqual(24,
+                         len(self.outfile.getvalue()),
+                         'pcap should only contain header')
+
+
+class OpenConnectionTestCase(unittest.TestCase):
+    Args = namedtuple("Args", ["serial_device", "can_interface", "pcap"])
+
+    def make_args(self, serial_device=None, can_interface=None, pcap=None):
+        return self.Args(
+            serial_device=serial_device,
+            can_interface=can_interface,
+            pcap=pcap)
 
     @patch('can.adapters.SocketCANConnection', autospec=True)
     def test_open_can_interface(self, create_socket):
@@ -116,6 +165,17 @@ class OpenConnectionTestCase(unittest.TestCase):
         create_socket.assert_any_call('can0')
         self.assertEqual(conn, create_socket.return_value)
 
+    @patch('can.adapters.SocketCANConnection', autospec=True)
+    def test_pcap_wrapper(self, create_socket):
+        """
+        Check that we can open a socket CAN adapter.
+        """
+        outfile = io.BytesIO()
+        args = self.make_args(can_interface='can0', pcap=outfile)
+        conn = open_connection(args)
+        create_socket.assert_any_call('can0')
+        self.assertEqual(conn.conn, create_socket.return_value)
+
 
 class ArgumentParserTestCase(unittest.TestCase):
     def test_socketcan(self):
@@ -123,4 +183,3 @@ class ArgumentParserTestCase(unittest.TestCase):
         args = parser.parse_args("-i can0".split())
 
         self.assertEqual('can0', args.can_interface)
-

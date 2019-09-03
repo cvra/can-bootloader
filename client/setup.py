@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='cvra-bootloader',
-    version='2.1.0',
+    version='2.2.0',
     description='Client for the CVRA CAN bootloader',
     author='Club Vaudois de Robotique Autonome',
     author_email='info@cvra.ch',
