@@ -11,18 +11,17 @@ extern void platform_main(int);
 extern void fault_handler(void);
 extern void reset_handler(void);
 
-__attribute__ ((section(".vectors")))
-void (*const vector_table[]) (void) = {
+__attribute__((section(".vectors"))) void (*const vector_table[])(void) = {
     (void*)&_eram,
     reset_handler,
-    fault_handler,  // nmi_handler
-    fault_handler,  // hard_fault_handler
-    fault_handler,  // mem_manage_handler
-    fault_handler,  // bus_fault_handler
-    fault_handler,  // usage_fault_handler
+    fault_handler, // nmi_handler
+    fault_handler, // hard_fault_handler
+    fault_handler, // mem_manage_handler
+    fault_handler, // bus_fault_handler
+    fault_handler, // usage_fault_handler
 };
 
-void __attribute__ ((naked)) bootloader_startup(int arg)
+void __attribute__((naked)) bootloader_startup(int arg)
 {
     volatile uint32_t *p_ram, *p_flash;
     // clear .bss section
@@ -39,5 +38,6 @@ void __attribute__ ((naked)) bootloader_startup(int arg)
 
     platform_main(arg);
 
-    while(1);
+    while (1)
+        ;
 }

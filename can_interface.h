@@ -15,7 +15,7 @@ extern "C" {
  * @param [in] retries The number of retries until timeout.
  * @returns true if read was successful.
  */
-bool can_interface_read_message(uint32_t *id, uint8_t *message, uint8_t *length, uint32_t retries);
+bool can_interface_read_message(uint32_t* id, uint8_t* message, uint8_t* length, uint32_t retries);
 
 /** Sends a message via the CAN interface.
  * @param [in] id The CAN ID to address.
@@ -24,7 +24,7 @@ bool can_interface_read_message(uint32_t *id, uint8_t *message, uint8_t *length,
  * @param [in] retries The number of retries until timeout.
  * @returns true if write was successful.
  */
-bool can_interface_send_message(uint32_t id, uint8_t *message, uint8_t length, uint32_t retries);
+bool can_interface_send_message(uint32_t id, uint8_t* message, uint8_t length, uint32_t retries);
 
 #ifdef __cplusplus
 }

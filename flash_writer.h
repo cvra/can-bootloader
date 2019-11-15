@@ -18,10 +18,10 @@ void flash_writer_unlock(void);
 void flash_writer_lock(void);
 
 /** Erases the flash page at given address. */
-void flash_writer_page_erase(void *page);
+void flash_writer_page_erase(void* page);
 
 /** Writes data to given location in flash. */
-void flash_writer_page_write(void *page, void *data, size_t len);
+void flash_writer_page_write(void* page, void* data, size_t len);
 
 #ifdef __cplusplus
 }

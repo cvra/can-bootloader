@@ -8,7 +8,6 @@
 #include <platform/mcu/armv7-m/timeout_timer.h>
 #include "platform.h"
 
-
 // page buffer used by config commands.
 uint8_t config_page_buffer[CONFIG_PAGE_SIZE];
 
@@ -21,29 +20,29 @@ void can_interface_init(void)
     18MHz / 2 -> 9MHz
     9MHz / (1tq + 10tq + 7tq) = 500kHz => 500kbit
     */
-    can_init(CAN1,            // Interface
-             false,           // Time triggered communication mode.
-             true,            // Automatic bus-off management.
-             false,           // Automatic wakeup mode.
-             false,           // No automatic retransmission.
-             false,           // Receive FIFO locked mode.
-             true,            // Transmit FIFO priority.
+    can_init(CAN1, // Interface
+             false, // Time triggered communication mode.
+             true, // Automatic bus-off management.
+             false, // Automatic wakeup mode.
+             false, // No automatic retransmission.
+             false, // Receive FIFO locked mode.
+             true, // Transmit FIFO priority.
              CAN_BTR_SJW_1TQ, // Resynchronization time quanta jump width
-             CAN_BTR_TS1_10TQ,// Time segment 1 time quanta width
+             CAN_BTR_TS1_10TQ, // Time segment 1 time quanta width
              CAN_BTR_TS2_7TQ, // Time segment 2 time quanta width
-             2,               // Prescaler
-             false,           // Loopback
-             false);          // Silent
+             2, // Prescaler
+             false, // Loopback
+             false); // Silent
 
     // filter to match any standard id
     // mask bits: 0 = Don't care, 1 = mute match corresponding id bit
     can_filter_id_mask_32bit_init(
         CAN1,
-        0,      // filter nr
-        0,      // id: only std id, no rtr
-        6 | (7<<29), // mask: match only std id[10:8] = 0 (bootloader frames)
-        0,      // assign to fifo0
-        true    // enable
+        0, // filter nr
+        0, // id: only std id, no rtr
+        6 | (7 << 29), // mask: match only std id[10:8] = 0 (bootloader frames)
+        0, // assign to fifo0
+        true // enable
     );
 }
 
@@ -65,10 +64,10 @@ void rcc_clock_setup_in_hsi_out_36mhz(void)
      * Set prescalers for AHB, ADC, ABP1, ABP2.
      * Do this before touching the PLL (TODO: why?).
      */
-    rcc_set_hpre(RCC_CFGR_HPRE_SYSCLK_NODIV);   /*Set.36MHz Max.72MHz */
+    rcc_set_hpre(RCC_CFGR_HPRE_SYSCLK_NODIV); /*Set.36MHz Max.72MHz */
     rcc_set_adcpre(RCC_CFGR_ADCPRE_PCLK2_DIV6); /*Set. 6MHz Max.14MHz */
-    rcc_set_ppre1(RCC_CFGR_PPRE1_HCLK_DIV2);    /*Set.18MHz Max.36MHz */
-    rcc_set_ppre2(RCC_CFGR_PPRE2_HCLK_NODIV);   /*Set.36MHz Max.72MHz */
+    rcc_set_ppre1(RCC_CFGR_PPRE1_HCLK_DIV2); /*Set.18MHz Max.36MHz */
+    rcc_set_ppre2(RCC_CFGR_PPRE2_HCLK_NODIV); /*Set.36MHz Max.72MHz */
 
     /*
      * Sysclk runs with 48MHz -> 1 waitstates.
@@ -106,24 +105,22 @@ void platform_main(int arg)
     //Else internal clock
     rcc_clock_setup_in_hsi_out_36mhz();
 
-
     //Activate PORTA
     rcc_periph_clock_enable(RCC_GPIOA);
     rcc_periph_clock_enable(RCC_AFIO);
 
     // CAN pin
     /* init PA12 (TX) to Alternativ function output */
-	gpio_set_mode(GPIOA,GPIO_MODE_OUTPUT_50_MHZ,GPIO_CNF_OUTPUT_ALTFN_PUSHPULL,GPIO_CAN1_TX);//TX output
+    gpio_set_mode(GPIOA, GPIO_MODE_OUTPUT_50_MHZ, GPIO_CNF_OUTPUT_ALTFN_PUSHPULL, GPIO_CAN1_TX); //TX output
     /* init PA11 (RX) to input pull up */
-	gpio_set_mode(GPIOA,GPIO_MODE_INPUT,GPIO_CNF_INPUT_PULL_UPDOWN,GPIO_CAN1_RX ); //RX input pull up/down
-	gpio_set(GPIOA,GPIO_CAN1_RX);//pull up
+    gpio_set_mode(GPIOA, GPIO_MODE_INPUT, GPIO_CNF_INPUT_PULL_UPDOWN, GPIO_CAN1_RX); //RX input pull up/down
+    gpio_set(GPIOA, GPIO_CAN1_RX); //pull up
     /* Remap the can to pin PA11 and PA12 , sould already be by default */
-	gpio_primary_remap(AFIO_MAPR_SWJ_CFG_FULL_SWJ,AFIO_MAPR_CAN1_REMAP_PORTA);//Can sur port A pin 11/12
+    gpio_primary_remap(AFIO_MAPR_SWJ_CFG_FULL_SWJ, AFIO_MAPR_CAN1_REMAP_PORTA); //Can sur port A pin 11/12
 
     // LED on
     /*init the PA5 port to output in PushPull mode at maxspeed */
-	gpio_set_mode(PORT_LED2,GPIO_MODE_OUTPUT_50_MHZ,GPIO_CNF_OUTPUT_PUSHPULL,PIN_LED2);//led output
-
+    gpio_set_mode(PORT_LED2, GPIO_MODE_OUTPUT_50_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, PIN_LED2); //led output
 
     //Blinking led on PA5 (build in led in the nucleo-stm32f103rb)
     /*
@@ -147,6 +144,5 @@ void platform_main(int arg)
     can_interface_init();
     bootloader_main(arg);
 
-    
     reboot_system(BOOT_ARG_START_BOOTLOADER);
 }

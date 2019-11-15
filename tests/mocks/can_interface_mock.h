@@ -4,6 +4,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-void can_mock_message(uint32_t message_id, uint8_t *msg, uint8_t message_len);
+void can_mock_message(uint32_t message_id, uint8_t* msg, uint8_t message_len);
 
 #endif
