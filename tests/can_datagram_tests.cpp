@@ -5,8 +5,7 @@
 
 #include "../can_datagram.h"
 
-TEST_GROUP(CANDatagramTestGroup)
-{
+TEST_GROUP (CANDatagramTestGroup) {
     can_datagram_t dt;
     uint8_t address_buffer[128];
     uint8_t data_buffer[128];
@@ -57,8 +56,7 @@ TEST(CANDatagramTestGroup, CanComputeCRC)
     CHECK_EQUAL(0x80d8a447, can_datagram_compute_crc(&dt));
 }
 
-TEST_GROUP(CANDatagramInputTestGroup)
-{
+TEST_GROUP (CANDatagramInputTestGroup) {
     can_datagram_t datagram;
     uint8_t address_buffer[128];
     uint8_t data_buffer[128];
@@ -70,7 +68,7 @@ TEST_GROUP(CANDatagramInputTestGroup)
         can_datagram_set_data_buffer(&datagram, data_buffer, sizeof data_buffer);
     }
 
-    void input_data(uint8_t *data, size_t len)
+    void input_data(uint8_t * data, size_t len)
     {
         for (int i = 0; i < len; ++i) {
             can_datagram_input_byte(&datagram, data[i]);
@@ -135,7 +133,7 @@ TEST(CANDatagramInputTestGroup, CanReadDataLength)
 TEST(CANDatagramInputTestGroup, CanReadData)
 {
     // Data
-    char *data = (char *)"Hello";
+    char* data = (char*)"Hello";
     int len = strlen(data);
 
     uint8_t buf[] = {
@@ -152,7 +150,7 @@ TEST(CANDatagramInputTestGroup, CanReadData)
         can_datagram_input_byte(&datagram, data[i]);
     }
 
-    STRCMP_EQUAL(data, (char *)datagram.data);
+    STRCMP_EQUAL(data, (char*)datagram.data);
 }
 
 TEST(CANDatagramInputTestGroup, EmptyDatagramIsNotComplete)
@@ -184,8 +182,7 @@ TEST(CANDatagramInputTestGroup, IsNotCompleteWhenReadInProgress)
         1, // destination node list length
         3, // destination nodes
         0x00, 0x00, 0x00, 0x01, // data length
-        0x42
-    };
+        0x42};
 
     input_data(&buf[0], 8);
 
@@ -204,8 +201,8 @@ TEST(CANDatagramInputTestGroup, IsInvalidOnCRCMismatch)
         0x00, 0x00, 0x00, 0x00, // CRC
         1, // destination node list length
         3, // destination nodes
-        (uint8_t)(len >> 8),  // data length (MSB)
-        (uint8_t)(len & 0xff),// data length (LSB)
+        (uint8_t)(len >> 8), // data length (MSB)
+        (uint8_t)(len & 0xff), // data length (LSB)
         0x42 // data
     };
 
@@ -253,7 +250,7 @@ TEST(CANDatagramInputTestGroup, CRCIsComputedInMoreThanOneDestinationNodeAndData
         2, // destination node list length
         14, 15, // destination nodes
         0x00, 0x00, 0x00, 0x02, // data length
-        0x42,0x43 // data
+        0x42, 0x43 // data
     };
 
     input_data(buf, sizeof buf);
@@ -307,7 +304,7 @@ TEST(CANDatagramInputTestGroup, DoesNotOverflowDataBuffer)
     }
 
     /* Check that we respected the limit. */
-    STRCMP_EQUAL("hello", (char *)datagram.data);
+    STRCMP_EQUAL("hello", (char*)datagram.data);
 }
 
 TEST(CANDatagramInputTestGroup, CanResetToStart)
@@ -317,14 +314,13 @@ TEST(CANDatagramInputTestGroup, CanResetToStart)
         can_datagram_input_byte(&datagram, 3);
     }
 
-
     // We see the start of a datagram and start inputing the beginning of a
     // valid packet.
     can_datagram_start(&datagram);
 
     uint8_t buf[] = {
         0x01, // protocol version
-        0xde, 0xad, 0xbe, 0xef,  // CRC
+        0xde, 0xad, 0xbe, 0xef, // CRC
         1, // destination node list length
         14, // destination nodes
         0x00, 0x00, 0x00, 0x01, // data length
@@ -340,8 +336,7 @@ TEST(CANDatagramInputTestGroup, CanResetToStart)
     CHECK_EQUAL(42, datagram.data[0]);
 }
 
-TEST_GROUP(CANDatagramOutputTestGroup)
-{
+TEST_GROUP (CANDatagramOutputTestGroup) {
     can_datagram_t datagram;
     uint8_t address_buffer[128];
     uint8_t data_buffer[128];
@@ -419,7 +414,6 @@ TEST(CANDatagramOutputTestGroup, CanOutputDestinationNodeList)
     BYTES_EQUAL(43, output[7]);
 }
 
-
 TEST(CANDatagramOutputTestGroup, CanOutputDataLength)
 {
     datagram.destination_nodes_len = 1;
@@ -469,8 +463,7 @@ TEST(CANDatagramOutputTestGroup, IfWeStopEarlierBytesWrittenIsReturned)
     CHECK_EQUAL(3, ret);
 }
 
-TEST_GROUP(CANIDTestGroup)
-{
+TEST_GROUP (CANIDTestGroup) {
 };
 
 TEST(CANIDTestGroup, CanFindIfStartOfDatagram)

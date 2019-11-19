@@ -8,7 +8,7 @@
 #include "../command.h"
 #include <cstdio>
 
-void read_eval(can_datagram_t *input, can_datagram_t *output, bootloader_config_t *config, command_t *commands, int command_len)
+void read_eval(can_datagram_t* input, can_datagram_t* output, bootloader_config_t* config, command_t* commands, int command_len)
 {
     uint32_t message_id;
     uint8_t message[8];
@@ -26,8 +26,8 @@ void read_eval(can_datagram_t *input, can_datagram_t *output, bootloader_config_
 
     if (can_datagram_is_valid(input)) {
         for (i = 0; i < input->destination_nodes_len; ++i) {
-            if (input->destination_nodes[i] == config->ID){
-                len = protocol_execute_command((char *)input->data, input->data_len, commands, command_len, (char *)output->data, output->data_len, config);
+            if (input->destination_nodes[i] == config->ID) {
+                len = protocol_execute_command((char*)input->data, input->data_len, commands, command_len, (char*)output->data, output->data_len, config);
 
                 /* Checks if there was any error. */
                 if (len < 0) {
@@ -45,13 +45,12 @@ void read_eval(can_datagram_t *input, can_datagram_t *output, bootloader_config_
     }
 }
 
-static void mock_command(int argc, cmp_ctx_t *arg_context, cmp_ctx_t *out_context, bootloader_config_t *config)
+static void mock_command(int argc, cmp_ctx_t* arg_context, cmp_ctx_t* out_context, bootloader_config_t* config)
 {
     mock().actualCall("command");
 }
 
-TEST_GROUP(IntegrationTesting)
-{
+TEST_GROUP (IntegrationTesting) {
     can_datagram_t input_datagram;
     uint8_t input_datagram_destinations[10];
     uint8_t input_datagram_data[1000];
@@ -108,7 +107,6 @@ TEST(IntegrationTesting, CanReadWholeDatagram)
     CHECK_TRUE(can_datagram_is_valid(&input_datagram));
 }
 
-
 TEST(IntegrationTesting, ExecutesCommand)
 {
     uint8_t message[] = {
@@ -119,7 +117,6 @@ TEST(IntegrationTesting, ExecutesCommand)
         0x0, 0x0, 0x0, 0x2,
         COMMAND_SET_VERSION, 0x1 // data
     };
-
 
     can_mock_message(0x0, &message[0], 8);
     read_eval(&input_datagram, &output_datagram, &config, commands, 1);
@@ -142,7 +139,6 @@ TEST(IntegrationTesting, ExecutesIfWeAreInMultiCast)
         COMMAND_SET_VERSION, 0x1 // data
     };
 
-
     config.ID = 0x12;
 
     can_mock_message(0x0, &message[0], 8);
@@ -155,7 +151,7 @@ TEST(IntegrationTesting, ExecutesIfWeAreInMultiCast)
     mock().checkExpectations();
 }
 
-static void command_output(int argc, cmp_ctx_t *arg_context, cmp_ctx_t *out_context, bootloader_config_t *config)
+static void command_output(int argc, cmp_ctx_t* arg_context, cmp_ctx_t* out_context, bootloader_config_t* config)
 {
     cmp_write_str(out_context, "hello", 5);
 }

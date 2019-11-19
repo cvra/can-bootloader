@@ -25,29 +25,29 @@ void can_interface_init(void)
     36MHz / 2 -> 18MHz
     18MHz / (1tq + 10tq + 7tq) = 1MHz => 1Mbit
     */
-    can_init(CAN,             // Interface
-             false,           // Time triggered communication mode.
-             true,            // Automatic bus-off management.
-             false,           // Automatic wakeup mode.
-             false,           // No automatic retransmission.
-             false,           // Receive FIFO locked mode.
-             true,            // Transmit FIFO priority.
+    can_init(CAN, // Interface
+             false, // Time triggered communication mode.
+             true, // Automatic bus-off management.
+             false, // Automatic wakeup mode.
+             false, // No automatic retransmission.
+             false, // Receive FIFO locked mode.
+             true, // Transmit FIFO priority.
              CAN_BTR_SJW_1TQ, // Resynchronization time quanta jump width
-             CAN_BTR_TS1_10TQ,// Time segment 1 time quanta width
+             CAN_BTR_TS1_10TQ, // Time segment 1 time quanta width
              CAN_BTR_TS2_7TQ, // Time segment 2 time quanta width
-             2,               // Prescaler
-             false,           // Loopback
-             false);          // Silent
+             2, // Prescaler
+             false, // Loopback
+             false); // Silent
 
     // filter to match any standard id
     // mask bits: 0 = Don't care, 1 = mute match corresponding id bit
     can_filter_id_mask_32bit_init(
         CAN,
-        0,      // filter nr
-        0,      // id: only std id, no rtr
-        6 | (7<<29), // mask: match only std id[10:8] = 0 (bootloader frames)
-        0,      // assign to fifo0
-        true    // enable
+        0, // filter nr
+        0, // id: only std id, no rtr
+        6 | (7 << 29), // mask: match only std id[10:8] = 0 (bootloader frames)
+        0, // assign to fifo0
+        true // enable
     );
 }
 
@@ -86,11 +86,10 @@ static const my_clock_scale_t clock_72mhz = {
 
 static inline void rcc_set_main_pll_hse(uint32_t pll)
 {
-    RCC_CFGR = (~RCC_CFGR_PLLMUL_MASK & RCC_CFGR) |
-        (pll << RCC_CFGR_PLLMUL_SHIFT) | RCC_CFGR_PLLSRC;
+    RCC_CFGR = (~RCC_CFGR_PLLMUL_MASK & RCC_CFGR) | (pll << RCC_CFGR_PLLMUL_SHIFT) | RCC_CFGR_PLLSRC;
 }
 
-static inline void rcc_clock_setup_hse(const my_clock_scale_t *clock)
+static inline void rcc_clock_setup_hse(const my_clock_scale_t* clock)
 {
     /* Enable internal high-speed oscillator. */
     rcc_osc_on(HSE);

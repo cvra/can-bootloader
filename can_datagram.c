@@ -13,24 +13,24 @@ enum {
     STATE_TRAILING,
 };
 
-void can_datagram_init(can_datagram_t *dt)
+void can_datagram_init(can_datagram_t* dt)
 {
     memset(dt, 0, sizeof *dt);
     dt->protocol_version = CAN_DATAGRAM_VERSION;
 }
 
-void can_datagram_set_address_buffer(can_datagram_t *dt, uint8_t *buf)
+void can_datagram_set_address_buffer(can_datagram_t* dt, uint8_t* buf)
 {
     dt->destination_nodes = buf;
 }
 
-void can_datagram_set_data_buffer(can_datagram_t *dt, uint8_t *buf, size_t buf_size)
+void can_datagram_set_data_buffer(can_datagram_t* dt, uint8_t* buf, size_t buf_size)
 {
     dt->data = buf;
     dt->_data_buffer_size = buf_size;
 }
 
-void can_datagram_input_byte(can_datagram_t *dt, uint8_t val)
+void can_datagram_input_byte(can_datagram_t* dt, uint8_t val)
 {
     switch (dt->_reader_state) {
         case STATE_PROTOCOL_VERSION:
@@ -40,7 +40,7 @@ void can_datagram_input_byte(can_datagram_t *dt, uint8_t val)
 
         case STATE_CRC:
             dt->crc = (dt->crc << 8) | val;
-            dt->_crc_bytes_read ++;
+            dt->_crc_bytes_read++;
 
             if (dt->_crc_bytes_read == 4) {
                 dt->_reader_state = STATE_DST_LEN;
@@ -54,7 +54,7 @@ void can_datagram_input_byte(can_datagram_t *dt, uint8_t val)
 
         case STATE_DST: /* Destination nodes */
             dt->destination_nodes[dt->_destination_nodes_read] = val;
-            dt->_destination_nodes_read ++;
+            dt->_destination_nodes_read++;
 
             if (dt->_destination_nodes_read == dt->destination_nodes_len) {
                 dt->_reader_state = STATE_DATA_LEN;
@@ -63,7 +63,7 @@ void can_datagram_input_byte(can_datagram_t *dt, uint8_t val)
 
         case STATE_DATA_LEN: /* Data length, MSB */
             dt->data_len = (dt->data_len << 8) | val;
-            dt->_data_length_bytes_read ++;
+            dt->_data_length_bytes_read++;
 
             if (dt->_data_length_bytes_read == 4) {
                 dt->_reader_state = STATE_DATA;
@@ -71,10 +71,9 @@ void can_datagram_input_byte(can_datagram_t *dt, uint8_t val)
 
             break;
 
-
         case STATE_DATA: /* Data */
             dt->data[dt->_data_bytes_read] = val;
-            dt->_data_bytes_read ++;
+            dt->_data_bytes_read++;
 
             if (dt->_data_bytes_read == dt->data_len) {
                 dt->_reader_state = STATE_TRAILING;
@@ -93,18 +92,18 @@ void can_datagram_input_byte(can_datagram_t *dt, uint8_t val)
     }
 }
 
-bool can_datagram_is_complete(can_datagram_t *dt)
+bool can_datagram_is_complete(can_datagram_t* dt)
 {
     return dt->_reader_state > 0 && dt->_data_bytes_read == dt->data_len
-           && dt->_data_length_bytes_read == 4;
+        && dt->_data_length_bytes_read == 4;
 }
 
-bool can_datagram_is_valid(can_datagram_t *dt)
+bool can_datagram_is_valid(can_datagram_t* dt)
 {
     return can_datagram_compute_crc(dt) == dt->crc && dt->protocol_version == CAN_DATAGRAM_VERSION;
 }
 
-void can_datagram_start(can_datagram_t *dt)
+void can_datagram_start(can_datagram_t* dt)
 {
     dt->_reader_state = STATE_PROTOCOL_VERSION;
     dt->_crc_bytes_read = 0;
@@ -113,10 +112,10 @@ void can_datagram_start(can_datagram_t *dt)
     dt->_data_length_bytes_read = 0;
 }
 
-int can_datagram_output_bytes(can_datagram_t *dt, char *buffer, size_t buffer_len)
+int can_datagram_output_bytes(can_datagram_t* dt, char* buffer, size_t buffer_len)
 {
     size_t i;
-    for (i = 0; i < buffer_len; i++ ) {
+    for (i = 0; i < buffer_len; i++) {
         switch (dt->_writer_state) {
             case STATE_PROTOCOL_VERSION:
                 buffer[i] = dt->protocol_version;
@@ -125,7 +124,7 @@ int can_datagram_output_bytes(can_datagram_t *dt, char *buffer, size_t buffer_le
 
             case STATE_CRC:
                 buffer[i] = dt->crc >> (24 - 8 * dt->_crc_bytes_written);
-                dt->_crc_bytes_written ++;
+                dt->_crc_bytes_written++;
 
                 if (dt->_crc_bytes_written == 4) {
                     dt->_writer_state = STATE_DST_LEN;
@@ -139,7 +138,7 @@ int can_datagram_output_bytes(can_datagram_t *dt, char *buffer, size_t buffer_le
 
             case STATE_DST: /* Destination nodes */
                 buffer[i] = dt->destination_nodes[dt->_destination_nodes_written];
-                dt->_destination_nodes_written ++;
+                dt->_destination_nodes_written++;
 
                 if (dt->_destination_nodes_written == dt->destination_nodes_len) {
                     dt->_writer_state = STATE_DATA_LEN;
@@ -148,7 +147,7 @@ int can_datagram_output_bytes(can_datagram_t *dt, char *buffer, size_t buffer_le
 
             case STATE_DATA_LEN: /* Data length MSB first */
                 buffer[i] = dt->data_len >> (24 - 8 * dt->_data_length_bytes_written);
-                dt->_data_length_bytes_written ++;
+                dt->_data_length_bytes_written++;
 
                 if (dt->_data_length_bytes_written == 4) {
                     dt->_writer_state = STATE_DATA;
@@ -162,7 +161,7 @@ int can_datagram_output_bytes(can_datagram_t *dt, char *buffer, size_t buffer_le
                 }
 
                 buffer[i] = dt->data[dt->_data_bytes_written];
-                dt->_data_bytes_written ++;
+                dt->_data_bytes_written++;
 
                 /* If we don't have anymore data to send, return written byte
                  * count. */
@@ -176,7 +175,7 @@ int can_datagram_output_bytes(can_datagram_t *dt, char *buffer, size_t buffer_le
     return buffer_len;
 }
 
-uint32_t can_datagram_compute_crc(can_datagram_t *dt)
+uint32_t can_datagram_compute_crc(can_datagram_t* dt)
 {
     uint32_t crc;
     uint8_t tmp[4];

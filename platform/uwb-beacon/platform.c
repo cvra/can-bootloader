@@ -31,30 +31,30 @@ void can_interface_init(void)
        42MHz / 2 -> 21MHz
        21MHz / (1tq + 12tq + 8tq) = 1MHz => 1Mbit
      */
-    can_init(CAN1,            // Interface
-             false,           // Time triggered communication mode.
-             true,            // Automatic bus-off management.
-             false,           // Automatic wakeup mode.
-             false,           // No automatic retransmission.
-             false,           // Receive FIFO locked mode.
-             true,            // Transmit FIFO priority.
+    can_init(CAN1, // Interface
+             false, // Time triggered communication mode.
+             true, // Automatic bus-off management.
+             false, // Automatic wakeup mode.
+             false, // No automatic retransmission.
+             false, // Receive FIFO locked mode.
+             true, // Transmit FIFO priority.
              CAN_BTR_SJW_4TQ, // Resynchronization time quanta jump width
-             CAN_BTR_TS1_12TQ,// Time segment 1 time quanta width
+             CAN_BTR_TS1_12TQ, // Time segment 1 time quanta width
              CAN_BTR_TS2_8TQ, // Time segment 2 time quanta width
-             2,               // Prescaler
-             false,           // Loopback
-             false);          // Silent
+             2, // Prescaler
+             false, // Loopback
+             false); // Silent
 
     // filter to match any standard id
     // mask bits: 0 = Don't care, 1 = mute match corresponding id bit
     can_filter_id_mask_32bit_init(
         CAN1,
-        0,                    // filter nr
-        0,                    // id: only std id, no rtr
-        6 | (7 << 29),        // mask: match only std id[10:8] = 0 (bootloader frames)
-        0,                    // assign to fifo0
-        true                  // enable
-        );
+        0, // filter nr
+        0, // id: only std id, no rtr
+        6 | (7 << 29), // mask: match only std id[10:8] = 0 (bootloader frames)
+        0, // assign to fifo0
+        true // enable
+    );
 }
 
 void fault_handler(void)
@@ -68,7 +68,7 @@ void fault_handler(void)
 static void delay(int n)
 {
     for (volatile int i = 0; i < n; i++) {
-        asm volatile ("nop");
+        asm volatile("nop");
     }
 }
 

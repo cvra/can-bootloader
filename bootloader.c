@@ -10,9 +10,9 @@
 #include "can_interface.h"
 #include "flash_writer.h"
 
-#define BUFFER_SIZE         FLASH_PAGE_SIZE + 128
-#define DEFAULT_ID          0x01
-#define CAN_SEND_RETRIES    100
+#define BUFFER_SIZE FLASH_PAGE_SIZE + 128
+#define DEFAULT_ID 0x01
+#define CAN_SEND_RETRIES 100
 #define CAN_RECEIVE_TIMEOUT 1000
 
 uint8_t output_buf[BUFFER_SIZE];
@@ -28,10 +28,9 @@ const command_t commands[] = {
     {.index = 6, .callback = command_read_flash},
     {.index = 7, .callback = command_config_update},
     {.index = 8, .callback = command_config_write_to_flash},
-    {.index = 9, .callback = command_config_read}
-};
+    {.index = 9, .callback = command_config_read}};
 
-static void return_datagram(uint8_t source_id, uint8_t dest_id, uint8_t *data, size_t len)
+static void return_datagram(uint8_t source_id, uint8_t dest_id, uint8_t* data, size_t len)
 {
     can_datagram_t dt;
     uint8_t dest_nodes[1];
@@ -47,7 +46,7 @@ static void return_datagram(uint8_t source_id, uint8_t dest_id, uint8_t *data, s
 
     bool start_of_datagram = true;
     while (true) {
-        uint8_t dlc = can_datagram_output_bytes(&dt, (char *)buf, sizeof(buf));
+        uint8_t dlc = can_datagram_output_bytes(&dt, (char*)buf, sizeof(buf));
 
         if (dlc == 0) {
             break;
@@ -56,12 +55,12 @@ static void return_datagram(uint8_t source_id, uint8_t dest_id, uint8_t *data, s
         if (start_of_datagram) {
             if (!can_interface_send_message(source_id | ID_START_MASK, buf, dlc,
                                             CAN_SEND_RETRIES)) {
-                break;  // failed
+                break; // failed
             }
             start_of_datagram = false;
         } else {
             if (!can_interface_send_message(source_id, buf, dlc, CAN_SEND_RETRIES)) {
-                break;  // failed
+                break; // failed
             }
         }
     }
@@ -127,13 +126,13 @@ void bootloader_main(int arg)
                 }
                 if (i != dt.destination_nodes_len) {
                     // we were addressed
-                    len = protocol_execute_command((char *)dt.data, dt.data_len,
-                        &commands[0], sizeof(commands)/sizeof(command_t),
-                        (char *)output_buf, sizeof(output_buf), &config);
+                    len = protocol_execute_command((char*)dt.data, dt.data_len,
+                                                   &commands[0], sizeof(commands) / sizeof(command_t),
+                                                   (char*)output_buf, sizeof(output_buf), &config);
 
                     if (len > 0) {
                         uint8_t return_id = id & ~ID_START_MASK;
-                        return_datagram(config.ID, return_id, output_buf, (size_t) len);
+                        return_datagram(config.ID, return_id, output_buf, (size_t)len);
                     }
                 }
             }

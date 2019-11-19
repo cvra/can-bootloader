@@ -47,7 +47,7 @@ void flash_writer_lock(void)
     flash_lock();
 }
 
-void flash_writer_page_erase(void *page)
+void flash_writer_page_erase(void* page)
 {
     uint8_t sector = flash_addr_to_sector((uint32_t)page);
     if (sector_erased[sector] == 0) {
@@ -56,7 +56,7 @@ void flash_writer_page_erase(void *page)
     }
 }
 
-void flash_writer_page_write(void *page, void *data, size_t len)
+void flash_writer_page_write(void* page, void* data, size_t len)
 {
     uint8_t sector = flash_addr_to_sector((uint32_t)page);
     sector_erased[sector] = 0;

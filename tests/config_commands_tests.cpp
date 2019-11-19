@@ -7,9 +7,7 @@
 #include "../command.h"
 #include "mocks/platform_mock.h"
 
-
-TEST_GROUP(ConfigCommandTestGroup)
-{
+TEST_GROUP (ConfigCommandTestGroup) {
     cmp_mem_access_t write_cma;
     cmp_mem_access_t read_cma;
     cmp_ctx_t write_ctx;

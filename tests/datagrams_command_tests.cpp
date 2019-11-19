@@ -7,13 +7,12 @@
 
 #define LEN(a) (sizeof(a) / sizeof(a[0]))
 
-static void mock_command(int argc, cmp_ctx_t *arg_context, cmp_ctx_t *out_context, bootloader_config_t *config)
+static void mock_command(int argc, cmp_ctx_t* arg_context, cmp_ctx_t* out_context, bootloader_config_t* config)
 {
     mock().actualCall("command");
 }
 
-TEST_GROUP(ProtocolCommandTestGroup)
-{
+TEST_GROUP (ProtocolCommandTestGroup) {
     cmp_mem_access_t command_cma;
     cmp_ctx_t command_builder;
     char command_data[30];
@@ -66,7 +65,7 @@ TEST(ProtocolCommandTestGroup, CorrectCommandIsCalled)
     mock().checkExpectations();
 }
 
-void argc_log_command(int argc, cmp_ctx_t *dummy, cmp_ctx_t *out, bootloader_config_t *config)
+void argc_log_command(int argc, cmp_ctx_t* dummy, cmp_ctx_t* out, bootloader_config_t* config)
 {
     mock().actualCall("command").withIntParameter("argc", argc);
 }
@@ -92,15 +91,12 @@ TEST(ProtocolCommandTestGroup, CorrectArgcIsSent)
     mock().checkExpectations();
 }
 
-
-void args_log_command(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config)
+void args_log_command(int argc, cmp_ctx_t* args, cmp_ctx_t* out, bootloader_config_t* config)
 {
     int a, b;
     cmp_read_int(args, &a);
     cmp_read_int(args, &b);
-    mock().actualCall("command")
-          .withIntParameter("a", a)
-          .withIntParameter("b", b);
+    mock().actualCall("command").withIntParameter("a", a).withIntParameter("b", b);
 }
 
 TEST(ProtocolCommandTestGroup, CanReadArgs)
@@ -120,16 +116,14 @@ TEST(ProtocolCommandTestGroup, CanReadArgs)
     cmp_write_uint(&command_builder, 42);
     cmp_write_uint(&command_builder, 43);
 
-    mock().expectOneCall("command")
-          .withIntParameter("a", 42)
-          .withIntParameter("b", 43);
+    mock().expectOneCall("command").withIntParameter("a", 42).withIntParameter("b", 43);
 
     protocol_execute_command(command_data, sizeof command_data, commands, LEN(commands), NULL, 0, NULL);
 
     mock().checkExpectations();
 }
 
-void dummy_command(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config)
+void dummy_command(int argc, cmp_ctx_t* args, cmp_ctx_t* out, bootloader_config_t* config)
 {
 }
 
@@ -222,8 +216,7 @@ TEST(ProtocolCommandTestGroup, WrongProtocolVersionHasCorrectErrorCode)
     CHECK_EQUAL(-ERR_INVALID_COMMAND_SET_VERSION, result);
 }
 
-TEST_GROUP(ProtocolOutputCommand)
-{
+TEST_GROUP (ProtocolOutputCommand) {
     cmp_mem_access_t command_cma;
     cmp_mem_access_t out_cma;
     cmp_ctx_t command_builder;
@@ -245,7 +238,7 @@ TEST_GROUP(ProtocolOutputCommand)
     }
 };
 
-void output_mock_command(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config)
+void output_mock_command(int argc, cmp_ctx_t* args, cmp_ctx_t* out, bootloader_config_t* config)
 {
     cmp_write_str(out, "Hello", 5);
 }
@@ -279,4 +272,3 @@ TEST(ProtocolOutputCommand, BytesCountIsReturned)
 
     CHECK_EQUAL(6, result);
 }
-

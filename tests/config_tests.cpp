@@ -3,16 +3,15 @@
 #include <cstring>
 #include "../config.h"
 
-TEST_GROUP(ConfigTest)
-{
+TEST_GROUP (ConfigTest) {
     char config_buffer[1024];
     bootloader_config_t config, result;
 
     void setup(void)
     {
         memset(config_buffer, 0, sizeof(config_buffer));
-        memset(&config, 0,  sizeof (bootloader_config_t));
-        memset(&result, 0,  sizeof (bootloader_config_t));
+        memset(&config, 0, sizeof(bootloader_config_t));
+        memset(&result, 0, sizeof(bootloader_config_t));
     }
 
     void config_read_and_write()

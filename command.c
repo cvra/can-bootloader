@@ -7,14 +7,14 @@
 #include "config.h"
 #include "command.h"
 
-void command_erase_flash_page(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config)
+void command_erase_flash_page(int argc, cmp_ctx_t* args, cmp_ctx_t* out, bootloader_config_t* config)
 {
-    void *address;
+    void* address;
     uint64_t tmp = 0;
     char device_class[64];
 
     cmp_read_uinteger(args, &tmp);
-    address = (void *)(uintptr_t)tmp;
+    address = (void*)(uintptr_t)tmp;
 
     // refuse to overwrite bootloader or config pages
     if (address < memory_get_app_addr()) {
@@ -47,16 +47,16 @@ command_fail:
     return;
 }
 
-void command_write_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config)
+void command_write_flash(int argc, cmp_ctx_t* args, cmp_ctx_t* out, bootloader_config_t* config)
 {
-    void *address;
-    void *src;
+    void* address;
+    void* src;
     uint64_t tmp = 0;
     uint32_t size;
     char device_class[64];
 
     cmp_read_uinteger(args, &tmp);
-    address = (void *)(uintptr_t)tmp;
+    address = (void*)(uintptr_t)tmp;
 
     // refuse to overwrite bootloader or config pages
     if (address < memory_get_app_addr()) {
@@ -80,7 +80,7 @@ void command_write_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_c
     }
 
     /* This is ugly, yet required to achieve zero copy. */
-    cmp_mem_access_t *cma = (cmp_mem_access_t *)(args->buf);
+    cmp_mem_access_t* cma = (cmp_mem_access_t*)(args->buf);
     src = cmp_mem_access_get_ptr_at_pos(cma, cmp_mem_access_get_pos(cma));
 
     flash_writer_unlock();
@@ -97,21 +97,21 @@ command_fail:
     return;
 }
 
-void command_read_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config)
+void command_read_flash(int argc, cmp_ctx_t* args, cmp_ctx_t* out, bootloader_config_t* config)
 {
-    void *address;
+    void* address;
     uint64_t tmp;
     uint32_t size;
 
     cmp_read_uinteger(args, &tmp);
-    address = (void *)(uintptr_t)tmp;
+    address = (void*)(uintptr_t)tmp;
 
     cmp_read_u32(args, &size);
 
     cmp_write_bin(out, address, size);
 }
 
-void command_jump_to_application(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config)
+void command_jump_to_application(int argc, cmp_ctx_t* args, cmp_ctx_t* out, bootloader_config_t* config)
 {
     if (crc32(0, memory_get_app_addr(), config->application_size) == config->application_crc) {
         reboot_system(BOOT_ARG_START_APPLICATION);
@@ -120,33 +120,33 @@ void command_jump_to_application(int argc, cmp_ctx_t *args, cmp_ctx_t *out, boot
     }
 }
 
-void command_crc_region(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config)
+void command_crc_region(int argc, cmp_ctx_t* args, cmp_ctx_t* out, bootloader_config_t* config)
 {
     uint32_t crc;
-    void *address;
+    void* address;
     uint32_t size;
     uint64_t tmp;
 
     cmp_read_uinteger(args, &tmp);
-    address = (void *)(uintptr_t)tmp;
+    address = (void*)(uintptr_t)tmp;
     cmp_read_uint(args, &size);
 
     crc = crc32(0, address, size);
     cmp_write_uint(out, crc);
 }
 
-void command_config_update(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config)
+void command_config_update(int argc, cmp_ctx_t* args, cmp_ctx_t* out, bootloader_config_t* config)
 {
     config_update_from_serialized(config, args);
     cmp_write_bool(out, 1);
 }
 
-void command_ping(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config)
+void command_ping(int argc, cmp_ctx_t* args, cmp_ctx_t* out, bootloader_config_t* config)
 {
     cmp_write_bool(out, 1);
 }
 
-static bool flash_write_and_verify(void *addr, void *data, size_t len)
+static bool flash_write_and_verify(void* addr, void* data, size_t len)
 {
     flash_writer_unlock();
     flash_writer_page_erase(addr);
@@ -155,7 +155,7 @@ static bool flash_write_and_verify(void *addr, void *data, size_t len)
     return config_is_valid(addr, len);
 }
 
-void command_config_write_to_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config)
+void command_config_write_to_flash(int argc, cmp_ctx_t* args, cmp_ctx_t* out, bootloader_config_t* config)
 {
     config->update_count += 1;
 
@@ -163,8 +163,8 @@ void command_config_write_to_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bo
 
     config_write(config_page_buffer, config, CONFIG_PAGE_SIZE);
 
-    void *config1 = memory_get_config1_addr();
-    void *config2 = memory_get_config2_addr();
+    void* config1 = memory_get_config1_addr();
+    void* config2 = memory_get_config2_addr();
 
     bool success = false;
     if (config_is_valid(config2, CONFIG_PAGE_SIZE)) {
@@ -191,12 +191,12 @@ void command_config_write_to_flash(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bo
     }
 }
 
-void command_config_read(int argc, cmp_ctx_t *args, cmp_ctx_t *out, bootloader_config_t *config)
+void command_config_read(int argc, cmp_ctx_t* args, cmp_ctx_t* out, bootloader_config_t* config)
 {
     config_write_messagepack(out, config);
 }
 
-int protocol_execute_command(char *data, size_t data_len, const command_t *commands, int command_len, char *out_buf, size_t out_len, bootloader_config_t *config)
+int protocol_execute_command(char* data, size_t data_len, const command_t* commands, int command_len, char* out_buf, size_t out_len, bootloader_config_t* config)
 {
     cmp_mem_access_t command_cma;
     cmp_ctx_t command_reader;
