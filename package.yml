@@ -53,3 +53,4 @@ templates:
     platform/nucleo-board-stm32f334r8/include.jinja: 'platform/nucleo-board-stm32f334r8/include.mk'
     platform/uwb-beacon/include.jinja: 'platform/uwb-beacon/include.mk'
     platform/sensor-board/include.jinja: 'platform/sensor-board/include.mk'
+    platform/actuator-board/include.jinja: 'platform/actuator-board/include.mk'
