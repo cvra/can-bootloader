@@ -38,6 +38,8 @@ matrix:
           env: BUILD_TYPE="build" PLATFORM="uwb-beacon"
         - compiler: gcc
           env: BUILD_TYPE="build" PLATFORM="sensor-board"
+        - compiler: gcc
+          env: BUILD_TYPE="build" PLATFORM="actuator-board"
 
 install:
     - ci/install.sh
