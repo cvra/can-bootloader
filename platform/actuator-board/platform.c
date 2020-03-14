@@ -8,7 +8,7 @@
 #include <platform/mcu/armv7-m/timeout_timer.h>
 #include "platform.h"
 
-#define GPIOA_LED GPIO15
+#define GPIOB_LED GPIO0
 #define GPIOA_CAN_RX GPIO11
 #define GPIOA_CAN_TX GPIO12
 
@@ -126,6 +126,7 @@ void platform_main(int arg)
     rcc_clock_setup_hse(&clock_72mhz);
 
     rcc_periph_clock_enable(RCC_GPIOA);
+    rcc_periph_clock_enable(RCC_GPIOB);
 
     // CAN pin
     gpio_mode_setup(GPIOA, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIOA_CAN_RX | GPIOA_CAN_TX);
@@ -133,9 +134,9 @@ void platform_main(int arg)
     gpio_set_af(GPIOA, GPIO_AF9, GPIOA_CAN_RX | GPIOA_CAN_TX);
 
     // LED on
-    gpio_mode_setup(GPIOA, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIOA_LED);
-    gpio_set_output_options(GPIOA, GPIO_OTYPE_PP, GPIO_OSPEED_100MHZ, GPIOA_LED);
-    gpio_set(GPIOA, GPIOA_LED);
+    gpio_mode_setup(GPIOB, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIOB_LED);
+    gpio_set_output_options(GPIOB, GPIO_OTYPE_PP, GPIO_OSPEED_100MHZ, GPIOB_LED);
+    gpio_set(GPIOB, GPIOB_LED);
 
     // configure timeout of 10000 milliseconds
     timeout_timer_init(72000000, 10000);
