@@ -147,13 +147,14 @@ class PCAPWrapperTestCase(unittest.TestCase):
 
 
 class OpenConnectionTestCase(unittest.TestCase):
-    Args = namedtuple("Args", ["serial_device", "can_interface", "pcap"])
+    Args = namedtuple("Args", ["serial_device", "can_interface", "pcap", "large_pages"])
 
-    def make_args(self, serial_device=None, can_interface=None, pcap=None):
+    def make_args(self, serial_device=None, can_interface=None, pcap=None, large_pages=False):
         return self.Args(
             serial_device=serial_device,
             can_interface=can_interface,
-            pcap=pcap)
+            pcap=pcap,
+            large_pages=large_pages)
 
     @patch('can.adapters.SocketCANConnection', autospec=True)
     def test_open_can_interface(self, create_socket):
@@ -162,7 +163,7 @@ class OpenConnectionTestCase(unittest.TestCase):
         """
         args = self.make_args(can_interface='can0')
         conn = open_connection(args)
-        create_socket.assert_any_call('can0')
+        create_socket.assert_any_call('can0', read_timeout=ANY)
         self.assertEqual(conn, create_socket.return_value)
 
     @patch('can.adapters.SocketCANConnection', autospec=True)
@@ -173,7 +174,7 @@ class OpenConnectionTestCase(unittest.TestCase):
         outfile = io.BytesIO()
         args = self.make_args(can_interface='can0', pcap=outfile)
         conn = open_connection(args)
-        create_socket.assert_any_call('can0')
+        create_socket.assert_any_call('can0', ANY)
         self.assertEqual(conn.conn, create_socket.return_value)
 
 

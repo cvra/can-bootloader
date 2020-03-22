@@ -11,7 +11,7 @@ class SocketCANConnection:
     CAN_FRAME_SIZE = struct.calcsize(CAN_FRAME_FMT)
 
 
-    def __init__(self, interface):
+    def __init__(self, interface, read_timeout=1):
         """
         Initiates a CAN connection on the given interface (e.g. 'can0').
         """
@@ -21,7 +21,7 @@ class SocketCANConnection:
                                     socket.CAN_RAW)
 
         self.socket.bind((interface, ))
-        self.socket.settimeout(1.)
+        self.socket.settimeout(read_timeout)
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 4096)
 
     def send_frame(self, frame):
@@ -49,8 +49,9 @@ class SerialCANConnection:
 
     MIN_MSG_LEN = len('t1230')
 
-    def __init__(self, port):
+    def __init__(self, port, read_timeout=1):
         self.port = port
+        self.timeout = read_timeout
 
         self.rx_queue = Queue()
         t = threading.Thread(target=self.spin)
@@ -135,8 +136,7 @@ class SerialCANConnection:
     def receive_frame(self):
         try:
             # according to the datasheet, erasing a sector from an stm32f407
-            # can take up to 4 seconds. Therefore wait for 5 seconds before
-            # assuming nobody answered.
-            return self.rx_queue.get(True, 5)
+            # can take up to 4 seconds. Therefore we need to wait a bit
+            return self.rx_queue.get(True, self.timeout)
         except:
             return None

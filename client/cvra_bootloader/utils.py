@@ -42,6 +42,11 @@ class ConnectionArgumentParser(argparse.ArgumentParser):
             'Log CAN frames to the given file in Wireshark compatible Pcap format.',
             type=argparse.FileType('wb'))
 
+        self.add_argument("--large-pages",
+                help="Specify that the device has large pages, and that it requires longer erase timeout.",
+                action="store_true")
+
+
     def parse_args(self, *args, **kwargs):
         args = super(ConnectionArgumentParser, self).parse_args(
             *args, **kwargs)
@@ -106,11 +111,17 @@ def open_connection(args):
     Returns a file like object which will be the connection handle.
     """
     conn = None
+
+    if args.large_pages:
+        timeout = 5
+    else:
+        timeout = 0.5
+
     if args.can_interface:
-        conn = can.adapters.SocketCANConnection(args.can_interface)
+        conn = can.adapters.SocketCANConnection(args.can_interface, read_timeout=timeout)
     elif args.serial_device:
         port = serial.Serial(port=args.serial_device, timeout=0.1)
-        conn = can.adapters.SerialCANConnection(port)
+        conn = can.adapters.SerialCANConnection(port, read_timeout=timeout)
 
     if args.pcap:
         conn = PcapConnectionWrapper(conn, args.pcap)
