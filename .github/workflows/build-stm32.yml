@@ -1,0 +1,37 @@
+name: STM32 builds
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        board:
+          - actuator-board
+          - can-io-board
+          - motor-board-v1
+          - nucleo-board-stm32f103rb
+          - nucleo-board-stm32f334r8
+          - olimex-e407
+          - rc-board-v1
+          - sensor-board
+          - uwb-beacon
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: 'recursive'
+    - name: Run packager
+      uses: docker://antoinealb/cvra-ci:latest
+      with:
+        args: bash -c "packager"
+    - name: Monkeypatch python3
+      run: |
+        cd $GITHUB_WORKSPACE/libopencm3
+        sed -i s/python/python3/ scripts/irq2nvic_h
+    - name: Build libopencm3
+      uses: docker://antoinealb/cvra-ci:latest
+      with:
+        args: bash -c "cd /github/workspace/libopencm3 && make"
+    - name: Build
+      uses: docker://antoinealb/cvra-ci:latest
+      with:
+        args: bash -c "cd /github/workspace/platform/${{ matrix.board }} && make"

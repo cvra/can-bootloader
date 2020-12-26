@@ -32,14 +32,6 @@ case $BUILD_TYPE in
         python -m unittest discover
         ;;
 
-    build)
-        pushd libopencm3
-        make
-        popd
-
-        cd platform/$PLATFORM
-        make
-        ;;
     *)
         echo "Unknown build type $BUILD_TYPE"
         exit 1

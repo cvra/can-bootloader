@@ -11,16 +11,6 @@ python get-pip.py
 pip install cvra-packager~=1.0.0
 
 case $BUILD_TYPE in
-    build)
-        pushd $HOME
-        wget https://developer.arm.com/-/media/Files/downloads/gnu-rm/8-2018q4/gcc-arm-none-eabi-8-2018-q4-major-linux.tar.bz2 -O arm-gcc-linux.tar.bz2
-        tar -xf arm-gcc-linux.tar.bz2
-
-        mv gcc-arm-none-eabi-* gcc-arm-none-eabi
-
-        popd
-        ;;
-
     tests)
         # Install cpputest
         pushd ..
