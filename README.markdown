@@ -1,5 +1,10 @@
 # Bootloader protocol
-[![Build Status](https://travis-ci.org/cvra/can-bootloader.svg?branch=master)](https://travis-ci.org/cvra/can-bootloader)
+
+![Python tests](https://github.com/cvra/can-bootloader/workflows/Python%20tests/badge.svg)
+
+![Unit tests](https://github.com/cvra/can-bootloader/workflows/Unit%20tests/badge.svg)
+
+![STM32 builds](https://github.com/cvra/can-bootloader/workflows/STM32%20builds/badge.svg)
 
 This repository contains the code used for the bootloader running on every microcontroller in our robots.
 It allows us to quickly update the firmware on all (>20) boards quickly and without disassembly or additional electrical connections.
