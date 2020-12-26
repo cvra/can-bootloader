@@ -22,24 +22,6 @@ matrix:
           env: BUILD_TYPE="tests"
         - compiler: clang
           env: BUILD_TYPE="client-tests"
-        - compiler: gcc
-          env: BUILD_TYPE="build" PLATFORM="motor-board-v1"
-        - compiler: gcc
-          env: BUILD_TYPE="build" PLATFORM="rc-board-v1"
-        - compiler: gcc
-          env: BUILD_TYPE="build" PLATFORM="olimex-e407"
-        - compiler: gcc
-          env: BUILD_TYPE="build" PLATFORM="can-io-board"
-        - compiler: gcc
-          env: BUILD_TYPE="build" PLATFORM="nucleo-board-stm32f103rb"
-        - compiler: gcc
-          env: BUILD_TYPE="build" PLATFORM="nucleo-board-stm32f334r8"
-        - compiler: gcc
-          env: BUILD_TYPE="build" PLATFORM="uwb-beacon"
-        - compiler: gcc
-          env: BUILD_TYPE="build" PLATFORM="sensor-board"
-        - compiler: gcc
-          env: BUILD_TYPE="build" PLATFORM="actuator-board"
 
 install:
     - ci/install.sh
