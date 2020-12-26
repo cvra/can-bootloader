@@ -1,0 +1,28 @@
+name: Unit tests
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: 'recursive'
+    - name: Install prerequisites
+      run: |
+        sudo apt-get update -y && sudo apt-get install -y python3-pip python3-dev python3-setuptools libcpputest-dev build-essential cmake
+        sudo pip3 install msgpack-python==0.4.8 PyYAML==3.11 cvra-packager~=1.0.0
+    - name: Run packager
+      run: |
+        cd $GITHUB_WORKSPACE
+        packager
+    - name: Build
+      run: |
+        cd $GITHUB_WORKSPACE
+        mkdir build
+        cd build
+        cmake ..
+        make
+    - name: Test
+      run: |
+        cd $GITHUB_WORKSPACE/build
+        ./tests
