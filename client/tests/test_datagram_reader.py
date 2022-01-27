@@ -1,4 +1,5 @@
 import unittest
+
 try:
     from unittest.mock import Mock
 except ImportError:
@@ -7,15 +8,17 @@ except ImportError:
 import cvra_bootloader.can
 from cvra_bootloader.utils import read_can_datagrams
 
+
 class CANDatagramReaderTestCase(unittest.TestCase):
     """
     This testcase groups all tests related to reading a datagram from the bus.
     """
+
     def test_read_can_datagram(self):
         """
         Tests reading a complete CAN datagram from the bus.
         """
-        data = 'Hello world'.encode('ascii')
+        data = "Hello world".encode("ascii")
         # Encapsulates it in a CAN datagram
         data = cvra_bootloader.can.encode_datagram(data, destinations=[1])
 
@@ -31,7 +34,7 @@ class CANDatagramReaderTestCase(unittest.TestCase):
         # Read a CAN datagram from that pseudofile
         dt, dst, src = next(reader)
 
-        self.assertEqual(dt.decode('ascii'), 'Hello world')
+        self.assertEqual(dt.decode("ascii"), "Hello world")
         self.assertEqual(dst, [1])
         self.assertEqual(src, 42)
 
@@ -39,7 +42,7 @@ class CANDatagramReaderTestCase(unittest.TestCase):
         """
         Checks that we drop extended frames
         """
-        data = 'Hello world'.encode('ascii')
+        data = "Hello world".encode("ascii")
         # Encapsulates it in a CAN datagram
         data = cvra_bootloader.can.encode_datagram(data, destinations=[1])
 
@@ -61,18 +64,16 @@ class CANDatagramReaderTestCase(unittest.TestCase):
         # Read a CAN datagram from that pseudofile
         dt, dst, src = next(reader)
 
-        self.assertEqual(dt.decode('ascii'), 'Hello world')
+        self.assertEqual(dt.decode("ascii"), "Hello world")
         self.assertEqual(dst, [1])
         self.assertEqual(src, 42)
-
-
 
     def test_read_can_interleaved_datagrams(self):
         """
         Tests reading two interleaved CAN datagrams together.
         """
 
-        data = 'Hello world'.encode('ascii')
+        data = "Hello world".encode("ascii")
 
         # Encapsulates it in a CAN datagram
         data = cvra_bootloader.can.encode_datagram(data, destinations=[1])
@@ -138,7 +139,7 @@ class CANDatagramReaderTestCase(unittest.TestCase):
         """
         Tests reading a CAN datagram after a timeout.
         """
-        data = 'Hello world'.encode('ascii')
+        data = "Hello world".encode("ascii")
         # Encapsulates it in a CAN datagram
         data = cvra_bootloader.can.encode_datagram(data, destinations=[1])
 
@@ -159,6 +160,6 @@ class CANDatagramReaderTestCase(unittest.TestCase):
         # Now try to read the real CAN datagram
         dt, dst, src = next(reader)
 
-        self.assertEqual(dt.decode('ascii'), 'Hello world')
+        self.assertEqual(dt.decode("ascii"), "Hello world")
         self.assertEqual(dst, [1])
         self.assertEqual(src, 42)

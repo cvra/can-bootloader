@@ -22,36 +22,37 @@ class ConnectionArgumentParser(argparse.ArgumentParser):
         super(ConnectionArgumentParser, self).__init__(*args, **kwargs)
 
         self.add_argument(
-            '-p',
-            '--port',
-            dest='serial_device',
-            help='Serial port to which the CAN bridge is connected to.',
-            metavar='DEVICE')
+            "-p",
+            "--port",
+            dest="serial_device",
+            help="Serial port to which the CAN bridge is connected to.",
+            metavar="DEVICE",
+        )
 
         self.add_argument(
-            '-i',
-            '--interface',
-            dest='can_interface',
+            "-i",
+            "--interface",
+            dest="can_interface",
             help="SocketCAN interface, e.g 'can0' (Linux only).",
-            metavar='INTERFACE')
+            metavar="INTERFACE",
+        )
 
         self.add_argument(
-            '--pcap',
-            help=
-            'Log CAN frames to the given file in Wireshark compatible Pcap format.',
-            type=argparse.FileType('wb'))
+            "--pcap",
+            help="Log CAN frames to the given file in Wireshark compatible Pcap format.",
+            type=argparse.FileType("wb"),
+        )
 
-        self.add_argument("--large-pages",
-                help="Specify that the device has large pages, and that it requires longer erase timeout.",
-                action="store_true")
-
+        self.add_argument(
+            "--large-pages",
+            help="Specify that the device has large pages, and that it requires longer erase timeout.",
+            action="store_true",
+        )
 
     def parse_args(self, *args, **kwargs):
-        args = super(ConnectionArgumentParser, self).parse_args(
-            *args, **kwargs)
+        args = super(ConnectionArgumentParser, self).parse_args(*args, **kwargs)
 
-        if args.serial_device is None and \
-           args.can_interface is None:
+        if args.serial_device is None and args.can_interface is None:
             self.error("You must specify one of --tcp, --port or --interface")
 
         if args.can_interface and args.serial_device:
@@ -146,7 +147,7 @@ def read_can_datagrams(fdesc):
             if frame.extended:
                 continue
 
-            src = frame.id & (0x7f)
+            src = frame.id & (0x7F)
             buf[src] += frame.data
 
             datagram = cvra_bootloader.can.decode_datagram(buf[src])
@@ -212,7 +213,8 @@ def write_command_retry(fdesc, command, destinations, source=0, retry_limit=3):
             timedout_boards = list(set(destinations) - set(answers))
             write_command(fdesc, command, timedout_boards, source)
             msg = "The following boards did not answer: {}, retrying..".format(
-                " ".join(str(t) for t in timedout_boards))
+                " ".join(str(t) for t in timedout_boards)
+            )
 
             logging.warning(msg)
             retry_count += 1

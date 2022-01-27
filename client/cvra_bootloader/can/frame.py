@@ -3,9 +3,9 @@ class Frame:
     A single CAN frame.
     """
 
-    def __init__(self, id=0, data=None, extended=False,
-                 transmission_request=False,
-                 data_length=0):
+    def __init__(
+        self, id=0, data=None, extended=False, transmission_request=False, data_length=0
+    ):
 
         if data is None:
             data = bytes()
@@ -29,11 +29,11 @@ class Frame:
 
     def __str__(self):
         if self.extended:
-            frame = '{:08X}'.format(self.id)
+            frame = "{:08X}".format(self.id)
         else:
-            frame = '{:03X}'.format(self.id)
-        frame += ' [{}]'.format(self.data_length)
+            frame = "{:03X}".format(self.id)
+        frame += " [{}]".format(self.data_length)
         if not self.transmission_request:
             for b in self.data:
-                frame += ' {:02X}'.format(int(b));
+                frame += " {:02X}".format(int(b))
         return frame

@@ -9,10 +9,11 @@ from cvra_bootloader.write_config import main
 from io import StringIO
 import sys
 
+
 class WriteConfigToolTestCase(unittest.TestCase):
-    @patch('cvra_bootloader.utils.config_update_and_save')
-    @patch('cvra_bootloader.utils.open_connection')
-    @patch('builtins.open')
+    @patch("cvra_bootloader.utils.config_update_and_save")
+    @patch("cvra_bootloader.utils.open_connection")
+    @patch("builtins.open")
     def test_integration(self, open_mock, open_conn, config_save):
         sys.argv = "test.py -c test.json -p /dev/ttyUSB0 1 2 3".split()
         config_file = '{"foo":12}'
@@ -22,11 +23,11 @@ class WriteConfigToolTestCase(unittest.TestCase):
 
         main()
 
-        open_mock.assert_any_call('test.json')
-        config_save.assert_any_call(open_conn.return_value, {'foo':12}, [1, 2, 3])
+        open_mock.assert_any_call("test.json")
+        config_save.assert_any_call(open_conn.return_value, {"foo": 12}, [1, 2, 3])
 
-    @patch('builtins.open')
-    @patch('builtins.print')
+    @patch("builtins.open")
+    @patch("builtins.print")
     def test_fails_on_ID_change(self, print_mock, open_mock):
         """
         Checks that this tool refuses to change a Node ID.
