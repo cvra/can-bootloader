@@ -4,10 +4,9 @@ import argparse
 import time
 
 from cvra_bootloader import commands
-import can
+import cvra_bootloader.can
+import cvra_bootloader.can.pcap
 import logging
-import can.adapters
-import can.pcap
 
 from collections import defaultdict
 
@@ -91,16 +90,16 @@ class PcapConnectionWrapper:
     def __init__(self, conn, pcap_file):
         self.conn = conn
         self.pcap_file = pcap_file
-        can.pcap.write_header(self.pcap_file)
+        cvra_bootloader.can.pcap.write_header(self.pcap_file)
 
     def send_frame(self, frame):
-        can.pcap.write_frame(self.pcap_file, time.time(), frame)
+        cvra_bootloader.can.pcap.write_frame(self.pcap_file, time.time(), frame)
         self.conn.send_frame(frame)
 
     def receive_frame(self):
         frame = self.conn.receive_frame()
         if frame:
-            can.pcap.write_frame(self.pcap_file, time.time(), frame)
+            cvra_bootloader.can.pcap.write_frame(self.pcap_file, time.time(), frame)
         return frame
 
 
@@ -118,10 +117,14 @@ def open_connection(args):
         timeout = 0.5
 
     if args.can_interface:
-        conn = can.adapters.SocketCANConnection(args.can_interface, read_timeout=timeout)
+        conn = cvra_bootloader.can.adapters.SocketCANConnection(
+            args.can_interface, read_timeout=timeout
+        )
     elif args.serial_device:
         port = serial.Serial(port=args.serial_device, timeout=0.1)
-        conn = can.adapters.SerialCANConnection(port, read_timeout=timeout)
+        conn = cvra_bootloader.can.adapters.SerialCANConnection(
+            port, read_timeout=timeout
+        )
 
     if args.pcap:
         conn = PcapConnectionWrapper(conn, args.pcap)
@@ -146,7 +149,7 @@ def read_can_datagrams(fdesc):
             src = frame.id & (0x7f)
             buf[src] += frame.data
 
-            datagram = can.decode_datagram(buf[src])
+            datagram = cvra_bootloader.can.decode_datagram(buf[src])
 
             if datagram is not None:
                 del buf[src]
@@ -177,8 +180,8 @@ def write_command(fdesc, command, destinations, source=0):
     """
     Writes the given encoded command to the CAN bridge.
     """
-    datagram = can.encode_datagram(command, destinations)
-    frames = can.datagram_to_frames(datagram, source)
+    datagram = cvra_bootloader.can.encode_datagram(command, destinations)
+    frames = cvra_bootloader.can.datagram_to_frames(datagram, source)
 
     for frame in frames:
         fdesc.send_frame(frame)

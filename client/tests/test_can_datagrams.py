@@ -1,15 +1,16 @@
 import unittest
 from struct import unpack_from, pack
 from zlib import crc32
-from can import *
+from cvra_bootloader.can import *
 
 try:
     import unittest.mock as mock
 except ImportError:
     import mock
 
+
 class CanDatagramTestCase(unittest.TestCase):
-    data = 'hello, world'.encode('ascii')
+    data = "hello, world".encode("ascii")
 
     def test_encode_datagram_version(self):
         """

@@ -7,8 +7,8 @@ except ImportError:
 
 import socket
 import struct
-from can.adapters import SocketCANConnection
-from can import Frame
+from cvra_bootloader.can.adapters import SocketCANConnection
+from cvra_bootloader.can import Frame
 
 # SocketCAN compatibility shims for OSX
 try:

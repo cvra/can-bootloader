@@ -1,4 +1,4 @@
-import can
+import cvra_bootloader.can
 import socket
 import struct
 import serial
@@ -40,7 +40,7 @@ class SocketCANConnection:
             return None
         can_id, can_dlc, data = struct.unpack(self.CAN_FRAME_FMT, frame)
 
-        return can.Frame(id=can_id, data=data[:can_dlc])
+        return cvra_bootloader.can.Frame(id=can_id, data=data[:can_dlc])
 
 class SerialCANConnection:
     """

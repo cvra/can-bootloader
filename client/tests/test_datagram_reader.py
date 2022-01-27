@@ -4,7 +4,7 @@ try:
 except ImportError:
     from mock import Mock
 
-import can
+import cvra_bootloader.can
 from cvra_bootloader.utils import read_can_datagrams
 
 class CANDatagramReaderTestCase(unittest.TestCase):
@@ -17,10 +17,10 @@ class CANDatagramReaderTestCase(unittest.TestCase):
         """
         data = 'Hello world'.encode('ascii')
         # Encapsulates it in a CAN datagram
-        data = can.encode_datagram(data, destinations=[1])
+        data = cvra_bootloader.can.encode_datagram(data, destinations=[1])
 
         # Slice the datagram in frames
-        frames = list(can.datagram_to_frames(data, source=42))
+        frames = list(cvra_bootloader.can.datagram_to_frames(data, source=42))
 
         # Prepares a pseudo CAN adapter
         fdesc = Mock()
@@ -41,14 +41,16 @@ class CANDatagramReaderTestCase(unittest.TestCase):
         """
         data = 'Hello world'.encode('ascii')
         # Encapsulates it in a CAN datagram
-        data = can.encode_datagram(data, destinations=[1])
+        data = cvra_bootloader.can.encode_datagram(data, destinations=[1])
 
         # Slice the datagram in frames
-        frames = list(can.datagram_to_frames(data, source=42))
+        frames = list(cvra_bootloader.can.datagram_to_frames(data, source=42))
 
         # Add an extended frame, with an annoying ID
         id = frames[0].id
-        frames = [can.Frame(extended=True, data=bytes([1, 2, 3]), id=id)] + frames
+        frames = [
+            cvra_bootloader.can.Frame(extended=True, data=bytes([1, 2, 3]), id=id)
+        ] + frames
 
         # Prepares a pseudo CAN adapter
         fdesc = Mock()
@@ -73,10 +75,12 @@ class CANDatagramReaderTestCase(unittest.TestCase):
         data = 'Hello world'.encode('ascii')
 
         # Encapsulates it in a CAN datagram
-        data = can.encode_datagram(data, destinations=[1])
+        data = cvra_bootloader.can.encode_datagram(data, destinations=[1])
 
         # Slice the datagram in frames
-        frames = [can.datagram_to_frames(data, source=i) for i in range(2)]
+        frames = [
+            cvra_bootloader.can.datagram_to_frames(data, source=i) for i in range(2)
+        ]
 
         # Interleave frames
         frames = [x for t in zip(*frames) for x in t]
@@ -101,8 +105,8 @@ class CANDatagramReaderTestCase(unittest.TestCase):
 
         for i in range(2):
             # Encapsulates it in a CAN datagram
-            dt = can.encode_datagram(bytes(), destinations=[i])
-            frames += list(can.datagram_to_frames(dt, source=1))
+            dt = cvra_bootloader.can.encode_datagram(bytes(), destinations=[i])
+            frames += list(cvra_bootloader.can.datagram_to_frames(dt, source=1))
 
         # Prepares a pseudo CAN adapter
         fdesc = Mock()
@@ -136,10 +140,10 @@ class CANDatagramReaderTestCase(unittest.TestCase):
         """
         data = 'Hello world'.encode('ascii')
         # Encapsulates it in a CAN datagram
-        data = can.encode_datagram(data, destinations=[1])
+        data = cvra_bootloader.can.encode_datagram(data, destinations=[1])
 
         # Slice the datagram in frames
-        frames = list(can.datagram_to_frames(data, source=42))
+        frames = list(cvra_bootloader.can.datagram_to_frames(data, source=42))
 
         fdesc = Mock()
 

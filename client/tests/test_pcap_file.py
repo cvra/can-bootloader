@@ -1,12 +1,12 @@
 import unittest
 import io
 import struct
-from can.frame import Frame
-from can.pcap import *
+from cvra_bootloader.can.frame import Frame
+from cvra_bootloader.can.pcap import *
 from socket import ntohl
 
 # needed to expose private api
-from can.pcap import _write_packet_header
+from cvra_bootloader.can.pcap import _write_packet_header
 
 
 class PCAPTest(unittest.TestCase):

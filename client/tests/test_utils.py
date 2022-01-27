@@ -45,8 +45,8 @@ class WriteCommandTestCase(unittest.TestCase):
         # Prepares data
         data = bytes(range(3))
         dst = [1, 2]
-        datagram = can.encode_datagram(data, dst)
-        frames = list(can.datagram_to_frames(datagram, 0))
+        datagram = cvra_bootloader.can.encode_datagram(data, dst)
+        frames = list(cvra_bootloader.can.datagram_to_frames(datagram, 0))
 
         fdesc = Mock()
 
@@ -118,7 +118,7 @@ class PCAPWrapperTestCase(unittest.TestCase):
         """
         Checks that a pcap frame was logged and the frame was forwarded.
         """
-        f = can.Frame(0, "hello".encode())
+        f = cvra_bootloader.can.Frame(0, "hello".encode())
         self.conn.send_frame(f)
 
         # The frame should have been sent and logged to the file
@@ -129,7 +129,7 @@ class PCAPWrapperTestCase(unittest.TestCase):
         """
         Checks that we can still receive frame and log them to the disk.
         """
-        f = can.Frame(0, "hello".encode())
+        f = cvra_bootloader.can.Frame(0, "hello".encode())
         self.underlying_conn.receive_frame.return_value = f
 
         self.assertEqual(f, self.conn.receive_frame())
@@ -156,7 +156,7 @@ class OpenConnectionTestCase(unittest.TestCase):
             pcap=pcap,
             large_pages=large_pages)
 
-    @patch('can.adapters.SocketCANConnection', autospec=True)
+    @patch("cvra_bootloader.can.adapters.SocketCANConnection", autospec=True)
     def test_open_can_interface(self, create_socket):
         """
         Check that we can open a socket CAN adapter.
@@ -166,7 +166,7 @@ class OpenConnectionTestCase(unittest.TestCase):
         create_socket.assert_any_call('can0', read_timeout=ANY)
         self.assertEqual(conn, create_socket.return_value)
 
-    @patch('can.adapters.SocketCANConnection', autospec=True)
+    @patch("cvra_bootloader.can.adapters.SocketCANConnection", autospec=True)
     def test_pcap_wrapper(self, create_socket):
         """
         Check that we can open a socket CAN adapter.
