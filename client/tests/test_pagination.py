@@ -1,6 +1,7 @@
 import unittest
 from cvra_bootloader.page import *
 
+
 class PaginationTestCase(unittest.TestCase):
     def test_smaller_than_page_is_yielded(self):
         """
@@ -22,4 +23,3 @@ class PaginationTestCase(unittest.TestCase):
         self.assertEqual(next(p), bytes(range(8, 12)))
         self.assertEqual(next(p), bytes(range(12, 16)))
         self.assertEqual(next(p), bytes([16]))
-

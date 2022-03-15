@@ -2,10 +2,12 @@ import unittest
 from cvra_bootloader.commands import *
 from msgpack import Unpacker
 
+
 class ProtocolVersionTestCase(unittest.TestCase):
     """
     This testcase checks that the command set version is correctly handled.
     """
+
     def test_has_correct_protocol_version(self):
         """
         Checks that the command encoding function works corectly.
@@ -18,6 +20,7 @@ class ProtocolVersionTestCase(unittest.TestCase):
         version, *_ = list(unpacker)
         self.assertEqual(2, version)
 
+
 class WriteCommandTestCase(unittest.TestCase):
     """
     This testcase checks if the command used to write to a page functions correctly.
@@ -26,7 +29,7 @@ class WriteCommandTestCase(unittest.TestCase):
     """
 
     def setUp(self):
-        address = 0xdeadbeef
+        address = 0xDEADBEEF
         data = bytes(range(4))
         device = "dummy"
 
@@ -49,13 +52,13 @@ class WriteCommandTestCase(unittest.TestCase):
         Checks that the address is put at the correct place in the command.
         """
         address = self.command[1][0]
-        self.assertEqual(0xdeadbeef, address)
+        self.assertEqual(0xDEADBEEF, address)
 
     def test_device_class(self):
         """
         Checks that the third element of the command is the device class.
         """
-        device = self.command[1][1].decode('ascii')
+        device = self.command[1][1].decode("ascii")
         self.assertEqual("dummy", device)
 
     def test_device_data(self):
@@ -72,7 +75,7 @@ class WriteCommandTestCase(unittest.TestCase):
         raw_packet = encode_write_flash(bytes([12]), address=1, device_class="dummy")
 
         # 0xc4 is binary type marker
-        self.assertEqual(raw_packet[-3], 0xc4)
+        self.assertEqual(raw_packet[-3], 0xC4)
 
         # 1 is length
         self.assertEqual(raw_packet[-2], 1)
@@ -80,12 +83,14 @@ class WriteCommandTestCase(unittest.TestCase):
         # Finally data
         self.assertEqual(raw_packet[-1], 12)
 
+
 class EraseCommandTestCase(unittest.TestCase):
     """
     Tests for the erase flash page command.
     """
+
     def setUp(self):
-        address = 0xfa1afe1
+        address = 0xFA1AFE1
         device = "LivewareProblem"
 
         raw_packet = encode_erase_flash_page(address, device)
@@ -104,18 +109,20 @@ class EraseCommandTestCase(unittest.TestCase):
         """
         Checks that the page addres is correct.
         """
-        self.assertEqual(self.command[1][0], 0xfa1afe1)
+        self.assertEqual(self.command[1][0], 0xFA1AFE1)
 
     def test_erase_command_device(self):
         """
         Checks that the device name is correct.
         """
-        self.assertEqual(self.command[1][1].decode('ascii'), "LivewareProblem")
+        self.assertEqual(self.command[1][1].decode("ascii"), "LivewareProblem")
+
 
 class JumpToApplicationMainTestCase(unittest.TestCase):
     """
     Tests for the jump to application main command.
     """
+
     def setUp(self):
         raw_packet = encode_jump_to_main()
         unpacker = Unpacker()
@@ -127,6 +134,7 @@ class JumpToApplicationMainTestCase(unittest.TestCase):
         Checks that the index for the command is correct.
         """
         self.assertEqual(self.command[0], CommandType.JumpToMain)
+
 
 class PingTestCase(unittest.TestCase):
     """
@@ -141,4 +149,3 @@ class PingTestCase(unittest.TestCase):
 
     def test_ping(self):
         self.assertEqual(self.command[0], 5)
-

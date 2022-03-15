@@ -8,13 +8,15 @@ def parse_commandline_args():
     """
     Parses the program commandline arguments.
     """
-    DESCRIPTION = 'Read board configs and dumps to JSON'
+    DESCRIPTION = "Read board configs and dumps to JSON"
     parser = utils.ConnectionArgumentParser(description=DESCRIPTION)
-    parser.add_argument("ids", metavar='DEVICEID', nargs='*', type=int,
-                        help="Device IDs to query")
+    parser.add_argument(
+        "ids", metavar="DEVICEID", nargs="*", type=int, help="Device IDs to query"
+    )
 
-    parser.add_argument('-a', '--all', help="Try to scan the whole bus.",
-                        action='store_true')
+    parser.add_argument(
+        "-a", "--all", help="Try to scan the whole bus.", action="store_true"
+    )
 
     return parser.parse_args()
 
@@ -32,7 +34,7 @@ def main():
         while True:
             dt = next(reader)
 
-            if dt is None: # Timeout
+            if dt is None:  # Timeout
                 break
 
             _, _, src = dt
@@ -42,14 +44,15 @@ def main():
         scan_queue = args.ids
 
     # Broadcast ask for config
-    configs = utils.write_command_retry(connection,
-                                        commands.encode_read_config(),
-                                        scan_queue)
+    configs = utils.write_command_retry(
+        connection, commands.encode_read_config(), scan_queue
+    )
 
     for id, raw_config in configs.items():
-        configs[id] = msgpack.unpackb(raw_config, encoding='ascii')
+        configs[id] = msgpack.unpackb(raw_config, encoding="ascii")
 
     print(json.dumps(configs, indent=4, sort_keys=True))
+
 
 if __name__ == "__main__":
     main()
